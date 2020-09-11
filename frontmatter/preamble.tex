@@ -61,16 +61,19 @@
 
 \usepackage[backend=biber,articletitle=true,style=chem-rsc,doi=false]{biblatex}
 
-
-%-------------------- Hyperlinks in your document.
+% The hyperref package allows you to have clickable links in your pdf. It also allows you to have the mailto link associated with your name. It can be  a bit finicky, so load it last.
 \usepackage{hyperref}
 \hypersetup{
 	colorlinks   = true,
-	allcolors    = blue
+	allcolors    = black
 }
-% The hyperref package allows you to have clickable links in your pdf. It also allows you to have the mailto link associated with your name. It can be  a bit finicky, so load it last.
 
-%-------------------- Command renewals, New commands etc.
+% Command renewals, New commands etc.
 \renewcommand{\thefootnote}{\arabic{footnote}}
 
-%-------------------- Add your own packages here
+% More packages
+\usepackage{tabularx}
+\usepackage{xltabular}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}

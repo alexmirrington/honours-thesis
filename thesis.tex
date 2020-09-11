@@ -1,25 +1,24 @@
-%------------------------ Preamble and bibliography resources
+% Preamble and bibliography resources
 \documentclass[12pt,oneside]{book}
 \input{frontmatter/preamble} 
-\usepackage{style/title}[PhD]
+\usepackage{style/title}[honours]
 
-%\makenomenclature
+% \makenomenclature
+\addbibresource{references.bib}
 
-% Add your bibtex file here
-%\addbibresource{library.bib}
 
-%------------------------ Main Document --------------------------
+% Main Document 
 \begin{document}
 	
-	%-------------- Information For The Title Page
-	\title{A cool sounding title goes here}
-	\author{Mr. Author}
-	\date{2018} 
-	\degree{Doctor of Philosophy (PhD)} 
-	\supervisor[1]{Dr. Doctor} % For multiple supervisors, \supervisor[2]{Supervisor 1 & 2}
-	\school{Physics}
+	% Information For The Title Page
+	\title{Visual Question Answering}
+	\author{Alexander Mirrington}
+	\date{\today} 
+	\degree{Bachelor of Information Technology (Honours)} 
+	\supervisor[2]{Dr. Caren Han \\ Dr. Josiah Poon}
+	\school{Computer Science}
 	
-	%-------------- Front Matter
+	% Front Matter
 	\frontmatter
 	\maketitle
 	\declaration
@@ -27,7 +26,7 @@
 	\include{frontmatter/abstract}
 	\include{frontmatter/acknowledgments}
 	
-	%-------------- Table of contents
+	% Table of contents
 	\cleardoublepage
 	\phantomsection \pdfbookmark[0]{Contents}{Contents} 
 	\tableofcontents
@@ -36,23 +35,27 @@
 	\addcontentsline{toc}{chapter}{\listtablename}
 	\listoftables
 	
-	%\include{frontmatter/nomenclature}
-	%\printnomenclature
+	% \include{frontmatter/nomenclature}
+	% \printnomenclature
 	
-	%-------------- Chapters
+	% Chapters
 	\cleardoublepage
 	\mainmatter
-	\include{chapters/chapter1}
-	\include{chapters/chapter2}
-	
-	%-------------- Appendices
+	\include{chapters/introduction}
+	\include{chapters/literature}
+	\include{chapters/methodology}
+	\include{chapters/results}
+	\include{chapters/discussion}
+	\include{chapters/conclusion}
+
+	% Appendices
 	\cleardoublepage
 	\appendix
 	\include{appendices/appendix1}
 	
-	%-------------- Bibliography
+	% Bibliography
 	\cleardoublepage
-	\phantomsection  
+	\phantomsection
 	\addcontentsline{toc}{chapter}{Bibliography}              
 	\printbibliography
 	
