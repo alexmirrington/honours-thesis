@@ -4,10 +4,10 @@
 \pdfpagewidth=\paperwidth 
 \pdfpageheight=\paperheight
 
-%\usepackage[parfill]{parskip} 
+\usepackage[parfill]{parskip} 
 % Activate to begin paragraphs with an empty (return) line, comment out the indent below if you chose the return line option.
 
-\setlength{\parindent}{1em}  % Sets the length of the paragraph indent. Current setup has a an indent. Disable this if you activate the return line above.
+% \setlength{\parindent}{1em}  % Sets the length of the paragraph indent. Current setup has a an indent. Disable this if you activate the return line above.
 
 % Double or one and a half spacing.
 %\usepackage{setspace}
@@ -15,8 +15,8 @@
 
   
 \usepackage{graphicx}
-  \DeclareGraphicsRule{.tif}{png}{.jpg}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
- \graphicspath{{figures/}}
+\DeclareGraphicsRule{.tif}{png}{.jpg}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\graphicspath{{figures/}}
 % Graphics. Remove me and you won't have any figures, and that would be very boring.
 
 %\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
@@ -77,3 +77,5 @@
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+\usepackage{float}

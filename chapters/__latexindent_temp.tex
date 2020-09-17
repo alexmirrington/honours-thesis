@@ -1,0 +1,387 @@
+\chapter{Literature Review}
+
+In recent years, deep learning models are being used more and more frequently for a large variety of tasks; convolutional neural networks have proved to be effective for a wide variety of image-based tasks such as classification and generation. Moreover, recurrent neural networks are widely used for language-based tasks over more traditional rule-based and probabilistic approaches due to their ability to capture contextual information. Multi-modal learning tasks have been growing in popularity among the deep learning community, as researchers search for more complex problems to solve; visual reasoning tasks such as image captioning, visual question answering and visual relationship detection require an ability to understand and reason about both graphical and textual data. However, the research challenge of visual reasoning tasks is second to their potential applications; visual question answering models could be used to aid the visually impaired in clarifying and understanding visual information when combined with speech-to-text systems. In addition, information retrieval systems would also reap the benefits of image captioning research contributions, as dense amounts of image metadata could be generated to improve search results.
+
+\subsection*{Research Direction}
+\addcontentsline{toc}{subsection}{Research Direction}
+
+Given the research challenge and practical applications of the visual question answering (VQA) task, I believe it is a great candidate for my own research. Over the last few years, the deep learning and natural language processing communities have realised a variety of VQA models, and new VQA datasets have been created over time to accommodate for both the increasing capabilities VQA models, and the shortcomings of existing VQA datasets that models have learned to exploit. In this literature review, I delve into both the methods used to generate some of the most popular VQA datasets as well as the image and question representations used by numerous state-of-the-art models, with the aim of emphasising the importance of graph structures for visual reasoning tasks; the more recent, challenging VQA datasets such as CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa} leverage graph structures grounded in images for the generation of questions, suggesting that models could leverage graph structures in the question answering process. Many state-of-the-art models \cite{hudson2018compositional} still rely on CNN features and traditional word embeddings as data inputs, or at best, leverage image scene graphs to aid the learning process. I propose that by mapping both images and questions to interpretable graph structures that adequately capture the relationships between objects and concepts present in the input data, VQA models will be able to focus on the reasoning steps required to solve the problem rather than trying to identify object relationships and learn valid reasoning processes simultaneously.
+
+\pagebreak
+
+\subsection*{Visual Question Answering Datasets}
+\addcontentsline{toc}{subsection}{Visual Question Answering Datasets}
+
+The methods used to generate VQA datasets are as useful in understanding the relationship between images and questions as VQA models themselves; as an example, it is much easier to generate questions instead of images, the images for many VQA datasets have been drawn from existing image datasets such as COCO \cite{lin2014microsoft}, and questions have been generated using a variety of methods including crowd-sourcing, question templates, functional programs and scene graphs. By analysing the question generation process, it is possible to gain insights into how graphical and textual data is related in a question-answering context, and use this knowledge to analyse the effectiveness of the ways in which image and question data is processed for use by various VQA models. An overview of the most popular VQA datasets and their generation methods is provided in Table \ref{tab:dataset_comparison}, followed by a detailed deconstruction of the methods used and challenges addressed by their respective creators and how they relate to the interplay of images and text in visual reasoning tasks.
+
+% DAQUAR, COCO-QA, FM-IQA, The VQA Dataset, Visual7W, Visual Genome
+% \textbf{VQA 1.0} \cite{antol2015vqa} (December 2015)
+% \textbf{Visual Genome} \cite{krishna2017visual} (Received February 2016, Published February 2017)
+% \textbf{Visual7W} \cite{zhu2016visual7w} (June 2016)
+% \textbf{VQA 2.0} \cite{goyal2017making, zhang2016yin} (July 2017)
+% \textbf{CLEVR} \cite{johnson2017clevr} (July 2017)
+% \textbf{TDIUC} \cite{kafle2017analysis} (October 2017)
+% \textbf{GQA} \cite{hudson2019gqa} (June 2019)
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{0.15\linewidth}|c|p{0.1\linewidth}|p{0.1\linewidth}|p{0.4\linewidth}|}
+        \hline
+        \textbf{Dataset}                            & \textbf{Images} & \textbf{Questions} & \textbf{Answer Type} & \textbf{Creation Processes} \\
+        \hline
+        \textbf{VQA 1.0} \cite{antol2015vqa}                  & 204K$^\dagger$ & 0.61M & Open-ended, multiple choice & Real images were drawn from COCO \cite{lin2014microsoft}, and abstract scenes were created using clip-art objects \cite{zitnick2013bringing}. Questions and answers were collected using an Amazon Mechanical Turk (AMT) interface.\\
+        \textbf{Visual Genome (VG)} \cite{krishna2017visual}      & 108K & 1.7M & Open-ended & Images from the intersection of COCO \cite{lin2014microsoft} and YFCC100M \cite{thomee2016yfcc100m}. Questions, answers and scene graphs were collected using an AMT interface.\\
+        \textbf{Visual7W} \cite{zhu2016visual7w}             & 47K & 0.32M & Multiple choice & Images are a subset of the Visual Genome dataset. Questions, answers and object-level groundings were collected using an AMT interface.\\
+        \textbf{VQA 2.0} \cite{goyal2017making, zhang2016yin} & 204K$^\dagger$ & 1.6M & Open-ended, multiple choice & Built on top of VQA 1.0, new (image, question, answer) tuples were created from existing tuples by asking AMT workers to choose an image from 24 nearest neighbours of the existing tuple's image such that the answer to the new image is not the answer to the existing image for the same question.\\
+        \textbf{CLEVR} \cite{johnson2017clevr}               & 100K & 0.85M Unique & Open-ended & Images were generated randomly from a scene graph containing objects, attributes and relations between geometric objects. Questions and answers were generated from functional program templates evaluated on the scene graph for a given image. Scene graphs and functional programs were retained and are included for the training and validation sets.\\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{0.15\linewidth}|c|p{0.1\linewidth}|p{0.1\linewidth}|p{0.4\linewidth}|}
+        \hline
+        \textbf{TDIUC} \cite{kafle2017analysis}              & 167K & 1.6M & Open-ended & Questions were collected from COCO-QA and VG, generated from COCO and VG segmentation and object/attribute annotations respectively, or created by human volunteers. Images from COCO and VG were used if associated with a question. \\
+        \textbf{GQA} \cite{hudson2019gqa}                    & 113K & ~22M Full, 1.7M Balanced & Open Ended, with a vocabulary of 3097 words and 1878 unique answers. & Scene graphs were created using various preprocessing techniques from VG scene graphs. Questions were produced compositionally from combinations of templates derived from VQA 2.0 and manually-created templates, using scene graph traversals to fill in subjects, objects, relations and attributes, whilst simultaneously filling in the functional program templates associated with the question types. An additional balancing helped mitigate statistical priors that are often exploited by models, whilst maintaining real-world priors.\\
+        \hline
+    \end{tabular}
+    \caption{A comparison of relevant features of the most popular VQA datasets. Datasets are listed in chronological order from top to bottom. $^\dagger$Real-image dataset only.}
+    \label{tab:dataset_comparison}
+\end{table}
+
+
+
+\subsubsection*{Early Work} 
+\addcontentsline{toc}{subsubsection}{Early Work}
+
+Given the recent rise in popularity of Visual Question Answering tasks, \citeauthor{antol2015vqa} recognised a need for a new, sufficiently large dataset that contained free-form, open-ended questions that still allowed results to be quantified; this need was realised by two datasets: an open-ended dataset derived from COCO \cite{lin2014microsoft}, as well as a smaller synthetic dataset with similarly created questions.\cite{antol2015vqa} The key contributions of these datasets were two-fold:
+
+\begin{enumerate}
+    \item The real-world image dataset provided the first feasible dataset for benchmarking VQA models, thanks to its large size compared to existing VQA datasets like DAQUAR \cite{malinowski2014multiworld} and COCO-QA \cite{ren2015exploring}. Whilst smaller, the synthetic dataset allowed researchers to investigate the underlying theory behind visual reasoning without focusing on the difficult task of extracting features from images.
+    \item Both datasets employed a new open-ended accuracy metric that rewarded models for feasible answers based on answer distributions generated from human answers to questions; an answer is considered ``100\% accurate if at least 3 workers provided that exact answer.'' \citeauthor{antol2015vqa}. Whilst not a perfect metric due to the coarseness of the collected human answer distributions, the authors justify that metrics such as BLEU and ROUGE from other NLP tasks are not suited to the dataset, and thus promote the importance of further research into new metrics for VQA tasks.
+\end{enumerate}
+
+\pagebreak
+
+\subsubsection*{Mitigating the Exploitation of Language Priors} 
+\addcontentsline{toc}{subsubsection}{Mitigating Language Priors}
+
+Despite VQA 1.0's strengths, the authors identify the first main hurdle for VQA datasets, highlighting that if left to their own devices, VQA models will exploit statistical priors present in textual information. They describe how language-only methods perform surprisingly well compared to models that harness both question and image features, noting that a simple ``per-question type prior'' model achieves 71.03\% and 35.77\% on binary and numeric questions, and an LSTM with only question word embeddings performs similarly at 78.20\% and 35.68\%  \cite{antol2015vqa}. Further studies \cite{goyal2017making, zhang2016yin} reinforce these observations, highlighting the skewed answer distributions of both the real-world and synthetic VQA datasets, demonstrating that models could leverage language priors to effectively answer some types of questions without requiring any knowledge of associated images. \citeauthor{zhang2016yin} focus on the imbalance in the answer distribution of binary questions in the VQA dataset, pointing out that `yes' is the answer to 68\% of all binary questions in the abstract scenes dataset. Furthermore, they propose a potential solution that allows the answer distribution of binary questions in the existing abstract scenes dataset to be balanced: for each (image, question) pair, humans were tasked with the creation of a new scene using existing clip-art objects \cite{zitnick2013bringing} that was similar to the existing image, but had a negated answer on the same question, as shown in Figure \ref{fig:zhang2016yin_balancing_procedure} below.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.35\textwidth]{zhang2016yin_balancing_procedure.png}
+    \caption{\citeauthor{zhang2016yin} demonstrate their answer distribution balancing technique. Given the scene on the left and the question ``Is the girl walking the bike'', workers were tasked with creating a scene that differs from the scene on the left but has the opposite answer to the question, as illustrated by the scene and answer on the right.}
+    \label{fig:zhang2016yin_balancing_procedure}
+\end{figure}
+
+Despite this method's success in reducing the proportion of unbalanced (image, question) pairs by almost 72\%, 20.48\% (image, question) pairs in the balanced dataset did not have a complementary (image, question) pair; 5.93\% because a complementary scene could not be created due to limitations of the abstract scenes clip-art library, and 14.55\% due to disagreement between the answers collected by workers for a given scene. A similar approach was used for non-binary questions in the creation of the VQA 2.0 dataset, as summarised in Table \ref{tab:dataset_comparison} above. \citeauthor{hudson2019gqa} approach the task of dataset balancing from a different angle, aiming to mitigate biases in the answer distributions of the GQA dataset whilst maintaining some degree of representation of real-world priors.
+
+\vspace{\baselineskip}
+
+Whilst it is certainly important that dataset creators mitigate biases in their work, it is also the responsibility of VQA model authors to ensure that the ways in which image and question data is fed to their models is also able to be justified; many models,  incorporate BiLSTMs \cite{hudson2018compositional} or LSTMs \cite{andreas2016neural} to obtain question-level representations, however by processing the input data in this manner, it becomes difficult to determine the extent to which the reasoning part of the model is exploiting probabilistic priors in the dataset. By embedding and processing the question as a graph, interpretability studies can be performed on the model to ensure the reasoning part of the model performs as intended.
+
+\subsection*{Approaches and Architectures}
+\addcontentsline{toc}{subsection}{Approaches and Architectures}
+
+It has been observed that the architectures that leverage additional information such as scene graphs rather than just raw image features tend to perform better. This is clearly illustrated by \citeauthor{hudson2019gqa_arxiv} in Figure \ref{fig:gqa_input_representation} below:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{gqa_input_representation.png}
+    \caption{\citeauthor{hudson2019gqa_arxiv} illustrate the effect of various forms of input embeddings, noting that accuracy of the trained MAC network \cite{hudson2018compositional} increases drastically with the semantic richness of the embedding.}
+    \label{fig:gqa_input_representation}
+\end{figure}
+
+\citeauthor{hudson2018compositional} rightly point out that scene graphs cannot always be relied on as a supervisory data source, however with the rise of new scene graph generation models, scene graphs can be generated automatically from images. Since these graphs no longer have to be created through labour-intensive means as seen in the Visual Genome dataset, the use of scene graphs as an image embedding is more feasible, as they can be created quickly for any input image.
+
+\vspace{\baselineskip}
+
+Despite this, very few (if any) models are effectively using similar graph embeddings for question data. By embedding this data similarly to the image, it becomes possible to perform reasoning steps about the image based on the question and vice versa. Commonly used image and quesion embeddings include:
+
+\subsubsection*{Image Representations}
+\addcontentsline{toc}{subsubsection}{Image Representations}
+
+\begin{itemize}
+    \item CNN features
+    \item Image object features and annotations
+    \item Scene Graphs
+\end{itemize}
+
+\subsubsection*{Question Representations}
+\addcontentsline{toc}{subsubsection}{Question Representations}
+
+\begin{itemize}
+    \item Traditional word embeddings e.g. word2vec, GloVe
+    \item Recurrent neural network embeddings, e.g. LSTM, GRU and their bidirectional counterparts. 
+    \item Dependency-based word embeddings \cite{levy2014dependency}
+    \item Functional Programs
+\end{itemize}
+
+\subsubsection*{Combined Question and Image Representations}
+\addcontentsline{toc}{subsubsection}{Combined Question and Image Representations}
+
+\begin{itemize}
+    \item Question-Image co-attention \cite{lu2016hierarchical}
+    \item Bilinear models e.g. BLOCK Fusion \cite{ben2019block}
+\end{itemize}
+
+
+\subsubsection*{Module Networks}
+\addcontentsline{toc}{subsubsection}{Module Networks}
+
+Whilst deep neural networks have proved useful for many classification tasks due to their inherent ability to extract correlations between input and output, they are difficult to interpret and struggle to perform complex reasoning tasks. In order to increase interpretability and coerce deep learning models to perform more structured reasoning steps, \citeauthor{andreas2016neural} proposed the creation of multiple network `modules', each capable of performing a specific reasoning step, similar to each component of the functional programs found in the CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa} datasets.
+
+\vspace{\baselineskip}
+
+Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \cite{antol2015vqa} of 58.7\%, the per-question-type statistics report only a 2.5\% and 1.4\% performance improvement over a LSTM language-only baseline on binary and numerical questions despite the 16\% improvement on `other'-type questions. This suggests that the success of the model is likely clouded by statistical biases in the dataset, evidenced by the use of a text-only model in the ensemble shown in Figure \ref{fig:andreas2016neural_neural_module_network}. As discussed by \citeauthor{hudson2018compositional}, the model depends on unreliable parsers and their ``hand-crafted'' design lacks extensibility. Moreover, attention maps on raw CNN features are used as the primary form of image data input. Whilst supplementary information like scene graphs and object annotations were not available at the time of writing, these data formats would allow for additional interactions and data transfer between modules, likely improving the network's ability to perform logical reasoning processes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{module_network.png}
+    \caption{\citeauthor{andreas2016neural} propose the Neural Module Network, in which reasoning operations are strung together based on parser outputs and use combinations and transformations of attention maps on image features to predict a final answer to the question.}
+    \label{fig:andreas2016neural_neural_module_network}
+\end{figure}
+
+\citeauthor{andreas2016learning} improve upon their earlier work with a more robust method for generating compositional module layouts from questions, combining LSTM embeddings of the question with representations of candidate module layouts to select a module layout using a reinforcement learning approach. This model sees only a slight improvement over their previous iteration, however provides a novel framework for a variety of graph-based reasoning tasks; the scene graphs and functional programs in CLEVR and GQA are strong supervisory training data for such models, and recent scene graph generation techniques \cite{yang2018graph} would prove useful in generalising models to images that have not been previously annotated.
+
+% \subsubsection*{Attention Mechanisms}
+% \addcontentsline{toc}{subsubsection}{Attention Mechanisms}
+
+% Attention mechanisms have gained traction in the research community recently, with the rise of non-recurrent models like the Transformer \cite{vaswani2017attention}, and pre-trained models like BERT \cite{devlin2018bert}. Many have realised their potential for multi-modal reasoning tasks, using a variety of attention-based mechanisms to aid reasoning processes.
+
+% \vspace{\baselineskip}
+
+% \citeauthor{hudson2018compositional} leverage the power of self-attention in their Memory-Attention-Composition cell, heavily inspired by recurrent architectures like LSTMs and GRUs. Aiming to shift the focus of VQA models from 
+% Bottom-Up and Top-Down:
+
+% MAC: Good, interpretable, but uses BiLSTM for embedding and raw spatial features. What about scene graphs and dependency-based embeddings? (BLOCK-MAC)
+
+% DMCN: 
+
+% DFAF:
+
+% DCAF:
+
+% Hierarchical Question-Image Co-Attention for Visual Question Answering
+
+% - BLOCK:
+%   - More efficient than simple bilinear models
+%   - Fewer trainable parameters than other fusion techniques, yet outperforms six novel fusion methods.
+%   - Not interpretable
+  
+% - MAC:
+%   - Interpretable
+%   - Does not use scene graphs or functional programs for supervision, however show a drastic improvement
+
+% \subsubsection*{Multi-Modal Fusion}
+% \addcontentsline{toc}{subsubsection}{Multi-Modal Fusion}
+
+% BLOCK Superdiagonal Fusion: Performs decently in terms of VQA metrics, and performs much better than raw bilinear models, however is not interpretable.
+
+% BAN: TODO
+
+\section{Visual Question Answering Datasets}
+
+\begin{center}
+\begin{xltabular}{\textwidth}{LLLLLLLLL}
+  \toprule
+  \textbf{Dataset}
+  & \textbf{Year}
+  & \textbf{Image Count}
+  & \textbf{Question Count}
+  & \textbf{Image Source}
+  & \textbf{Question Source}
+  & \textbf{Answer Type}
+  % & \textbf{Answer Vocabulary}
+  & \textbf{Additional Data}
+  & \textbf{Evaluation Metrics}\\
+  \midrule
+  \textbf{DAQUAR} \cite{malinowski2014multiworld}
+  & 2014
+  & 1K  % 1449 images
+  & 12K  % 12,468 questions
+  & NYU-Depth V2 \cite{silberman2012indoor}
+  & Both
+  & Multi-label  % 37 classes for Reduced DAQUAR
+  % & 894 classes
+  & -
+  & Accuracy, WUPS \\
+  \textbf{Visual Madlibs} \cite{yu2015visual}
+  & 2015
+  & 10K  % 10,738 images  % Filtered hard task?
+  & 360K  % 360,001 descriptions
+  & COCO \cite{lin2014microsoft}
+  & Human
+  & Fill in the blank open-ended \& multi-choice
+  % & -
+  & -
+  & Accuracy, BLEU \\
+  \textbf{COCO-QA}
+  & -
+  & -
+  & -
+  & COCO
+  & -
+  & -
+  % & -
+  & -
+  & Accuracy, BLEU \\
+  \textbf{VQAv1} \cite{antol2015vqa}
+  & 2015
+  & 204K  % 204,721 images
+  & 614K  % 614,163 questions % 6,141,630 ground truth answers % 1,842,489 plausible answers
+  & COCO
+  & Human
+  & Open-ended, Multi-choice
+  % & {\color{red}- words}, 18 classes
+  & COCO image captions
+  & Accuracy\footnotemark \\
+  Abstract Scenes
+  & 2015
+  & 50K  % 50,000 abstract scenes
+  & 150K  % 150,000 questions % 1,500,000 ground truth answers % 450,000 plausible answers % 250,000 captions
+  & Clip art, 2D
+  & Human
+  & Open-ended, Multi-choice
+  % & {\color{red}- words}, 18 classes
+  & Image captions
+  & Accuracy\footnotemark[\value{footnote}] \\
+  Changing Priors (CP) \cite{agrawal2018dont}
+  & 2018
+  & {\color{red}\(\approx\)204K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
+  & {\color{red}\(\approx\)370K}  % Exact unkown, ~ 3.8M answers
+  & COCO
+  & Human
+  & Open-ended
+  % & {\color{red}- words, - classes}
+  & See VQAv1
+  & Accuracy\footnotemark[\value{footnote}] \\
+  Compositional VQA (C-VQA) \cite{agrawal2017cvqa}
+  & 2017
+  & 204K  % Some images repeated in train and test
+  & 369K  % 369,861 questions, 3,698,610 answers
+  & COCO
+  & Human
+  & Open-ended
+  % & -
+  & See VQAv1
+  & Accuracy\footnotemark[\value{footnote}] \\
+  \textbf{VQAv2} \cite{goyal2017making}
+  & 2017
+  & 204K  % 204,721 images
+  & 1.1M  % 1,105,904 questions % 11,059,040 ground truth answers
+  & COCO
+  & Human
+  & Open-ended
+  % & {\color{red}- words}
+  & COCO image captions, Complementary image pairs
+  & Accuracy\footnotemark[\value{footnote}] \\
+  Balanced Binary Abstract Scenes \cite{zhang2016yin}
+  & 2016-17
+  & 31K % 31,325 abstract scenes
+  & 33K % 33,383 questions % 333,830 ground truth answers
+  & Clip art, 2D
+  & Human
+  & Multiple choice
+  % & `yes', `no'
+  & Image captions
+  & Accuracy\footnotemark[\value{footnote}] \\
+  Changing Priors (CP) \cite{agrawal2018dont}
+  & 2018
+  & {\color{red}\(\approx\)219K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
+  & {\color{red}\(\approx\)658K}  % Exact unkown, ~ 6.6M Answers
+  & COCO
+  & Human
+  & Open-ended
+  % & {\color{red}- words}
+  & See VQAv2
+  & Accuracy\footnotemark[\value{footnote}] \\
+  \textbf{Visual Genome} \cite{krishna2017visual}
+  & 2016
+  & 108K  % 108,077 images
+  & 1.7M  % 1,773,258 questions and answers
+  & COCO, YFCC100M \cite{thomee2016yfcc100m}
+  & Human
+  & Open-ended
+  % & -
+  & COCO annotations, Region descriptions, Scene graphs
+  & Accuracy \\
+  \textbf{Visual7W} \cite{zhu2016visual7w}
+  & 2016
+  & 47K % 47,300
+  & 327K % 327,939
+  & COCO
+  & Human
+  & -
+  % & -
+  & - % MC?
+  & - \\
+  \textbf{TDIUC} \cite{kafle2017analysis}
+  & 2017
+  & 167K % 167,437 images
+  & 1.6M % 1,654,167 questions
+  & COCO, Visual Genome
+  & Both
+  & Open-ended
+  % & -
+  & -
+  & Per-question-type accuracy, regular \& normalised arithmetic \& harmonic mean accuracy\\
+  \textbf{CLEVR} \cite{johnson2017clevr}
+  & 2017
+  & 100K  % 100,000 images
+  & 999K  % 999,968 questions
+  & Computer-generated, 3D
+  & Generated
+  & Open-ended
+  % & -
+  & Functional programs, Scene graphs
+  & Accuracy \\
+  CoGenT-A \& B
+  & 2017
+  & 100K
+  & 999K
+  & Computer-generated, 3D 
+  & Generated
+  & Open-ended
+  % & -
+  & Functional programs, Scene graphs
+  & Accuracy \\
+  Humans
+  & 2017
+  & -
+  & 32K  % 32,164
+  & CLEVR
+  & Human
+  & Open-ended
+  % & -
+  & See CLEVR
+  & Accuracy \\
+  \textbf{GQA} \cite{hudson2019gqa}
+  & 2019
+  & 113K  % 113,018 images
+  & 22.6M  % 22,669,678 questions
+  & -
+  & Both
+  & Open-ended
+  % & 1878 unique answers  % 1878 is for all splits. train/val/test-dev answers are 1-3 words.
+  & Scene graphs, Functional programs, Full-sentence answers
+  & Accuracy, Consistency, Validity, Plausibility, Distribution, Grounding \\
+  %  & - & - & - \\
+  % \textbf{V7W} \cite{zhu2016visual7w} & - & 47K & 0.32M & Multiple choice \\
+  % \textbf{TDIUC} \cite{kafle2017analysis} & - & 167K & 1.6M & Open-ended \\
+  \bottomrule
+  \caption{A comparison of relevant features of the most popular VQA datasets. Dataset variations are listed in regular font below their bolded counterparts.}
+  \label{tab:dataset_comparison}
+\end{xltabular}
+\end{center}
+
+\footnotetext{For open-ended answers, an answer is considered `correct' if it matches at least three of the ten human-provided answers. For multiple choice answers, a traditional accuracy metric is used.}
+
+
+\section{Question Embedding in Visual Question Answering}
+
+\section{Image Embedding in Visual Question Answering}
+
+\section{Multi-modal Fusion in Visual Question Answering}
