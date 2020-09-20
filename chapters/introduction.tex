@@ -10,7 +10,37 @@ We live in an exciting technological era. In the last decade, we have witnessed 
 
 % #TODO Consider a more in-depth discussion of colourblindness as mentioned in the presentation?
 
-In this dissertation, I focus solely on visual question answering (VQA), a multimodal task that requires a model to provide an answer to a question about the contents of an image. More formally, given a hypothesis class \(H\), we aim to learn the optimal hypothesis \(h \in H\) for a given set of training data a VQA model aims to learn a function \(f(q, i) \rightarrow a\) where \(q \in Q\), \(i \in I\), \(a \in A\) for a set of questions, images and answers \(Q\), \(I\) and \(A\) respectively. 
+In this dissertation, I focus solely on visual question answering (VQA). More specifically, I delve into how we can leverage graphical representations of both visual and textual data to aid reasoning models in their decision-making processes. At its core, the VQA problem takes two inputs, an image and a question pertaining to one or more objects, relationships and/or concepts presented in the image. Given these inputs, we aim to answer the question, as illustrated in Figure \ref{fig:dataset_samples}. As humans, we implicitly solve the VQA problem every day when making decisions grounded on visual inputs. When crossing the road, we ask the implicit question \textit{`Is it safe to cross the road?'}, formulate an answer based on visual signals, and then act upon our decision. The holy grail of VQA is to be able to perform such decision-making for all feasible combinations of visual inputs and questions. Naturally, the true distribution of these input combinations is unknown, motivating the first major hurdle in VQA research: How do we design a dataset that effectively captures the nuances of real-world situations in which VQA would prove useful? I will explore this in further detail in Section \ref{section:vqa_datasets}.
+
+% More formally, solving the VQA problem requires learning a function \(h_S(q, i) \rightarrow a\) where \(q \in Q\), \(i \in I\), \(a \in A\) for a set of questions, images and answers \(Q\), \(I\) and \(A\) respectively.
+
+\begin{figure}
+  \begin{subfigure}[t]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{vqa_sample.jpg} 
+    \caption{Is there something to cut the vegetables with? \textit{no}}
+    \label{fig:vqa_sample}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{clevr_sample.jpg} 
+    \caption{How many objects are either small cylinders or red things? \textit{5}}
+    \label{fig:clevr_sample}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{gqa_sample.jpg} 
+    \caption{What kind of furniture is to the right of the chair? \textit{sofa}}
+    \label{fig:gqa_sample}
+  \end{subfigure}
+  \caption[Example instances from the VQA 2.0, CLEVR and GQA datasets.]{Example image, question and answer triples from the VQA 2.0 \cite{goyal2017making}, CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa}, figures \ref{fig:vqa_sample}, \ref{fig:clevr_sample} and \ref{fig:gqa_sample} respectively.}
+  \label{fig:dataset_samples}
+\end{figure}
+
+% GQA sample
+% "19274091": {"semantic": [{"operation": "select", "dependencies": [], "argument": "chair (219758)"}, {"operation": "relate", "dependencies": [0], "argument": "furniture,to the right of,s (219755)"}, {"operation": "query", "dependencies": [1], "argument": "name"}], "entailed": ["19274090", "19274092", "19274064", "19274089", "19274228"], "equivalent": ["19274091"], "question": "What kind of furniture is to the right of the chair?", "imageId": "2410353", "isBalanced": true, "groups": {"global": "furniture", "local": "15-chair_to the right of,s"}, "answer": "sofa", "semanticStr": "select: chair (219758)->relate: furniture,to the right of,s (219755) [0]->query: name [1]", "annotations": {"answer": {"0": "219755"}, "question": {"3": "219755"}, "fullAnswer": {"1:4": "219755", "6": "219755"}}, "types": {"detailed": "categoryRelS", "semantic": "rel", "structural": "query"}, "fullAnswer": "The piece of furniture is a sofa."}
 
 % Given the research challenge and practical applications of the visual question answering (VQA) task, I believe it is a great candidate for my own research. Over the last few years, the deep learning and natural language processing communities have realised a variety of VQA models, and new VQA datasets have been created over time to accommodate for both the increasing capabilities VQA models, and the shortcomings of existing VQA datasets that models have learned to exploit. In this literature review, I delve into both the methods used to generate some of the most popular VQA datasets as well as the image and question representations used by numerous state-of-the-art models, with the aim of emphasising the importance of graph structures for visual reasoning tasks; the more recent, challenging VQA datasets such as CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa} leverage graph structures grounded in images for the generation of questions, suggesting that models could leverage graph structures in the question answering process. Many state-of-the-art models \cite{hudson2018compositional} still rely on CNN features and traditional word embeddings as data inputs, or at best, leverage image scene graphs to aid the learning process. I propose that by mapping both images and questions to interpretable graph structures that adequately capture the relationships between objects and concepts present in the input data, VQA models will be able to focus on the reasoning steps required to solve the problem rather than trying to identify object relationships and learn valid reasoning processes simultaneously.
 
