@@ -4,6 +4,29 @@
 % #TODO Overview of literature review section
 
 
+\section{Visual Question Answering Metrics}
+
+\subsection{Wu-Palmer Similarity}
+
+Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the now-labelled Wu-Palmer similarity (WUPS) is used to measure the semantic similarity of two concepts based on their positions in a taxonomy tree such as WordNet \cite{miller1995wordnet}. Formally, given two concepts \(A\) and \(B\) in a taxonomy tree \(T\), we define the Wu-Palmer similarity of \(A\) and \(B\) as
+
+\[WUPS(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}\]
+
+where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in Figure \ref{fig:wups_tree}.
+
+\begin{figure}[H]
+    \centering
+    \begin{forest}
+      [ROOT [C, edge=dashed, edge label={node[midway,auto]{\(N_C\)}} [A, edge=dashed, edge label={node[midway,left]{\(N_A\)}}] [B, edge=dashed, edge label={node[midway,right]{\(N_B\)}}]]]
+    \end{forest}
+    \caption{Given two concepts \(A\) and \(B\), \(C\) denotes the ``least common superconcept'' of A and B. (Figure adapted from \cite{wu1994verbs})}
+    \label{fig:wups_tree}
+\end{figure}
+
+Given this definition, it naturally follows that two equal concepts occupy the same position in the taxonomy tree and thus have a similarity of 1, whilst two concepts whose lowest common ancestor is the root of the tree have a similarity of 0.
+
+\citeauthor{malinowski2014multiworld} extend WUPS
+
 \section{Visual Question Answering Datasets}
 \label{section:vqa_datasets}
 
@@ -43,7 +66,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
 
 \begin{landscape}
   \begin{center}
-    \begin{xltabular}{\linewidth}{LLLLLLLLL}
+    \begin{xltabular}{\linewidth}{LLLLLLLLLL}
       \toprule
       \textbf{Dataset}
       & \textbf{Year}
@@ -52,19 +75,19 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & \textbf{Image Source}
       & \textbf{Question Source}
       & \textbf{Answer Type}
-      % & \textbf{Answer Vocabulary}
+      & \textbf{Answer Vocabulary}
       & \textbf{Additional Data}
       & \textbf{Evaluation Metrics}\\
       \midrule
       \textbf{DAQUAR} \cite{malinowski2014multiworld}
       & 2014
-      & 1K  % 1449 images
-      & 12K  % 12,468 questions
+      & 1,449 % 1K  % 1449 images
+      & 12,468  % 12,468 questions
       & NYU-Depth V2 \cite{silberman2012indoor}
-      & Both
-      & Multi-label  % 37 classes for Reduced DAQUAR
-      % & 894 classes
-      & -
+      & Human, generated
+      & Multi-label
+      & 894 % classes for full dataset, 37 classes for reduced dataset. Class can be (colors, numbers or objects)
+      & Annotated semantic segmentations from  NYU-Depth V2
       & Accuracy, WUPS \\
       \textbf{Visual Madlibs} \cite{yu2015visual}
       & 2015
@@ -73,7 +96,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO \cite{lin2014microsoft}
       & Human
       & Fill in the blank open-ended \& multi-choice
-      % & -
+      & -
       & -
       & Accuracy, BLEU \\
       \textbf{COCO-QA}
@@ -83,7 +106,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO
       & -
       & -
-      % & -
+      & -
       & -
       & Accuracy, BLEU \\
       \textbf{VQAv1} \cite{antol2015vqa}
@@ -93,7 +116,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO
       & Human
       & Open-ended, Multi-choice
-      % & {\color{red}- words}, 18 classes
+      & {\color{red}- words}, 18 classes
       & COCO image captions
       & Accuracy\footnotemark \\
       Abstract Scenes
@@ -103,7 +126,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & Clip art, 2D
       & Human
       & Open-ended, Multi-choice
-      % & {\color{red}- words}, 18 classes
+      & {\color{red}- words}, 18 classes
       & Image captions
       & Accuracy\footnotemark[\value{footnote}] \\
       Changing Priors (CP) \cite{agrawal2018dont}
@@ -113,7 +136,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO
       & Human
       & Open-ended
-      % & {\color{red}- words, - classes}
+      & {\color{red}- words, - classes}
       & See VQAv1
       & Accuracy\footnotemark[\value{footnote}] \\
       Compositional VQA (C-VQA) \cite{agrawal2017cvqa}
@@ -123,7 +146,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO
       & Human
       & Open-ended
-      % & -
+      & -
       & See VQAv1
       & Accuracy\footnotemark[\value{footnote}] \\
       \textbf{VQAv2} \cite{goyal2017making}
@@ -133,7 +156,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO
       & Human
       & Open-ended
-      % & {\color{red}- words}
+      & {\color{red}- words}
       & COCO image captions, Complementary image pairs
       & Accuracy\footnotemark[\value{footnote}] \\
       Balanced Binary Abstract Scenes \cite{zhang2016yin}
@@ -143,7 +166,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & Clip art, 2D
       & Human
       & Multiple choice
-      % & `yes', `no'
+      & `yes', `no'
       & Image captions
       & Accuracy\footnotemark[\value{footnote}] \\
       Changing Priors (CP) \cite{agrawal2018dont}
@@ -153,7 +176,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO
       & Human
       & Open-ended
-      % & {\color{red}- words}
+      & {\color{red}- words}
       & See VQAv2
       & Accuracy\footnotemark[\value{footnote}] \\
       \textbf{Visual Genome} \cite{krishna2017visual}
@@ -163,7 +186,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO, YFCC100M \cite{thomee2016yfcc100m}
       & Human
       & Open-ended
-      % & -
+      & -
       & COCO annotations, Region descriptions, Scene graphs
       & Accuracy \\
       \textbf{Visual7W} \cite{zhu2016visual7w}
@@ -173,7 +196,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO
       & Human
       & -
-      % & -
+      & -
       & - % MC?
       & - \\
       \textbf{TDIUC} \cite{kafle2017analysis}
@@ -183,7 +206,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & COCO, Visual Genome
       & Both
       & Open-ended
-      % & -
+      & -
       & -
       & Per-question-type accuracy, regular \& normalised arithmetic \& harmonic mean accuracy\\
       \textbf{CLEVR} \cite{johnson2017clevr}
@@ -193,7 +216,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & Computer-generated, 3D
       & Generated
       & Open-ended
-      % & -
+      & -
       & Functional programs, Scene graphs
       & Accuracy \\
       CoGenT-A \& B
@@ -203,7 +226,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & Computer-generated, 3D 
       & Generated
       & Open-ended
-      % & -
+      & -
       & Functional programs, Scene graphs
       & Accuracy \\
       Humans
@@ -213,7 +236,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & CLEVR
       & Human
       & Open-ended
-      % & -
+      & -
       & See CLEVR
       & Accuracy \\
       \textbf{GQA} \cite{hudson2019gqa}
@@ -223,7 +246,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
       & -
       & Both
       & Open-ended
-      % & 1878 unique answers  % 1878 is for all splits. train/val/test-dev answers are 1-3 words.
+      & 1878 unique answers  % 1878 is for all splits. train/val/test-dev answers are 1-3 words.
       & Scene graphs, Functional programs, Full-sentence answers
       & Accuracy, Consistency, Validity, Plausibility, Distribution, Grounding \\
       %  & - & - & - \\
