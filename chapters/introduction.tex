@@ -1,5 +1,5 @@
 \chapter{Introduction}
-
+\label{chapter:introduction}
 
 We live in an exciting technological era. In the last decade, we have witnessed the emergence of smart-home devices that harness the power of complex natural language understanding, text-to-speech and speech-to-text models to assist millions of people every day. The collaboration of hardware and software engineers have fueled the rapid evolution of the deep learning field, leading us into a world where semi-autonomous vehicles are becoming commonplace and face detection models are being used to unlock mobile devices. Given the wide adoption of deep learning (DL) techniques in industry for natural language processing (NLP) and computer vision (CV) tasks, we have seen a recent shift in the research community towards audio-visual and visio-linguistic tasks that require the learning of complex interactions between multiple input data modes. As a research community, we are excited by the technical challenge that these new tasks present, in addition to the extensive practical applications of multimodal reasoning tasks; for example, well-designed image captioning and visual question answering models could aid the visually impaired in consuming and understanding visual information in a natural manner when combined with existing speech-to-text and text-to-speech systems. Other multimodal tasks like text-to-image generation could be leveraged by law enforcement teams to build realistic composites of people or places relevant to an investigation, or by creatives as an external source of visual inspiration.
 
@@ -10,9 +10,9 @@ We live in an exciting technological era. In the last decade, we have witnessed 
 
 % #TODO Consider a more in-depth discussion of colourblindness as mentioned in the presentation?
 
-In this dissertation, I focus solely on visual question answering (VQA). More specifically, I delve into how we can leverage graphical representations of both visual and textual data to aid reasoning models in their decision-making processes. At its core, the VQA problem takes two inputs, an image and a question pertaining to one or more objects, relationships and/or concepts presented in the image. Given these inputs, we aim to answer the question, as illustrated in Figure \ref{fig:dataset_samples}. As humans, we implicitly solve the VQA problem every day when making decisions grounded on visual inputs. When crossing the road, we ask the implicit question \textit{`Is it safe to cross the road?'}, formulate an answer based on visual signals, and then act upon our decision. The holy grail of VQA is to be able to perform such decision-making for all feasible combinations of visual inputs and questions. Naturally, the true distribution of these input combinations is unknown, motivating the first major hurdle in VQA research: How do we design a dataset that effectively captures the nuances of real-world situations in which VQA would prove useful? I will explore this in further detail in Section \ref{section:vqa_datasets}.
-
 % More formally, solving the VQA problem requires learning a function \(h_S(q, i) \rightarrow a\) where \(q \in Q\), \(i \in I\), \(a \in A\) for a set of questions, images and answers \(Q\), \(I\) and \(A\) respectively.
+
+In this dissertation, I focus solely on visual question answering (VQA). More specifically, I delve into how we can leverage graphical representations of both visual and textual data to aid reasoning models in their decision-making processes. At its core, the VQA problem takes two inputs, an image and a question pertaining to one or more objects, relationships and/or concepts presented in the image. Given these inputs, we aim to answer the question, as illustrated in Figure \ref{fig:dataset_samples}. As humans, we implicitly solve the VQA problem every day when making decisions grounded on visual inputs. When crossing the road, we ask the implicit question \textit{`Is it safe to cross the road?'}, formulate an answer based on visual signals, and then act upon our decision. The holy grail of VQA is to be able to perform such decision-making for all feasible combinations of visual inputs and questions. Naturally, the true distribution of these input combinations is unknown, motivating the first major hurdle in VQA research: How do we design a dataset that effectively emulates subtle relationships between questions and images as presented in real-world situations where VQA would prove useful? As evident in Figure \ref{fig:dataset_samples}, this question is still open to interpretation; the VQA 2.0 dataset contains real-world images and free-form questions often requiring conceptual reasoning, whilst CLEVR leverages generated images alongside questions requiring more compositional reasoning, targeting logical reasoning operations like counting and boolean arithmetic. I will elaborate on these ideas in Section \ref{section:vqa_datasets}.
 
 \begin{figure}
   \begin{subfigure}[t]{0.3\textwidth}
@@ -38,6 +38,28 @@ In this dissertation, I focus solely on visual question answering (VQA). More sp
   \caption[Example instances from the VQA 2.0, CLEVR and GQA datasets.]{Example image, question and answer triples from the VQA 2.0 \cite{goyal2017making}, CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa}, figures \ref{fig:vqa_sample}, \ref{fig:clevr_sample} and \ref{fig:gqa_sample} respectively.}
   \label{fig:dataset_samples}
 \end{figure}
+
+Assuming we do have an ideal dataset that effectively models real-world VQA problems, we need some way of combining both visual and textual data in a way that enables a model to perform the complex reasoning required for answer formulation.
+
+% Fusion methods
+% Bilinear
+% Concat
+% Attention
+% Module networks
+
+% Question representations
+% RNN/GRU/LSTM & bidirectional variants
+% GCN/GAT (more recent)
+%   Dependency parser inputs
+%   Other embeddings e.g. contextual etc
+% Raw GloVe
+% Raw learnable embeddings
+
+% Image representations
+% CNN
+% Faster R-CNN / Mask R-CNN
+% Graph R-CNN
+% Hesitance to use gold-standard graph embeddngs.
 
 % GQA sample
 % "19274091": {"semantic": [{"operation": "select", "dependencies": [], "argument": "chair (219758)"}, {"operation": "relate", "dependencies": [0], "argument": "furniture,to the right of,s (219755)"}, {"operation": "query", "dependencies": [1], "argument": "name"}], "entailed": ["19274090", "19274092", "19274064", "19274089", "19274228"], "equivalent": ["19274091"], "question": "What kind of furniture is to the right of the chair?", "imageId": "2410353", "isBalanced": true, "groups": {"global": "furniture", "local": "15-chair_to the right of,s"}, "answer": "sofa", "semanticStr": "select: chair (219758)->relate: furniture,to the right of,s (219755) [0]->query: name [1]", "annotations": {"answer": {"0": "219755"}, "question": {"3": "219755"}, "fullAnswer": {"1:4": "219755", "6": "219755"}}, "types": {"detailed": "categoryRelS", "semantic": "rel", "structural": "query"}, "fullAnswer": "The piece of furniture is a sofa."}
