@@ -6,6 +6,8 @@
 
 \section{Visual Question Answering Metrics}
 
+In their seminal VQA paper \cite{malinowski2014multiworld}, \citeauthor{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. Moreover, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since VQA datasets typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should be able to reward partially correct answers. In the following subsections, I will explore the most common VQA metrics and how they handle partially correct answers.
+
 \subsection{Wu-Palmer Similarity}
 
 Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the now-labelled Wu-Palmer similarity (WUPS) is used to measure the semantic similarity of two concepts based on their positions in a taxonomy tree such as WordNet \cite{miller1995wordnet}. Formally, given two concepts \(A\) and \(B\) in a taxonomy tree \(T\), we define the Wu-Palmer similarity of \(A\) and \(B\) as
@@ -25,7 +27,7 @@ where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their 
 
 Given this definition, it naturally follows that two equal concepts occupy the same position in the taxonomy tree and thus have a similarity of 1, whilst two concepts whose lowest common ancestor is the root of the tree have a similarity of 0.
 
-\citeauthor{malinowski2014multiworld} extend WUPS
+
 
 \section{Visual Question Answering Datasets}
 \label{section:vqa_datasets}
