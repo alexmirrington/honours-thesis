@@ -6,13 +6,13 @@
 
 \section{Visual Question Answering Metrics}
 
-In their seminal VQA paper \cite{malinowski2014multiworld}, \citeauthor{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. Moreover, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since VQA datasets typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should be able to reward partially correct answers. In the following subsections, I will explore the most common VQA metrics and how they handle partially correct answers.
+In their seminal VQA paper, \citeauthor{malinowski2014multiworld}  \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. Moreover, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since VQA datasets typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should be able to reward partially correct answers. In the following subsections, I will explore the most common VQA metrics and how they handle partially correct answers.
 
 \subsection{Wu-Palmer Similarity}
 
-Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the now-labelled Wu-Palmer similarity (WUPS) is used to measure the semantic similarity of two concepts based on their positions in a taxonomy tree such as WordNet \cite{miller1995wordnet}. Formally, given two concepts \(A\) and \(B\) in a taxonomy tree \(T\), we define the Wu-Palmer similarity of \(A\) and \(B\) as
+Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the now-labelled Wu-Palmer (WUP) similarity is used to measure the semantic similarity of two concepts based on their positions in a taxonomy tree such as WordNet \cite{miller1995wordnet}. Formally, given two concepts \(A\) and \(B\) in a taxonomy tree \(T\), we define the Wu-Palmer similarity of \(A\) and \(B\) as
 
-\[WUPS(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}\]
+\[WUP(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}\]
 
 where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in Figure \ref{fig:wups_tree}.
 
@@ -27,7 +27,19 @@ where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their 
 
 Given this definition, it naturally follows that two equal concepts occupy the same position in the taxonomy tree and thus have a similarity of 1, whilst two concepts whose lowest common ancestor is the root of the tree have a similarity of 0.
 
+Whilst WUP similarity can capture similarities between a target and predicted concept, \citeauthor{malinowski2014multiworld} extend WUP similarity to sets of concepts, proposing the WUP set score for evaluation of multi-label classification tasks:
 
+\[WUPS(A, B) = \frac{1}{n} \sum_{i=1}^n \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\}\]
+
+If we let \(A\) and \(B\) be a sequence of sets of predicted and ground-truth answers respectively, then we have the following cases:
+
+\[
+\min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\} =  \begin{cases}
+    1, &\text{if } A_i = B_i \\
+    \text{\color{red}?}, &\text{if } A_i \subset B_i \\
+    \text{\color{red}?}, &\text{if } A_i \supset B_i
+\end{cases}
+\]
 
 \section{Visual Question Answering Datasets}
 \label{section:vqa_datasets}
