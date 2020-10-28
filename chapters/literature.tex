@@ -6,7 +6,37 @@
 
 \section{Visual Question Answering Metrics}
 
-In their seminal VQA paper, \citeauthor{malinowski2014multiworld}  \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. Moreover, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since VQA datasets typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should be able to reward partially correct answers. In the following subsections, I will explore the most common VQA metrics and how they handle partially correct answers.
+In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts. It follows that an effective VQA metric should be able to reward semantically similar answers.
+
+Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of metrics \cite{papineni2002bleu, lin2004rouge, denkowski2014meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft}, and are consequently applicable to open-ended VQA. Unfortunately, each of these metrics have their own advantages and downfalls, so multiple metrics need to be considered to gain useful insights into model performance.
+
+% Because of this, many VQA datasets frame VQA as a classification task, whilst others like GQA \cite{hudson2019gqa} provide both single and multiple word ground truth answers.
+
+In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in Table \ref{tab:vqa_metrics}, focusing on how they compare semantically similar answers.
+
+
+
+\begin{table}[htbp]
+\centering
+    \begin{xltabular}{\linewidth}{@{}lCCCl@{}}
+    \toprule
+    \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                            & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
+    \multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Single class} & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
+    Accuracy                      & \checkmark                       & \checkmark                      &                                &                                                           \\
+    Consensus Accuracy                                   & \checkmark                       & \checkmark                      &                                & VQA                                                       \\
+    WUPS                                                 & \checkmark                       & \checkmark                      & \checkmark                     &                                                           \\
+    BLEU                                                 &                                  &                                 & \checkmark                     & Machine translation                                       \\
+    ROUGE                                                &                                  &                                 &                                &                                                           \\
+    CIDEr                                                &                                  &                                 &                                & Image captioning                                          \\
+    Consistency                                          &                                  &                                 &                                & VQA                                                       \\
+    Validity                                             &                                  &                                 &                                & VQA                                                       \\
+    Plausibility                                         &                                  &                                 &                                & VQA                                                       \\
+    Grounding                                            &                                  &                                 &                                & VQA                                                       \\
+    Distribution                                         &                                  &                                 &                                & VQA                                                       \\ \bottomrule
+    \end{xltabular}
+    \caption[A comparison of VQA metrics]{A comparison of metrics and their suitability for various VQA tasks.}
+    \label{tab:vqa_metrics}
+\end{table}
 
 \subsection{Wu-Palmer Similarity}
 
@@ -21,7 +51,7 @@ where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their 
     \begin{forest}
       [ROOT [C, edge=dashed, edge label={node[midway,auto]{\(N_C\)}} [A, edge=dashed, edge label={node[midway,left]{\(N_A\)}}] [B, edge=dashed, edge label={node[midway,right]{\(N_B\)}}]]]
     \end{forest}
-    \caption{Given two concepts \(A\) and \(B\), \(C\) denotes the ``least common superconcept'' of A and B. (Figure adapted from \cite{wu1994verbs})}
+    \caption[A taxonomy tree describing the relationship between two concepts.]{Given two concepts \(A\) and \(B\), \(C\) denotes the ``least common superconcept'' of A and B. (Figure adapted from \cite{wu1994verbs})}
     \label{fig:wups_tree}
 \end{figure}
 
@@ -39,7 +69,7 @@ To apply this metric to VQA tasks, we let \(A\) and \(B\) be a sequence of sets 
     \item Models which underestimate the number of target answers \textit{i.e.} \(|A_i| < |B_i|\) will be penalised, with a harsher penalty if the concepts in the target set are dissimilar.
 \end{enumerate}
 
-To encourage more precise answers, the authors emphasise this penalty by \textit{``down-weighting \(WUP(a, b)\) whenever \(WUP(a, b) < t\)''}, reporting \(t = 0.9\) as an appropriate down-weighting threshold. Whilst novel, this introducing two tunable parameters which increase the complexity and subjectivity of the metric. Moreover, the metric is nonlinear unlike other common metrics like accuracy, precision and recall, making it more difficult to interpret at a glance.
+The authors note that WUP yields large values for related but not interchangeable concepts, noting that \(WUP(\text{carton}, \text{box}) = 0.94\) where \(WUP(\text{stove}, \text{fire extinguisher}) = 0.82\). To encourage precise answers and avoid accepting related but inaccurate answers, the authors down-weight \(WUP(a, b)\) by a ratio \(r = 0.1\) whenever it is less than some threshold \(t = 0.9\). Whilst novel, this approach introduces two new parameters which increase the complexity and subjectivity of the metric. Moreover, the metric is nonlinear unlike other common metrics like accuracy, precision and recall, making it more difficult to interpret at a glance.
 
 % \[
 % \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\} =  \begin{cases}
@@ -49,10 +79,88 @@ To encourage more precise answers, the authors emphasise this penalty by \textit
 % \end{cases}
 % \]
 
+\subsection{BLEU}
+
+\textbf{Motivations:}
+
+\begin{itemize}
+    \item Machine translation
+    \item Human evaluation can take months
+    \item Bi-Lingual Evaluation Understudy (BLEU) is:
+    \begin{itemize}
+        \item ``Quick''
+        \item ``Inexpensive''
+        \item ``Language independent''
+        \item Accurate (``Correlates highly with human evaluation'')
+    \end{itemize}
+    \item Created in an effort to reduce the evaluation bottleneck on machine translation progress and promote more rapid prototyping of ideas.
+    \item Derived from word-error-rate metric used in speech recognition, modified to allow for subtle word reorderings and substitutions.
+\end{itemize}
+
+
+\textbf{General Caveats:}
+
+\begin{itemize}
+    \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
+    \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
+    \item Brevity penalty is required to avoid short answers like ``of the'', where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
+\end{itemize}
+
+
+\textbf{Application to VQA:}
+
+Brevity penalty in the context of VQA:
+
+{\color{red} TODO: Check image captioning paper and see if this is the adopted approach} Assume a candidate answer may contain multiple sentences and a ground truth answer may contain multiple sentences. In the most common case, the number of sentences in both the candidate and ground truth answers is 1. For cases with multiple sentences we can treat multiple sentences as a single sentence when computing \(n\)-grams, as in \cite{papineni2002bleu}. For a candidate answer of length \(c\) and a reference answer length of \(r\) (for each candidate sentence, the reference length is the corresponding ground-truth sentence with the closest length. \(r\) is the sum of these reference lengths across all sentences in the corpus, though the corpus is small for VQA applications.) The brevity penalty \(P_B\) is thus:
+
+\begin{equation*}
+    P_B = \begin{cases}
+    1, &\text{if } c > r\\
+    e^{\frac{1-r}{c}}, &\text{if } c \leq r\\
+    \end{cases}
+\end{equation*}
+
+
+By default, \textsc{Bleu} is defined as the brevity penalty multiplied by the geometric mean of \(n\)-gram precisions \(p_n\) for \(n \in [1, 4]\):
+
+\begin{equation*}
+    \textsc{Bleu} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
+\end{equation*}
+
+\begin{itemize}
+    \item VQA datasets rarely contain open ended answers. COCO comes with 5 captions per image, GQA comes with 1 open-ended answer per question. Even when we do have open ended answers, a single, one sentence is not enough for BLEU to be successful since it is designed for large corpora with multiple source translations; If the ground truth answer refers to a ``carton'' but the predicted answer uses the word ``box'', \(n\)-gram precision decreases despite semantic similarities between the two words. 
+\end{itemize}
+
+\subsection{ROUGE}
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\subsection{CIDEr}
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\subsection{Consensus Accuracy}
+
+\subsection{GQA Metrics}
+\begin{itemize}
+    \item Consistency
+    \item Validity
+    \item Plausibility
+    \item Grounding
+    \item Distribution
+\end{itemize}
+
+
 \section{Visual Question Answering Datasets}
 \label{section:vqa_datasets}
 
-In this section, I address the first major hurdle for the VQA task as introduced in Chapter \ref{chapter:introduction}: How do we design a dataset that effectively emulates subtle relationships between questions and images as presented in real-world situations where VQA would prove useful? More formally, we wish to develop a dataset \(\mathcal{X}\) such that \(x \sim \mathcal{D}\ \forall x \in \mathcal{X}\) for some fixed, underlying distribution \(\mathcal{D}\) \cite{mohri2018foundations}. For a dataset to be \textit{useful}, we require that \(\mathcal{D}\) captures the distribution of real-world VQA problems that we wish to solve.
+In this section, I address the first major hurdle for the VQA task as introduced in Chapter \ref{chapter:introduction}: How do we design a dataset that effectively emulates subtle relationships between questions and images as presented in real-world situations where VQA would prove useful?
+
+% More formally, we wish to develop a dataset \(\mathcal{X}\) such that \(x \sim \mathcal{D}\ \forall x \in \mathcal{X}\) for some fixed, underlying distribution \(\mathcal{D}\) \cite{mohri2018foundations}. For a dataset to be \textit{useful}, we require that \(\mathcal{D}\) captures the distribution of real-world VQA problems that we wish to solve.
 %\(S \in ( \times \mathcal{Y})^n\) 
 
 % The methods used to generate VQA datasets are as useful in understanding the relationship between images and questions as VQA models themselves; as an example, it is much easier to generate questions instead of images, the images for many VQA datasets have been drawn from existing image datasets such as COCO \cite{lin2014microsoft}, and questions have been generated using a variety of methods including crowd-sourcing, question templates, functional programs and scene graphs. By analysing the question generation process, it is possible to gain insights into how graphical and textual data is related in a question-answering context, and use this knowledge to analyse the effectiveness of the ways in which image and question data is processed for use by various VQA models. An overview of the most popular VQA datasets and their generation methods is provided in Table \ref{tab:dataset_comparison}, followed by a detailed deconstruction of the methods used and challenges addressed by their respective creators and how they relate to the interplay of images and text in visual reasoning tasks.
@@ -87,198 +195,208 @@ In this section, I address the first major hurdle for the VQA task as introduced
 % \end{table}
 
 \begin{landscape}
-  \begin{center}
-    \begin{xltabular}{\linewidth}{LLLLLLLLLL}
-      \toprule
-      \textbf{Dataset}
-      & \textbf{Year}
-      & \textbf{Image Count}
-      & \textbf{Question Count}
-      & \textbf{Image Source}
-      & \textbf{Question Source}
-      & \textbf{Answer Type}
-      & \textbf{Answer Vocabulary}
-      & \textbf{Additional Data}
-      & \textbf{Evaluation Metrics}\\
-      \midrule
-      \textbf{DAQUAR} \cite{malinowski2014multiworld}
-      & 2014
-      & 1,449 % 1K  % 1449 images
-      & 12,468  % 12,468 questions
-      & NYU-Depth V2 \cite{silberman2012indoor}
-      & Human, generated
-      & Multi-label
-      & 894 % classes for full dataset, 37 classes for reduced dataset. Class can be (colors, numbers or objects)
-      & Annotated semantic segmentations from  NYU-Depth V2
-      & Accuracy, WUPS \\
-      \textbf{Visual Madlibs} \cite{yu2015visual}
-      & 2015
-      & 10K  % 10,738 images  % Filtered hard task?
-      & 360K  % 360,001 descriptions
-      & COCO \cite{lin2014microsoft}
-      & Human
-      & Fill in the blank open-ended \& multi-choice
-      & -
-      & -
-      & Accuracy, BLEU \\
-      \textbf{COCO-QA}
-      & -
-      & -
-      & -
-      & COCO
-      & -
-      & -
-      & -
-      & -
-      & Accuracy, BLEU \\
-      \textbf{VQAv1} \cite{antol2015vqa}
-      & 2015
-      & 204K  % 204,721 images
-      & 614K  % 614,163 questions % 6,141,630 ground truth answers % 1,842,489 plausible answers
-      & COCO
-      & Human
-      & Open-ended, Multi-choice
-      & {\color{red}- words}, 18 classes
-      & COCO image captions
-      & Accuracy\footnotemark \\
-      Abstract Scenes
-      & 2015
-      & 50K  % 50,000 abstract scenes
-      & 150K  % 150,000 questions % 1,500,000 ground truth answers % 450,000 plausible answers % 250,000 captions
-      & Clip art, 2D
-      & Human
-      & Open-ended, Multi-choice
-      & {\color{red}- words}, 18 classes
-      & Image captions
-      & Accuracy\footnotemark[\value{footnote}] \\
-      Changing Priors (CP) \cite{agrawal2018dont}
-      & 2018
-      & {\color{red}\(\approx\)204K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
-      & {\color{red}\(\approx\)370K}  % Exact unkown, ~ 3.8M answers
-      & COCO
-      & Human
-      & Open-ended
-      & {\color{red}- words, - classes}
-      & See VQAv1
-      & Accuracy\footnotemark[\value{footnote}] \\
-      Compositional VQA (C-VQA) \cite{agrawal2017cvqa}
-      & 2017
-      & 204K  % Some images repeated in train and test
-      & 369K  % 369,861 questions, 3,698,610 answers
-      & COCO
-      & Human
-      & Open-ended
-      & -
-      & See VQAv1
-      & Accuracy\footnotemark[\value{footnote}] \\
-      \textbf{VQAv2} \cite{goyal2017making}
-      & 2017
-      & 204K  % 204,721 images
-      & 1.1M  % 1,105,904 questions % 11,059,040 ground truth answers
-      & COCO
-      & Human
-      & Open-ended
-      & {\color{red}- words}
-      & COCO image captions, Complementary image pairs
-      & Accuracy\footnotemark[\value{footnote}] \\
-      Balanced Binary Abstract Scenes \cite{zhang2016yin}
-      & 2016-17
-      & 31K % 31,325 abstract scenes
-      & 33K % 33,383 questions % 333,830 ground truth answers
-      & Clip art, 2D
-      & Human
-      & Multiple choice
-      & `yes', `no'
-      & Image captions
-      & Accuracy\footnotemark[\value{footnote}] \\
-      Changing Priors (CP) \cite{agrawal2018dont}
-      & 2018
-      & {\color{red}\(\approx\)219K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
-      & {\color{red}\(\approx\)658K}  % Exact unkown, ~ 6.6M Answers
-      & COCO
-      & Human
-      & Open-ended
-      & {\color{red}- words}
-      & See VQAv2
-      & Accuracy\footnotemark[\value{footnote}] \\
-      \textbf{Visual Genome} \cite{krishna2017visual}
-      & 2016
-      & 108K  % 108,077 images
-      & 1.7M  % 1,773,258 questions and answers
-      & COCO, YFCC100M \cite{thomee2016yfcc100m}
-      & Human
-      & Open-ended
-      & -
-      & COCO annotations, Region descriptions, Scene graphs
-      & Accuracy \\
-      \textbf{Visual7W} \cite{zhu2016visual7w}
-      & 2016
-      & 47K % 47,300
-      & 327K % 327,939
-      & COCO
-      & Human
-      & -
-      & -
-      & - % MC?
-      & - \\
-      \textbf{TDIUC} \cite{kafle2017analysis}
-      & 2017
-      & 167K % 167,437 images
-      & 1.6M % 1,654,167 questions
-      & COCO, Visual Genome
-      & Both
-      & Open-ended
-      & -
-      & -
-      & Per-question-type accuracy, regular \& normalised arithmetic \& harmonic mean accuracy\\
-      \textbf{CLEVR} \cite{johnson2017clevr}
-      & 2017
-      & 100K  % 100,000 images
-      & 999K  % 999,968 questions
-      & Computer-generated, 3D
-      & Generated
-      & Open-ended
-      & -
-      & Functional programs, Scene graphs
-      & Accuracy \\
-      CoGenT-A \& B
-      & 2017
-      & 100K
-      & 999K
-      & Computer-generated, 3D 
-      & Generated
-      & Open-ended
-      & -
-      & Functional programs, Scene graphs
-      & Accuracy \\
-      Humans
-      & 2017
-      & -
-      & 32K  % 32,164
-      & CLEVR
-      & Human
-      & Open-ended
-      & -
-      & See CLEVR
-      & Accuracy \\
-      \textbf{GQA} \cite{hudson2019gqa}
-      & 2019
-      & 113K  % 113,018 images
-      & 22.6M  % 22,669,678 questions
-      & -
-      & Both
-      & Open-ended
-      & 1878 unique answers  % 1878 is for all splits. train/val/test-dev answers are 1-3 words.
-      & Scene graphs, Functional programs, Full-sentence answers
-      & Accuracy, Consistency, Validity, Plausibility, Distribution, Grounding \\
-      %  & - & - & - \\
-      % \textbf{V7W} \cite{zhu2016visual7w} & - & 47K & 0.32M & Multiple choice \\
-      % \textbf{TDIUC} \cite{kafle2017analysis} & - & 167K & 1.6M & Open-ended \\
-      \bottomrule
-      \caption{A comparison of relevant features of the most popular VQA datasets. Dataset variations are listed in regular font below their bolded counterparts.}
-      \label{tab:dataset_comparison}
-    \end{xltabular}
-  \end{center}
+  \begin{footnotesize}
+      \begin{center}
+        \begin{xltabular}{\linewidth}{LlllLLLLLL}
+          \toprule
+          \textbf{Dataset}
+          & \textbf{Year}
+          & \textbf{Images}
+          & \textbf{Questions}
+          & \textbf{Image Source}
+          & \textbf{Question Creation}
+          & \textbf{Question Category Count}
+          & \textbf{Answer Type}
+          & \textbf{Additional Data}
+          & \textbf{Evaluation Metrics}\\
+          \midrule
+          \textbf{DAQUAR} \cite{malinowski2014multiworld}
+          & 2014
+          & 1,449  % 1449 images
+          & 12,468  % 12,468 questions
+          & NYU-Depth V2 \cite{silberman2012indoor}
+          & Both
+          & 4
+          & Multi-label (894)
+          & Human segmentation, image depth values, and object labels from NYU Depth V2.
+          & Accuracy, WUPS \\
+          \textbf{Visual Madlibs} \cite{yu2015visual}
+          & 2015
+          & 10,738  % 10,738 images  % Filtered hard task?
+          & 360,001  % 360,001 descriptions
+          & COCO \cite{lin2014microsoft}
+          & Human
+          & 12
+          & Fill-in-the-blank, Multi-choice (4)
+          & -
+          & Accuracy, BLEU \\
+          \textbf{COCO-QA}
+          & 2015
+          & 123,287
+          & 117,684
+          & COCO
+          & Automatic
+          & 4
+          & Single-word
+          & -
+          & Accuracy, BLEU \\
+          \textbf{VQAv1} \cite{antol2015vqa}
+          & 2015
+          & 204K  % 204,721 images
+          & 614K  % 614,163 questions % 6,141,630 ground truth answers % 1,842,489 plausible answers
+          & COCO
+          & Human
+          & -
+          & Open-ended, Multi-choice (18)
+          & COCO image captions
+          & Accuracy\footnotemark \\
+          Abstract Scenes
+          & 2015
+          & 50K  % 50,000 abstract scenes
+          & 150K  % 150,000 questions % 1,500,000 ground truth answers % 450,000 plausible answers % 250,000 captions
+          & Clip art, 2D
+          & Human
+          & -
+          & Open-ended, Multi-choice (18)
+          & Image captions
+          & Accuracy\footnotemark[\value{footnote}] \\
+          Changing Priors (CP) \cite{agrawal2018dont}
+          & 2018
+          & {\color{red}\(\approx\)204K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
+          & {\color{red}\(\approx\)370K}  % Exact unkown, ~ 3.8M answers
+          & COCO
+          & Human
+          & -
+          & Open-ended
+          & See VQAv1
+          & Accuracy\footnotemark[\value{footnote}] \\
+          Compositional VQA (C-VQA) \cite{agrawal2017cvqa}
+          & 2017
+          & 204K  % Some images repeated in train and test
+          & 369K  % 369,861 questions, 3,698,610 answers
+          & COCO
+          & Human
+          & -
+          & Open-ended
+          & See VQAv1
+          & Accuracy\footnotemark[\value{footnote}] \\
+          \textbf{VQAv2} \cite{goyal2017making}
+          & 2017
+          & 204K  % 204,721 images
+          & 1.1M  % 1,105,904 questions % 11,059,040 ground truth answers
+          & COCO
+          & Human
+          & -
+          & Open-ended
+          & COCO image captions, Complementary image pairs
+          & Accuracy\footnotemark[\value{footnote}] \\
+          Balanced Binary Abstract Scenes \cite{zhang2016yin}
+          & 2016
+          & 31K % 31,325 abstract scenes
+          & 33K % 33,383 questions % 333,830 ground truth answers
+          & Clip art, 2D
+          & Human
+          & -
+          & Multi-choice (2)
+          & Image captions
+          & Accuracy\footnotemark[\value{footnote}] \\
+          Changing Priors (CP) \cite{agrawal2018dont}
+          & 2018
+          & {\color{red}\(\approx\)219K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
+          & {\color{red}\(\approx\)658K}  % Exact unkown, ~ 6.6M Answers
+          & COCO
+          & Human
+          & -
+          & Open-ended
+          & See VQAv2
+          & Accuracy\footnotemark[\value{footnote}] \\
+          \textbf{Visual Genome} \cite{krishna2017visual}
+          & 2016
+          & 108K  % 108,077 images
+          & 1.7M  % 1,773,258 questions and answers
+          & COCO, YFCC100M \cite{thomee2016yfcc100m}
+          & Human
+          & -
+          & Open-ended
+          & COCO annotations, Region descriptions, Scene graphs
+          & Accuracy \\
+          \textbf{Visual7W} \cite{zhu2016visual7w}
+          & 2016
+          & 47K % 47,300
+          & 327K % 327,939
+          & COCO
+          & Human
+          & -
+          & -
+          & - \\
+          \textbf{TDIUC} \cite{kafle2017analysis}
+          & 2017
+          & 167K % 167,437 images
+          & 1.6M % 1,654,167 questions
+          & COCO, Visual Genome
+          & Both
+          & -
+          & Open-ended
+          & -
+          & Per-question-type accuracy, regular \& normalised arithmetic \& harmonic mean accuracy\\
+          \textbf{CLEVR} \cite{johnson2017clevr}
+          & 2017
+          & 100K  % 100,000 images
+          & 999K  % 999,968 questions
+          & Computer-generated, 3D
+          & Automatic
+          & -
+          & Open-ended
+          & Functional programs, Scene graphs
+          & Accuracy \\
+          CoGenT-A \& B
+          & 2017
+          & 100K
+          & 999K
+          & Computer-generated, 3D 
+          & Automatic
+          & -
+          & Open-ended
+          & Functional programs, Scene graphs
+          & Accuracy \\
+          Humans
+          & 2017
+          & -
+          & 32K  % 32,164
+          & CLEVR
+          & Human
+          & Open-ended
+          & See CLEVR
+          & Accuracy \\
+          \textbf{GQA} \cite{hudson2019gqa}
+          & 2019
+          & 113K  % 113,018 images
+          & 22.6M  % 22,669,678 questions
+          & -
+          & Both
+          & -
+          & Open-ended
+          & Scene graphs, Functional programs, Full-sentence answers
+          & Accuracy, Consistency, Validity, Plausibility, Distribution, Grounding \\
+          %  & - & - & - \\
+          % \textbf{V7W} \cite{zhu2016visual7w} & - & 47K & 0.32M & Multiple choice \\
+          % \textbf{TDIUC} \cite{kafle2017analysis} & - & 167K & 1.6M & Open-ended \\
+          \textbf{TextVQA} \cite{singh2019towards}
+          & -
+          & -
+          & -
+          & -
+          & -
+          & -
+          & -
+          & -
+          & Accuracy, BLEU \\
+          \bottomrule
+          \caption[A comparison of VQA datasets and their variations.]{A comparison of relevant features of the most popular VQA datasets. Dataset variations are listed in regular font below their bolded counterparts.}
+          \label{tab:dataset_comparison}
+          \end{xltabular}
+      \end{center}
+  \end{footnotesize}
 \end{landscape}
 
 \footnotetext{For open-ended answers, an answer is considered `correct' if it matches at least three of the ten human-provided answers. For multiple choice answers, a traditional accuracy metric is used.}
@@ -308,8 +426,8 @@ Despite this method's success in reducing the proportion of unbalanced (image, q
 
 Whilst it is certainly important that dataset creators mitigate biases in their work, it is also the responsibility of VQA model authors to ensure that the ways in which image and question data is fed to their models is also able to be justified; many models,  incorporate BiLSTMs \cite{hudson2018compositional} or LSTMs \cite{andreas2016neural} to obtain question-level representations, however by processing the input data in this manner, it becomes difficult to determine the extent to which the reasoning part of the model is exploiting probabilistic priors in the dataset. By embedding and processing the question as a graph, interpretability studies can be performed on the model to ensure the reasoning part of the model performs as intended.
 
-\subsection*{Approaches and Architectures}
-\addcontentsline{toc}{subsection}{Approaches and Architectures}
+\section{Visual Question Answering Methods}
+\label{section:vqa_methods}
 
 It has been observed that the architectures that leverage additional information such as scene graphs rather than just raw image features tend to perform better. This is clearly illustrated by \citeauthor{hudson2019gqa_preprint} in Figure \ref{fig:gqa_input_representation} below:
 
