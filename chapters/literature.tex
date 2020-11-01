@@ -8,9 +8,11 @@
 
 In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts. It follows that an effective VQA metric should be able to reward semantically similar answers.
 
-Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of metrics \cite{papineni2002bleu, lin2004rouge, denkowski2014meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft}, and are consequently applicable to open-ended VQA. Unfortunately, each of these metrics have their own advantages and downfalls, so multiple metrics need to be considered to gain useful insights into model performance.
+Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of natural language generation (NLG) metrics \cite{papineni2002bleu, lin2004rouge, banerjee2005meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft}, and are consequently applicable to open-ended VQA. Unfortunately, each of these metrics have their own advantages and downfalls, so multiple metrics need to be considered to gain useful insights into model performance.
 
 % Because of this, many VQA datasets frame VQA as a classification task, whilst others like GQA \cite{hudson2019gqa} provide both single and multiple word ground truth answers.
+
+% Mention BLEU, CIDEr, ROUGE, METEOR as NLG metrics?
 
 In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in Table \ref{tab:vqa_metrics}, focusing on how they compare semantically similar answers.
 
@@ -34,8 +36,23 @@ In the following subsections, I explore a variety of metrics for both class-base
     Grounding                                            &                                  &                                 &                                & VQA                                                       \\
     Distribution                                         &                                  &                                 &                                & VQA                                                       \\ \bottomrule
     \end{xltabular}
-    \caption[A comparison of VQA metrics]{A comparison of metrics and their suitability for various VQA tasks.}
-    \label{tab:vqa_metrics}
+    \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
+    \label{tab:vqa_metrics_suitability}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\begin{xltabular}{\linewidth}{@{}lLL@{}}
+\toprule
+\multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                   & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                       \\ \midrule
+Accuracy                            & - Simple to evaluate                                        & - Harsh penalties for slightly incorrect answers                                                                                   \\
+                                    & - Suitable for problems with a small answer set cardinality & - Requires an exact set of answers for multi-label tasks                                                                           \\
+WUPS                                & Rewards incorrect but semantically similar answers        & Rewards answers that share a concept class e.g. `colour' with the true answer but have opposite meanings e.g. `white' vs `black' \\
+                                    &                                                           & Evaluating open-ended answers ignores sentence syntax and context.                                                               \\ \bottomrule
+    \end{xltabular}
+ \caption[Advantages and disadvantages of metrics for various VQA tasks]{A comparison of metrics and their advantages and disadvantages for various VQA tasks.}
+\label{tab:vqa_metrics_comparison}
 \end{table}
 
 \subsection{Wu-Palmer Similarity}
@@ -69,7 +86,14 @@ To apply this metric to VQA tasks, we let \(A\) and \(B\) be a sequence of sets 
     \item Models which underestimate the number of target answers \textit{i.e.} \(|A_i| < |B_i|\) will be penalised, with a harsher penalty if the concepts in the target set are dissimilar.
 \end{enumerate}
 
-The authors note that WUP yields large values for related but not interchangeable concepts, noting that \(WUP(\text{carton}, \text{box}) = 0.94\) where \(WUP(\text{stove}, \text{fire extinguisher}) = 0.82\). To encourage precise answers and avoid accepting related but inaccurate answers, the authors down-weight \(WUP(a, b)\) by a ratio \(r = 0.1\) whenever it is less than some threshold \(t = 0.9\). Whilst novel, this approach introduces two new parameters which increase the complexity and subjectivity of the metric. Moreover, the metric is nonlinear unlike other common metrics like accuracy, precision and recall, making it more difficult to interpret at a glance.
+The authors note that WUP yields large values for related but not interchangeable concepts, noting that \(WUP(\text{carton}, \text{box}) = 0.94\) where \(WUP(\text{stove}, \text{fire extinguisher}) = 0.82\). To encourage precise answers and avoid accepting related but inaccurate answers, the authors down-weight \(WUP(a, b)\) by a ratio \(r = 0.1\) whenever it is less than some threshold \(t = 0.9\).
+
+While this down-weighting alleviates this issue for questions that query objects in an image, answers to questions about object attributes and colours are often poorly evaluated; \citeauthor{kafle2017visual} note that even after down-weighting \(WUP\) scores, \(WUPS(\text{white}, \text{black}) = 0.91\). Whilst the metric correctly rewards the answerer for correctly identifying that the answer to the question is a colour, a score of 0.91 seems too high, highlighting the non-linearity of the metric that makes it more difficult to interpret at a glance unlike other common metrics like accuracy.
+
+By nature, the metric also operates on single WordNet concepts, which often coincide with single words. To evaluate full-sentence or even multi-word answers with WUPS, we must treat sentences as a set of distinct words, disregarding essential syntactic and contextual information. This makes WUPS a poor candidate for open-ended VQA evaluation when compared to other NLG metrics such as BLEU, ROUGE, METEOR and CIDEr.
+
+%In addition to this issue, the down-weighting approach introduces two new parameters which increase the complexity and subjectivity of the metric. 
+
 
 % \[
 % \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\} =  \begin{cases}
@@ -111,7 +135,7 @@ The authors note that WUP yields large values for related but not interchangeabl
 
 Brevity penalty in the context of VQA:
 
-{\color{red} TODO: Check image captioning paper and see if this is the adopted approach} Assume a candidate answer may contain multiple sentences and a ground truth answer may contain multiple sentences. In the most common case, the number of sentences in both the candidate and ground truth answers is 1. For cases with multiple sentences we can treat multiple sentences as a single sentence when computing \(n\)-grams, as in \cite{papineni2002bleu}. For a candidate answer of length \(c\) and a reference answer length of \(r\) (for each candidate sentence, the reference length is the corresponding ground-truth sentence with the closest length. \(r\) is the sum of these reference lengths across all sentences in the corpus, though the corpus is small for VQA applications.) The brevity penalty \(P_B\) is thus:
+{\color{red} TODO: Check image captioning paper and see if this is the adopted approach. Also check DAQUAR and COCO-QA papers.} Assume a candidate answer may contain multiple sentences and a ground truth answer may contain multiple sentences. In the most common case, the number of sentences in both the candidate and ground truth answers is 1. For cases with multiple sentences we can treat multiple sentences as a single sentence when computing \(n\)-grams, as in \cite{papineni2002bleu}. For a candidate answer of length \(c\) and a reference answer length of \(r\) (for each candidate sentence, the reference length is the corresponding ground-truth sentence with the closest length. \(r\) is the sum of these reference lengths across all sentences in the corpus, though the corpus is small for VQA applications.) The brevity penalty \(P_B\) is thus:
 
 \begin{equation*}
     P_B = \begin{cases}
@@ -121,7 +145,7 @@ Brevity penalty in the context of VQA:
 \end{equation*}
 
 
-By default, \textsc{Bleu} is defined as the brevity penalty multiplied by the geometric mean of \(n\)-gram precisions \(p_n\) for \(n \in [1, 4]\):
+By default, \textsc{Bleu} is defined as the brevity penalty multiplied by the geometric mean of \(n\)-gram precisions \(p_n = \frac{\sum{c \in C} \sum g_n \in c }{\sum{c' \in C} \sum g_n' \in c}\) for \(n \in [1, 4]\):
 
 \begin{equation*}
     \textsc{Bleu} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
@@ -133,12 +157,72 @@ By default, \textsc{Bleu} is defined as the brevity penalty multiplied by the ge
 
 \subsection{ROUGE}
 
+\textbf{Motivations:}
+
+\begin{itemize}
+    \item Recall based rather than precision-based like BLEU. For text summarisation we generally prefer a candidate summary that covers a consensus of ground-truth answers.
+    \item Different variations:
+    \begin{itemize}
+        \item \textsc{Rouge-N}: ``\(n\)-gram recall between candidate summary and set of reference summaries''
+    \end{itemize}
+\end{itemize}
+
+\textbf{General Caveats:}
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\textbf{Application to VQA:}
+
+Assume the following notation:
+
+\(S\) is a set of ground-truth summaries (answers in the context of VQA) for a given dataset sample.
+
+\(g_n\) is an \(n\) gram contained within a summary \(s \in S\).
+
+\begin{equation*}
+    \textsc{Rouge-N} =\frac{
+        \sum_{s\in S} \sum_{g_n \in s}
+    }{
+        \sum_{s\in S} \sum_{g_n \in s}
+    }
+\end{equation*}
+
+\subsection{METEOR}
+
+\textbf{Motivations:}
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\textbf{General Caveats:}
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\textbf{Application to VQA:}
 \begin{itemize}
     \item 
 \end{itemize}
 
 \subsection{CIDEr}
 
+\textbf{Motivations:}
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\textbf{General Caveats:}
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\textbf{Application to VQA:}
 \begin{itemize}
     \item 
 \end{itemize}
