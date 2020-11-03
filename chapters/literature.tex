@@ -12,29 +12,28 @@ Metric design becomes even more important when considering full-sentence answers
 
 % Because of this, many VQA datasets frame VQA as a classification task, whilst others like GQA \cite{hudson2019gqa} provide both single and multiple word ground truth answers.
 
-% Mention BLEU, CIDEr, ROUGE, METEOR as NLG metrics?
-
-In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in Table \ref{tab:vqa_metrics}, focusing on how they compare semantically similar answers.
-
+In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in Table \ref{tab:vqa_metrics_suitability}, focusing on how they compare semantically similar answers.
 
 
 \begin{table}[htbp]
 \centering
     \begin{xltabular}{\linewidth}{@{}lCCCl@{}}
-    \toprule
-    \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                            & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
-    \multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Single class} & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
-    Accuracy                      & \checkmark                       & \checkmark                      &                                &                                                           \\
-    Consensus Accuracy                                   & \checkmark                       & \checkmark                      &                                & VQA                                                       \\
-    WUPS                                                 & \checkmark                       & \checkmark                      & \checkmark                     &                                                           \\
-    BLEU                                                 &                                  &                                 & \checkmark                     & Machine translation                                       \\
-    ROUGE                                                &                                  &                                 &                                &                                                           \\
-    CIDEr                                                &                                  &                                 &                                & Image captioning                                          \\
-    Consistency                                          &                                  &                                 &                                & VQA                                                       \\
-    Validity                                             &                                  &                                 &                                & VQA                                                       \\
-    Plausibility                                         &                                  &                                 &                                & VQA                                                       \\
-    Grounding                                            &                                  &                                 &                                & VQA                                                       \\
-    Distribution                                         &                                  &                                 &                                & VQA                                                       \\ \bottomrule
+\toprule
+\multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                           & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
+\multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Multi-label} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
+Accuracy                                             & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
+WUPS                                                 & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
+Consensus Accuracy                                   & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
+Consistency                                          & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
+Validity                                             & \checkmark                      &                                 &                                & VQA                                                       \\
+Plausibility                                         & \checkmark                      &                                 &                                & VQA                                                       \\
+Grounding                                            & \checkmark                      & \checkmark                      & \checkmark                     & VQA                                                       \\
+Distribution                                         & \checkmark                      &                                 &                                & VQA                                                       \\
+BLEU                                                 &                                 &                                 & \checkmark                     & Machine translation                                       \\
+ROUGE                                                &                                 &                                 & \checkmark                     & Text summarisation                                        \\
+METEOR                                               &                                 &                                 & \checkmark                     & Machine translation                                       \\
+CIDEr                                                &                                 &                                 & \checkmark                     & Image captioning                                          \\ \bottomrule
+
     \end{xltabular}
     \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
     \label{tab:vqa_metrics_suitability}
@@ -42,14 +41,26 @@ In the following subsections, I explore a variety of metrics for both class-base
 
 
 \begin{table}[htbp]
-\centering
-\begin{xltabular}{\linewidth}{@{}lLL@{}}
+  \centering
+    \begin{xltabular}{\linewidth}{@{}lLL@{}}
 \toprule
-\multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                   & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                       \\ \midrule
-Accuracy                            & - Simple to evaluate                                        & - Harsh penalties for slightly incorrect answers                                                                                   \\
-                                    & - Suitable for problems with a small answer set cardinality & - Requires an exact set of answers for multi-label tasks                                                                           \\
-WUPS                                & Rewards incorrect but semantically similar answers        & Rewards answers that share a concept class e.g. `colour' with the true answer but have opposite meanings e.g. `white' vs `black' \\
-                                    &                                                           & Evaluating open-ended answers ignores sentence syntax and context.                                                               \\ \bottomrule
+\multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                                                    & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                                                              \\ \midrule
+Accuracy                            & - Simple to evaluate.                                                                      & - Penalises slightly incorrect answers harshly.                                                                                                                         \\
+                                    & - Suitable for problems with a small answer set cardinality.                               & - Requires an exact set of answers for multi-label tasks.                                                                                                               \\
+WUPS                                & - Rewards incorrect but semantically similar answers.                                      & - Rewards answers that share a concept class \textit{e.g.} \textit{`colour'} with the true answer but have opposite meanings e.g. \textit{`white'} vs \textit{`black'}. \\
+                                    &                                                                                            & - Evaluating open-ended answers ignores sentence syntax and context.                                                                                                    \\
+Consensus Accuracy                  & - Simple to evaluate.                                                                      & - Multiple correct answers increases model complexity.                                                                                                                  \\
+                                    & - Aligns with human answers.                                                               & - Required ground truth answers are expensive to collect.                                                                                                               \\
+Consistency                         & - Ensures models avoid contradictory answers to related questions.                         & - Requires a set of entailed questions for each question.                                                                                                               \\
+Validity                            & - Measures a model's ability to respond to various question types.                         & - Requires a set of valid answers for each question type.                                                                                                               \\
+Plausibility                        & - Ensures models avoid nonsensical answers.                                                & - Requires scene graphs for all dataset samples.                                                                                                                        \\
+                                    &                                                                                            & - Can be imprecise for sparsely occurring objects.                                                                                                                      \\
+Grounding                           & - Ensures models use image data to answer questions instead of exploiting language priors. & - Only applicable to attention-based models.                                                                                                                            \\
+                                    &                                                                                            & - Requires knowledge about which image regions are relevant to each dataset sample.                                                                                     \\
+Distribution                        & - Ensures models respond well to all question subject-type groups                          &                                                                                                                                                                         \\
+BLEU                                & - \(n\)-grams capture positional relationships between words.                              & - Requires multiple ground truth answers for good performance.                                                                                                          \\
+                                    & - Penalises answers that are too short or too long.                                        & - Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty, an issue for VQA.                                        \\ \bottomrule
+
     \end{xltabular}
  \caption[Advantages and disadvantages of metrics for various VQA tasks]{A comparison of metrics and their advantages and disadvantages for various VQA tasks.}
 \label{tab:vqa_metrics_comparison}
@@ -90,7 +101,7 @@ The authors note that WUP yields large values for related but not interchangeabl
 
 While this down-weighting alleviates this issue for questions that query objects in an image, answers to questions about object attributes and colours are often poorly evaluated; \citeauthor{kafle2017visual} note that even after down-weighting \(WUP\) scores, \(WUPS(\text{white}, \text{black}) = 0.91\). Whilst the metric correctly rewards the answerer for correctly identifying that the answer to the question is a colour, a score of 0.91 seems too high, highlighting the non-linearity of the metric that makes it more difficult to interpret at a glance unlike other common metrics like accuracy.
 
-By nature, the metric also operates on single WordNet concepts, which often coincide with single words. To evaluate full-sentence or even multi-word answers with WUPS, we must treat sentences as a set of distinct words, disregarding essential syntactic and contextual information. This makes WUPS a poor candidate for open-ended VQA evaluation when compared to other NLG metrics such as BLEU, ROUGE, METEOR and CIDEr.
+By nature, the metric also operates on single WordNet concepts, which often coincide with single words. To evaluate full-sentence or even multi-word answers with WUPS, we must treat sentences as a set of distinct words, disregarding essential syntactic and contextual information. This makes WUPS a poor candidate for open-ended VQA evaluation when compared to other NLG metrics such as BLEU, ROUGE, METEOR and CIDEr, as briefly discussed in section \ref{subsection:open_ended_vqa_metrics} and summarised in table \ref{tab:vqa_metrics_comparison}.
 
 %In addition to this issue, the down-weighting approach introduces two new parameters which increase the complexity and subjectivity of the metric. 
 
@@ -103,7 +114,30 @@ By nature, the metric also operates on single WordNet concepts, which often coin
 % \end{cases}
 % \]
 
-\subsection{BLEU}
+\subsection{Consensus Measures}
+
+\begin{itemize}
+    \item DAQUAR Average and min consensus accuracy
+    \item VQA Consensus Accuracy (most widely used)
+\end{itemize}
+
+\subsection{GQA Metrics}
+\subsubsection{Consistency}
+\subsubsection{Validity}
+\subsubsection{Plausibility}
+\subsubsection{Grounding}
+\subsubsection{Distribution}
+
+\subsection{Metrics for Open-ended VQA}
+\label{subsection:open_ended_vqa_metrics}
+
+Given the challenge of multi-class and multi-label VQA tasks, there has been little research into open-ended VQA tasks even though some datasets contain full-sentence answers for each question. In addition, research into open-ended VQA has been stunted by the lack of a widely accepted metric for the task; metrics such as BLEU,  ROUGE, METEOR and CIDEr were originally developed for other tasks as shown in Table \ref{tab:vqa_metrics_comparison}, and thus have various disadvantages when used in VQA contexts.
+
+BLEU and METEOR were originally developed for automatic evaluation of machine translation systems.
+
+{\color{red} require mutliple reference translations for good functionality -> Missing from VQA datasets}
+
+\subsubsection{BLEU}
 
 \textbf{Motivations:}
 
@@ -155,7 +189,7 @@ By default, \textsc{Bleu} is defined as the brevity penalty multiplied by the ge
     \item VQA datasets rarely contain open ended answers. COCO comes with 5 captions per image, GQA comes with 1 open-ended answer per question. Even when we do have open ended answers, a single, one sentence is not enough for BLEU to be successful since it is designed for large corpora with multiple source translations; If the ground truth answer refers to a ``carton'' but the predicted answer uses the word ``box'', \(n\)-gram precision decreases despite semantic similarities between the two words. 
 \end{itemize}
 
-\subsection{ROUGE}
+\subsubsection{ROUGE}
 
 \textbf{Motivations:}
 
@@ -163,7 +197,7 @@ By default, \textsc{Bleu} is defined as the brevity penalty multiplied by the ge
     \item Recall based rather than precision-based like BLEU. For text summarisation we generally prefer a candidate summary that covers a consensus of ground-truth answers.
     \item Different variations:
     \begin{itemize}
-        \item \textsc{Rouge-N}: ``\(n\)-gram recall between candidate summary and set of reference summaries''
+        \item \textsc{Rouge-N}: ``\(n\)-gram recall between a candidate summary and set of reference summaries''
     \end{itemize}
 \end{itemize}
 
@@ -179,17 +213,21 @@ Assume the following notation:
 
 \(S\) is a set of ground-truth summaries (answers in the context of VQA) for a given dataset sample.
 
-\(g_n\) is an \(n\) gram contained within a summary \(s \in S\).
+\(c\) is a candidate summary, \textit{e.g.} one produced by a model.
+
+\(g_n\) is an \(n\) gram contained within a single summary \(s \in S\). In practice, each summary may contain multiple sentences, in which case \(n\)-grams are not computed across sentence boundaries, but for open-ended VQA answers, we can assume the answer is short and can be expressed as a single sentence.
 
 \begin{equation*}
-    \textsc{Rouge-N} =\frac{
-        \sum_{s\in S} \sum_{g_n \in s}
+    \textsc{Rouge-N} = {\arg \max}_{s\in S} \frac{
+        \sum_{g_n \in s} \min \left(\text{Count}_s(g_n), \text{Count}_c(g_n) \right)
     }{
-        \sum_{s\in S} \sum_{g_n \in s}
+        \sum_{g_n \in s} \text{Count}_s(g_n)
     }
 \end{equation*}
 
-\subsection{METEOR}
+For VQA with a single one-sentence reference answer and one-sentence candidate answer, \textsc{Rouge-N} is simply \(n\)-gram recall.
+
+\subsubsection{METEOR}
 
 \textbf{Motivations:}
 
@@ -208,7 +246,7 @@ Assume the following notation:
     \item 
 \end{itemize}
 
-\subsection{CIDEr}
+\subsubsection{CIDEr}
 
 \textbf{Motivations:}
 
@@ -225,17 +263,6 @@ Assume the following notation:
 \textbf{Application to VQA:}
 \begin{itemize}
     \item 
-\end{itemize}
-
-\subsection{Consensus Accuracy}
-
-\subsection{GQA Metrics}
-\begin{itemize}
-    \item Consistency
-    \item Validity
-    \item Plausibility
-    \item Grounding
-    \item Distribution
 \end{itemize}
 
 
