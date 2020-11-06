@@ -93,11 +93,11 @@ Given this definition, it naturally follows that two equal concepts occupy the s
 Whilst WUP similarity can capture similarities between a target and predicted concept, \citeauthor{malinowski2014multiworld} extend WUP similarity to sets of concepts, proposing the WUP set score for evaluation of multi-label classification tasks:
 
 \begin{equation}
-    WUPS(A, B) = \frac{1}{n} \sum_{i=1}^n \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\}
+    \textsc{WUPS}(A, B) = \frac{1}{N} \sum_{i=1}^N \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
     \label{eq:wups}
 \end{equation}
 
-To apply this metric to VQA tasks, we let \(A\) and \(B\) be a sequence of sets of predicted and ground-truth answers respectively. Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
+To apply this metric to VQA tasks, we let \(A\) and \(B\) be a sequence of sets of predicted and ground-truth answers respectively, each of size \(N\). Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
 
 \begin{enumerate}
     \item \(WUPS(A, B) \in [0, 1]\), with \(WUPS(A, B) = 1\) when \(A = B\).
@@ -123,7 +123,9 @@ By nature, the metric also operates on single WordNet concepts, which often coin
 % \]
 
 \subsection{Consensus Measures}
+\label{subsection:consensus_measures}
 
+\subsubsection{VQA Consensus Accuracy}
 Introduced by \citeauthor{antol2015vqa} in \citeyear{antol2015vqa}, the VQA consensus accuracy metric is the most common metric used to benchmark VQA models, due to the widespread adoption of the VQA dataset and its variants. To reward partially correct answers, VQA consensus accuracy compares a candidate answer to multiple reference answers, provided by humans via crowdsourcing platforms like Amazon Mechanical Turk (AMT) in the case of the VQA dataset. The VQA consensus accuracy metric is defined as
 
 \begin{equation}
@@ -135,7 +137,7 @@ where \(n\) is the number of answers in the set of reference answers that match 
 
 At a surface level, the metric is interpretable and can reward multiple correct and/or partially correct answers effectively, however, the latter can become a disadvantage depending on the quality of the reference answers. In their analysis of the VQAv1 dataset, \citeauthor{kafle2017visual} point out that 16.7\% of questions have less than 3 matching answers in their group of 10 reference answers, capping the performance of a perfect VQA model. A large contributor to this statistic is the presence of multi-word answers in the dataset; 89.32\% of answers in the VQAv1 dataset are single-word answers, leaving ample room for disagreement amongst reference answers.
 
-Moreover, supporting multiple correct answers can be detrimental if the correct answers are contradictory. Again, \citeauthor{kafle2017visual} identify that 13\% of VQA v1 yes/no questions contain both `yes' and `no' 3 or more times in their group of 10 reference answers, making both options entirely correct.
+Moreover, supporting multiple correct answers is unfavourable if the correct answers are contradictory. Again, \citeauthor{kafle2017visual} identify that 13\% of VQA v1 yes/no questions contain both `yes' and `no' 3 or more times in their group of 10 reference answers, making both options entirely correct.
 
 
 % \begin{itemize}
@@ -143,9 +145,24 @@ Moreover, supporting multiple correct answers can be detrimental if the correct 
 %     \item even when counting only those answers in the VQAv2 training set that appear more than 8 times, there are still 3129 unique reference answers. After this selection,  \cite{teney2018tips}.
 % \end{itemize}
 
-\begin{itemize}
-    \item DAQUAR Average and min consensus accuracy \cite{malinowski2015ask}
-\end{itemize}
+\subsubsection{DAQUAR Consensus Measures}
+
+Motivated by the relatively poor human baseline performance (Accuracy: 50.20\%, WUPS@0.9:  50.82\%) on the DAQUAR dataset, \citeauthor{malinowski2015ask} extended the dataset by collecting an average of 5 reference answers for each image-question pair and developing two consensus metrics based on their previous WUPS measure:
+
+\begin{equation}
+    \textsc{WUPS}_{\text{mean}}(A, B) =     \frac{1}{NK} \sum_{i=1}^N \sum_{i=1}^K \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
+    \label{eq:wups_mean_consensus}
+\end{equation}
+
+
+\begin{equation}
+    \textsc{WUPS}_{\text{min}}(A, B) =     \frac{1}{N} \sum_{i=1}^N \max_{k=1}^K \left( \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\} \right)
+    \label{eq:wups_min_consensus}
+\end{equation}
+
+where \(N\), \(A\) and \(B\) are as defined in Equation \ref{eq:wups}, and \(K\) is the number of reference answers for the \(i\)-th dataset sample.
+
+The mean consensus metric rewards candidate answers that coincide with more frequent reference answers, whilst the minimum consensus metric rewards candidate answers according to their similarity to the closest reference answer.
 
 \subsection{GQA Metrics}
 \subsubsection{Consistency}
@@ -205,10 +222,10 @@ Brevity penalty in the context of VQA:
 \end{equation*}
 
 
-By default, \textsc{Bleu} is defined as the brevity penalty multiplied by the geometric mean of \(n\)-gram precisions \(p_n = \frac{\sum{c \in C} \sum g_n \in c }{\sum{c' \in C} \sum g_n' \in c}\) for \(n \in [1, 4]\):
+By default, BLEU is defined as the brevity penalty multiplied by the geometric mean of \(n\)-gram precisions \(p_n = \frac{\sum{c \in C} \sum g_n \in c }{\sum{c' \in C} \sum g_n' \in c}\) for \(n \in [1, 4]\):
 
 \begin{equation*}
-    \textsc{Bleu} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
+    \textsc{BLEU} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
 \end{equation*}
 
 \begin{itemize}
@@ -244,7 +261,7 @@ Assume the following notation:
 \(g_n\) is an \(n\) gram contained within a single summary \(s \in S\). In practice, each summary may contain multiple sentences, in which case \(n\)-grams are not computed across sentence boundaries, but for open-ended VQA answers, we can assume the answer is short and can be expressed as a single sentence.
 
 \begin{equation*}
-    \textsc{Rouge-N} = {\arg \max}_{s\in S} \frac{
+    \textsc{ROUGE-N} = {\arg \max}_{s\in S} \frac{
         \sum_{g_n \in s} \min \left(\text{Count}_s(g_n), \text{Count}_c(g_n) \right)
     }{
         \sum_{g_n \in s} \text{Count}_s(g_n)
