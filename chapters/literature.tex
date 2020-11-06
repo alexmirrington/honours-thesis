@@ -6,13 +6,13 @@
 
 \section{Visual Question Answering Metrics}
 
-In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts. It follows that an effective VQA metric should be able to reward semantically similar answers.
+In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should reward answers that are partially correct or share semantics with the ground-truth answer.
 
-Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of natural language generation (NLG) metrics \cite{papineni2002bleu, lin2004rouge, banerjee2005meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft}, and are consequently applicable to open-ended VQA. Unfortunately, each of these metrics have their own advantages and downfalls, so multiple metrics need to be considered to gain useful insights into model performance.
+Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of natural language generation (NLG) metrics \cite{papineni2002bleu, lin2004rouge, banerjee2005meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft}, and are consequently applicable to open-ended VQA. Unfortunately, each of these metrics have their own advantages and pitfalls, so multiple metrics need to be considered to gain useful insights into model performance.
 
-% Because of this, many VQA datasets frame VQA as a classification task, whilst others like GQA \cite{hudson2019gqa} provide both single and multiple word ground truth answers.
+% Although I focus on VQA as a multi-class classification problem in this dissertation, I provide a brief overview of these metrics in section \ref{subsection:open_ended_vqa_metrics}.
 
-In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in Table \ref{tab:vqa_metrics_suitability}, focusing on how they compare semantically similar answers.
+In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in Table \ref{tab:vqa_metrics_suitability}, focusing on how they reward partially correct answers.
 
 
 \begin{table}[htbp]
@@ -66,11 +66,16 @@ BLEU                                & - \(n\)-grams capture positional relations
 \label{tab:vqa_metrics_comparison}
 \end{table}
 
-\subsection{Wu-Palmer Similarity}
+\subsection{Semantic Similarity Measures}
+
+\subsubsection{Wu-Palmer Similarity}
 
 Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the now-labelled Wu-Palmer (WUP) similarity is used to measure the semantic similarity of two concepts based on their positions in a taxonomy tree such as WordNet \cite{miller1995wordnet}. Formally, given two concepts \(A\) and \(B\) in a taxonomy tree \(T\), we define the Wu-Palmer similarity of \(A\) and \(B\) as
 
-\[WUP(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}\]
+\begin{equation}
+    WUP(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}
+    \label{eq:wup}
+\end{equation}
 
 where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in Figure \ref{fig:wups_tree}.
 
@@ -87,7 +92,10 @@ Given this definition, it naturally follows that two equal concepts occupy the s
 
 Whilst WUP similarity can capture similarities between a target and predicted concept, \citeauthor{malinowski2014multiworld} extend WUP similarity to sets of concepts, proposing the WUP set score for evaluation of multi-label classification tasks:
 
-\[WUPS(A, B) = \frac{1}{n} \sum_{i=1}^n \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\}\]
+\begin{equation}
+    WUPS(A, B) = \frac{1}{n} \sum_{i=1}^n \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\}
+    \label{eq:wups}
+\end{equation}
 
 To apply this metric to VQA tasks, we let \(A\) and \(B\) be a sequence of sets of predicted and ground-truth answers respectively. Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
 
@@ -116,9 +124,27 @@ By nature, the metric also operates on single WordNet concepts, which often coin
 
 \subsection{Consensus Measures}
 
+Introduced by \citeauthor{antol2015vqa} in \citeyear{antol2015vqa}, the VQA consensus accuracy metric is the most common metric used to benchmark VQA models, due to the widespread adoption of the VQA dataset and its variants. To reward partially correct answers, VQA consensus accuracy compares a candidate answer to multiple reference answers, provided by humans via crowdsourcing platforms like Amazon Mechanical Turk (AMT) in the case of the VQA dataset. The VQA consensus accuracy metric is defined as
+
+\begin{equation}
+    \textsc{Accuracy} = \min \left( \frac{n}{3}, 1 \right)
+    \label{eq:vqa_consensus_accuracy}
+\end{equation}
+
+where \(n\) is the number of answers in the set of reference answers that match a given candidate answer, \textit{i.e.} an answer is considered entirely correct if it matches 3 or more of the 10 reference answers for the corresponding question and image.
+
+At a surface level, the metric is interpretable and can reward multiple correct and/or partially correct answers effectively, however, the latter can become a disadvantage depending on the quality of the reference answers. In their analysis of the VQAv1 dataset, \citeauthor{kafle2017visual} point out that 16.7\% of questions have less than 3 matching answers in their group of 10 reference answers, capping the performance of a perfect VQA model. A large contributor to this statistic is the presence of multi-word answers in the dataset; 89.32\% of answers in the VQAv1 dataset are single-word answers, leaving ample room for disagreement amongst reference answers.
+
+Moreover, supporting multiple correct answers can be detrimental if the correct answers are contradictory. Again, \citeauthor{kafle2017visual} identify that 13\% of VQA v1 yes/no questions contain both `yes' and `no' 3 or more times in their group of 10 reference answers, making both options entirely correct.
+
+
+% \begin{itemize}
+%     \item ``Inter-human agreement is only 83.3\%. It is impossible for an algorithm to achieve 100\% accuracy.''\cite{kafle2017visual} % no consensus answer problem
+%     \item even when counting only those answers in the VQAv2 training set that appear more than 8 times, there are still 3129 unique reference answers. After this selection,  \cite{teney2018tips}.
+% \end{itemize}
+
 \begin{itemize}
-    \item DAQUAR Average and min consensus accuracy
-    \item VQA Consensus Accuracy (most widely used)
+    \item DAQUAR Average and min consensus accuracy \cite{malinowski2015ask}
 \end{itemize}
 
 \subsection{GQA Metrics}
@@ -131,11 +157,11 @@ By nature, the metric also operates on single WordNet concepts, which often coin
 \subsection{Metrics for Open-ended VQA}
 \label{subsection:open_ended_vqa_metrics}
 
-Given the challenge of multi-class and multi-label VQA tasks, there has been little research into open-ended VQA tasks even though some datasets contain full-sentence answers for each question. In addition, research into open-ended VQA has been stunted by the lack of a widely accepted metric for the task; metrics such as BLEU,  ROUGE, METEOR and CIDEr were originally developed for other tasks as shown in Table \ref{tab:vqa_metrics_comparison}, and thus have various disadvantages when used in VQA contexts.
+Given the challenge of multi-class and multi-label VQA tasks, there has been little research into open-ended VQA task, even though some datasets contain full-sentence answers for each question. In addition, research into open-ended VQA has been stunted by the lack of a widely accepted metric for the task; metrics such as BLEU,  ROUGE, METEOR and CIDEr were originally developed for other tasks as shown in Table \ref{tab:vqa_metrics_comparison}, and thus have various disadvantages when used in VQA contexts.
 
 BLEU and METEOR were originally developed for automatic evaluation of machine translation systems.
 
-{\color{red} require mutliple reference translations for good functionality -> Missing from VQA datasets}
+{\color{red} require mutliple reference translations for good functionality \(\rightarrow\) Missing from VQA datasets}
 
 \subsubsection{BLEU}
 
@@ -642,3 +668,18 @@ Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \
 \section{Image Embedding in Visual Question Answering}
 
 \section{Multi-modal Fusion in Visual Question Answering}
+
+
+% Model list 8-12
+
+% Focus
+% MAC
+% Dual channel GCNs
+% ReGAT
+% Neural state machine
+
+% Others
+% Text GCN
+
+% Methodology
+% Graph R-CNN

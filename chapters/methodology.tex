@@ -17,8 +17,12 @@
 \section{Scene Graph Input Module}
 \label{section:scene_graph_input_module}
 
-\section{Reasoning Module}
-\label{section:reasoning_module}
+\section{Compositional Attention Network}
+\label{section:compositional_attention_network}
+
+{\color{red}
+
+Move to Ablations
 
 \begin{itemize}
   \item Concat + linear fusion (other fusion types?)
@@ -28,11 +32,8 @@
 
 \subsection{Bottom-up}
 \label{subsection:bottom_up}
+ ReLU proved to yield higher results over gated tanh when paired with GAT/GCN embeddings. In the original paper, CNN/R-CNN features are extracted in the preprocessing step, meaning there is no need for gradient propagation to the knowledge base embedding. Preliminary tests showed a need for learnable embeddings in graph convolutional models, and thus a need for end-to-end propagation of gradients.}
 
-{\color{red} ReLU proved to yield higher results over gated tanh when paired with GAT/GCN embeddings. In the original paper, CNN/R-CNN features are extracted in the preprocessing step, meaning there is no need for gradient propagation to the knowledge base embedding. Preliminary tests showed a need for learnable embeddings in graph convolutional models, and thus a need for end-to-end propagation of gradients.}
-
-\subsection{MAC Network}
-\label{subsection:mac_network}
 
 In order to leverage the computational benefits of sparse tensor operations implemented in PyG \cite{fey2019fast}, I used a PyTorch \cite{paszke2019pytorch} re-implementation of the MAC network, which has been trained to 98.6\% on the CLEVR dataset \cite{eyzaguirre2020differentiable}, just 0.3\% shy of the official result reported by 
 \citeauthor{hudson2018compositional}. Notably, this re-implementation accounts for minor details that were omitted from the original MAC network paper but enabled by default in the official MAC network repository {\color{red} citation required}.
@@ -40,6 +41,3 @@ In order to leverage the computational benefits of sparse tensor operations impl
 \begin{itemize}
   \item Initial tests showed little performance difference between conditioning the current control state on previous control states. % #TODOInvestigate interpretability effects
 \end{itemize}
-
-\section{Output Module}
-\label{section:output_module}
