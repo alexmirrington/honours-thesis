@@ -16,54 +16,59 @@ In the following subsections, I explore a variety of metrics for both class-base
 
 
 \begin{table}[htbp]
-\centering
+    \centering
     \begin{xltabular}{\linewidth}{@{}lCCCl@{}}
-\toprule
-\multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                           & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
-\multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Multi-label} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
-Accuracy                                             & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
-WUPS                                                 & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
-Consensus Accuracy                                   & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
-Consistency                                          & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
-Validity                                             & \checkmark                      &                                 &                                & VQA                                                       \\
-Plausibility                                         & \checkmark                      &                                 &                                & VQA                                                       \\
-Grounding                                            & \checkmark                      & \checkmark                      & \checkmark                     & VQA                                                       \\
-Distribution                                         & \checkmark                      &                                 &                                & VQA                                                       \\
-BLEU                                                 &                                 &                                 & \checkmark                     & Machine translation                                       \\
-ROUGE                                                &                                 &                                 & \checkmark                     & Text summarisation                                        \\
-METEOR                                               &                                 &                                 & \checkmark                     & Machine translation                                       \\
-CIDEr                                                &                                 &                                 & \checkmark                     & Image captioning                                          \\ \bottomrule
-
+        \toprule
+        \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                           & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
+        \multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Multi-label} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
+        Accuracy                                             & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
+        WUPS                                                 & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
+        Consensus Accuracy                                   & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
+        Consistency                                          & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
+        Validity                                             & \checkmark                      &                                 &                                & VQA                                                       \\
+        Plausibility                                         & \checkmark                      &                                 &                                & VQA                                                       \\
+        Grounding                                            & \checkmark                      & \checkmark                      & \checkmark                     & VQA                                                       \\
+        Distribution                                         & \checkmark                      &                                 &                                & VQA                                                       \\
+        BLEU                                                 &                                 &                                 & \checkmark                     & Machine translation                                       \\
+        ROUGE                                                &                                 &                                 & \checkmark                     & Text summarisation                                        \\
+        METEOR                                               &                                 &                                 & \checkmark                     & Machine translation                                       \\
+        CIDEr                                                &                                 &                                 & \checkmark                     & Image captioning                                          \\ \bottomrule
+        \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
+        \label{tab:vqa_metrics_suitability}
     \end{xltabular}
-    \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
-    \label{tab:vqa_metrics_suitability}
 \end{table}
 
-
 \begin{table}[htbp]
-  \centering
-    \begin{xltabular}{\linewidth}{@{}lLL@{}}
-\toprule
-\multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                                                    & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                                                              \\ \midrule
-Accuracy                            & - Simple to evaluate.                                                                      & - Penalises slightly incorrect answers harshly.                                                                                                                         \\
-                                    & - Suitable for problems with a small answer set cardinality.                               & - Requires an exact set of answers for multi-label tasks.                                                                                                               \\
-WUPS                                & - Rewards incorrect but semantically similar answers.                                      & - Rewards answers that share a concept class \textit{e.g.} \textit{`colour'} with the true answer but have opposite meanings e.g. \textit{`white'} vs \textit{`black'}. \\
-                                    &                                                                                            & - Evaluating open-ended answers ignores sentence syntax and context.                                                                                                    \\
-Consensus Accuracy                  & - Simple to evaluate.                                                                      & - Multiple correct answers increases model complexity.                                                                                                                  \\
-                                    & - Aligns with human answers.                                                               & - Required ground truth answers are expensive to collect.                                                                                                               \\
-Consistency                         & - Ensures models avoid contradictory answers to related questions.                         & - Requires a set of entailed questions for each question.                                                                                                               \\
-Validity                            & - Measures a model's ability to respond to various question types.                         & - Requires a set of valid answers for each question type.                                                                                                               \\
-Plausibility                        & - Ensures models avoid nonsensical answers.                                                & - Requires scene graphs for all dataset samples.                                                                                                                        \\
-                                    &                                                                                            & - Can be imprecise for sparsely occurring objects.                                                                                                                      \\
-Grounding                           & - Ensures models use image data to answer questions instead of exploiting language priors. & - Only applicable to attention-based models.                                                                                                                            \\
-                                    &                                                                                            & - Requires knowledge about which image regions are relevant to each dataset sample.                                                                                     \\
-Distribution                        & - Ensures models respond well to all question subject-type groups                          &                                                                                                                                                                         \\
-BLEU                                & - \(n\)-grams capture positional relationships between words.                              & - Requires multiple ground truth answers for good performance.                                                                                                          \\
-                                    & - Penalises answers that are too short or too long.                                        & - Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty, an issue for VQA.                                        \\ \bottomrule
-
+    \begin{footnotesize}
+      \begin{xltabular}{\linewidth}{@{}lLL@{}}
+        \toprule
+            \multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                                                    & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                                                              \\ \midrule
+            Accuracy                            & - Simple and interpretable.                                                                & - Penalises slightly incorrect answers harshly.                                                                                                                         \\
+                                                & - Suitable for problems with a small answer set cardinality.                               & - Requires an exact set of answers for multi-label tasks.                                                                                                               \\ \midrule
+            WUPS                                & - Rewards incorrect but semantically similar answers.                                      & - Rewards answers that share a concept class \textit{e.g.} \textit{`colour'} with the true answer but have opposite meanings e.g. \textit{`white'} vs \textit{`black'}. \\
+                                                &                                                                                            & - Evaluating open-ended answers ignores sentence syntax and context.                                                                                                    \\ \midrule
+            Consensus Accuracy                  & - Simple and interpretable.                                                                & - Multiple correct reference answers may be contradictory.                                                                                                              \\
+                                                & - Aligns with human answers.                                                               & - Not all questions have 3 matching reference answers                                                                                                                   \\
+                                                &                                                                                            & - Reference answers are expensive to collect.                                                                                                                           \\ \midrule
+            Consistency                         & - Ensures models avoid contradictory answers to related questions.                         & - Requires a set of entailed questions for each question.                                                                                                               \\
+                                                &                                                                                            & - Limited by the usefulness of the accuracy metric                                                                                                                      \\ \midrule
+            Validity                            & - Measures a model's ability to respond to various question types.                         & - Requires a set of valid answers for each question type.                                                                                                               \\ \midrule
+            Plausibility                        & - Ensures models avoid nonsensical answers.                                                & - Requires scene graphs for all dataset samples.                                                                                                                        \\
+                                                &                                                                                            & - Can be imprecise for sparsely occurring objects.                                                                                                                      \\ \midrule
+            Grounding                           & - Ensures models use image data to answer questions instead of exploiting language priors. & - Only applicable to attention-based models.                                                                                                                            \\
+                                                &                                                                                            & - Requires knowledge about which image regions are relevant to each dataset sample.                                                                                     \\ \midrule
+            Distribution                        & - Ensures models respond well to all question subject-type groups                          &                                                                                                                                                                         \\ \midrule
+            BLEU                                & - \(n\)-grams capture positional relationships between words.                              & - Requires multiple ground truth answers for good performance.                                                                                                          \\
+                                                & - Penalises answers that are too short or too long.                                        & - Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty, an issue for VQA.                                        \\
+                                                &                                                                                            & - A zero score for any \(n\)-gram component gives a zero BLEU score.                                                                                                    \\ \midrule
+            ROUGE                               & - \(n\)-grams capture positional relationships between words.                              &                                                                                                                                                                         \\ \midrule
+            METEOR                              & - Accounts for synonyms                                                                    &                                                                                                                                                                         \\
+                                                & - Accounts for morphological discrepancies                                                 &                                                                                                                                                                         \\
+                                                & - Accounts for both precision and recall                                                   &                                                                                                                                                                         \\ \bottomrule
+    \caption[Advantages and disadvantages of metrics for various VQA tasks]{A comparison of metrics and their advantages and disadvantages for various VQA tasks.}
+    \label{tab:vqa_metrics_comparison}
     \end{xltabular}
- \caption[Advantages and disadvantages of metrics for various VQA tasks]{A comparison of metrics and their advantages and disadvantages for various VQA tasks.}
-\label{tab:vqa_metrics_comparison}
+  \end{footnotesize}
 \end{table}
 
 \subsection{Semantic Similarity Measures}
@@ -178,7 +183,7 @@ Given the challenge of multi-class and multi-label VQA tasks, there has been lit
 
 BLEU and METEOR were originally developed for automatic evaluation of machine translation systems.
 
-{\color{red} require mutliple reference translations for good functionality \(\rightarrow\) Missing from VQA datasets}
+{\color{red} require multiple reference translations for good functionality \(\rightarrow\) Missing from VQA datasets}
 
 \subsubsection{BLEU}
 
@@ -261,7 +266,7 @@ Assume the following notation:
 \(g_n\) is an \(n\) gram contained within a single summary \(s \in S\). In practice, each summary may contain multiple sentences, in which case \(n\)-grams are not computed across sentence boundaries, but for open-ended VQA answers, we can assume the answer is short and can be expressed as a single sentence.
 
 \begin{equation*}
-    \textsc{ROUGE-N} = {\arg \max}_{s\in S} \frac{
+    \textsc{ROUGE -N} = {\arg \max}_{s\in S} \frac{
         \sum_{g_n \in s} \min \left(\text{Count}_s(g_n), \text{Count}_c(g_n) \right)
     }{
         \sum_{g_n \in s} \text{Count}_s(g_n)
@@ -351,7 +356,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
 \begin{landscape}
   \begin{footnotesize}
       \begin{center}
-        \begin{xltabular}{\linewidth}{LlllLLLLLL}
+        \begin{xltabular}{\linewidth}{@{}LlllLLLLLL@{}}
           \toprule
           \textbf{Dataset}
           & \textbf{Year}
@@ -364,6 +369,16 @@ In this section, I address the first major hurdle for the VQA task as introduced
           & \textbf{Additional Data}
           & \textbf{Evaluation Metrics}\\
           \midrule
+          \endhead
+
+          \midrule
+          \endfoot
+
+          \bottomrule\\
+          \caption[A comparison of VQA datasets and their variations.]{A comparison of relevant features of the most popular VQA datasets. Dataset variations are listed in regular font below their bolded counterparts.}
+          \label{tab:dataset_comparison}
+          \endlastfoot
+
           \textbf{DAQUAR} \cite{malinowski2014multiworld}
           & 2014
           & 1,449  % 1449 images
@@ -545,9 +560,6 @@ In this section, I address the first major hurdle for the VQA task as introduced
           & -
           & -
           & Accuracy, BLEU \\
-          \bottomrule
-          \caption[A comparison of VQA datasets and their variations.]{A comparison of relevant features of the most popular VQA datasets. Dataset variations are listed in regular font below their bolded counterparts.}
-          \label{tab:dataset_comparison}
           \end{xltabular}
       \end{center}
   \end{footnotesize}
