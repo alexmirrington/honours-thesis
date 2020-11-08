@@ -12,7 +12,7 @@ Metric design becomes even more important when considering full-sentence answers
 
 % Although I focus on VQA as a multi-class classification problem in this dissertation, I provide a brief overview of these metrics in section \ref{subsection:open_ended_vqa_metrics}.
 
-In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in Table \ref{tab:vqa_metrics_suitability}, focusing on how they reward partially correct answers.
+In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in \tableautorefname{ \ref{tab:vqa_metrics_suitability}}, focusing on how they reward partially correct answers.
 
 
 \begin{table}[htbp]
@@ -82,7 +82,7 @@ Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the 
     \label{eq:wup}
 \end{equation}
 
-where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in Figure \ref{fig:wups_tree}.
+where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in \figureautorefname{ \ref{fig:wups_tree}}.
 
 \begin{figure}[H]
     \centering
@@ -114,7 +114,7 @@ The authors note that WUP yields large values for related but not interchangeabl
 
 While this down-weighting alleviates this issue for questions that query objects in an image, answers to questions about object attributes and colours are often poorly evaluated; \citeauthor{kafle2017visual} note that even after down-weighting \(WUP\) scores, \(WUPS(\text{white}, \text{black}) = 0.91\). Whilst the metric correctly rewards the answerer for correctly identifying that the answer to the question is a colour, a score of 0.91 seems too high, highlighting the non-linearity of the metric that makes it more difficult to interpret at a glance unlike other common metrics like accuracy.
 
-By nature, the metric also operates on single WordNet concepts, which often coincide with single words. To evaluate full-sentence or even multi-word answers with WUPS, we must treat sentences as a set of distinct words, disregarding essential syntactic and contextual information. This makes WUPS a poor candidate for open-ended VQA evaluation when compared to other NLG metrics such as BLEU, ROUGE, METEOR and CIDEr, as briefly discussed in section \ref{subsection:open_ended_vqa_metrics} and summarised in table \ref{tab:vqa_metrics_comparison}.
+By nature, the metric also operates on single WordNet concepts, which often coincide with single words. To evaluate full-sentence or even multi-word answers with WUPS, we must treat sentences as a set of distinct words, disregarding essential syntactic and contextual information. This makes WUPS a poor candidate for open-ended VQA evaluation when compared to other NLG metrics such as BLEU, ROUGE, METEOR and CIDEr, as briefly discussed in \subsectionautorefname{ \ref{subsection:open_ended_vqa_metrics}} and summarised in \tableautorefname{ \ref{tab:vqa_metrics_comparison}}.
 
 %In addition to this issue, the down-weighting approach introduces two new parameters which increase the complexity and subjectivity of the metric. 
 
@@ -165,7 +165,7 @@ Motivated by the relatively poor human baseline performance (Accuracy: 50.20\%, 
     \label{eq:wups_min_consensus}
 \end{equation}
 
-where \(N\), \(A\) and \(B\) are as defined in Equation \ref{eq:wups}, and \(K\) is the number of reference answers for the \(i\)-th dataset sample.
+where \(N\), \(A\) and \(B\) are as defined in \equationautorefname{ \ref{eq:wups}}, and \(K\) is the number of reference answers for the \(i\)-th dataset sample.
 
 The mean consensus metric rewards candidate answers that coincide with more frequent reference answers, whilst the minimum consensus metric rewards candidate answers according to their similarity to the closest reference answer.
 
@@ -179,7 +179,7 @@ The mean consensus metric rewards candidate answers that coincide with more freq
 \subsection{Metrics for Open-ended VQA}
 \label{subsection:open_ended_vqa_metrics}
 
-Given the challenge of multi-class and multi-label VQA tasks, there has been little research into open-ended VQA task, even though some datasets contain full-sentence answers for each question. In addition, research into open-ended VQA has been stunted by the lack of a widely accepted metric for the task; metrics such as BLEU,  ROUGE, METEOR and CIDEr were originally developed for other tasks as shown in Table \ref{tab:vqa_metrics_comparison}, and thus have various disadvantages when used in VQA contexts.
+Given the challenge of multi-class and multi-label VQA tasks, there has been little research into open-ended VQA task, even though some datasets contain full-sentence answers for each question. In addition, research into open-ended VQA has been stunted by the lack of a widely accepted metric for the task; metrics such as BLEU,  ROUGE, METEOR and CIDEr were originally developed for other tasks as shown in \tableautorefname{ \ref{tab:vqa_metrics_comparison}}, and thus have various disadvantages when used in VQA contexts.
 
 BLEU and METEOR were originally developed for automatic evaluation of machine translation systems.
 
@@ -317,7 +317,7 @@ For VQA with a single one-sentence reference answer and one-sentence candidate a
 \section{Visual Question Answering Datasets}
 \label{section:vqa_datasets}
 
-In this section, I address the first major hurdle for the VQA task as introduced in Chapter \ref{chapter:introduction}: How do we design a dataset that effectively emulates subtle relationships between questions and images as presented in real-world situations where VQA would prove useful?
+In this section, I address the first major hurdle for the VQA task as introduced in \chapterautorefname{  \ref{chapter:introduction}}: How do we design a dataset that effectively emulates subtle relationships between questions and images as presented in real-world situations where VQA would prove useful?
 
 % More formally, we wish to develop a dataset \(\mathcal{X}\) such that \(x \sim \mathcal{D}\ \forall x \in \mathcal{X}\) for some fixed, underlying distribution \(\mathcal{D}\) \cite{mohri2018foundations}. For a dataset to be \textit{useful}, we require that \(\mathcal{D}\) captures the distribution of real-world VQA problems that we wish to solve.
 %\(S \in ( \times \mathcal{Y})^n\) 
@@ -579,7 +579,7 @@ Given the recent rise in popularity of Visual Question Answering tasks, \citeaut
 
 \subsection{Mitigating the Exploitation of Language Priors} 
 
-Despite VQA 1.0's strengths, the authors identify the first main hurdle for VQA datasets, highlighting that if left to their own devices, VQA models will exploit statistical priors present in textual information. They describe how language-only methods perform surprisingly well compared to models that harness both question and image features, noting that a simple ``per-question type prior'' model achieves 71.03\% and 35.77\% on binary and numeric questions, and an LSTM with only question word embeddings performs similarly at 78.20\% and 35.68\%  \cite{antol2015vqa}. Further studies \cite{goyal2017making, zhang2016yin} reinforce these observations, highlighting the skewed answer distributions of both the real-world and synthetic VQA datasets, demonstrating that models could leverage language priors to effectively answer some types of questions without requiring any knowledge of associated images. \citeauthor{zhang2016yin} focus on the imbalance in the answer distribution of binary questions in the VQA dataset, pointing out that `yes' is the answer to 68\% of all binary questions in the abstract scenes dataset. Furthermore, they propose a potential solution that allows the answer distribution of binary questions in the existing abstract scenes dataset to be balanced: for each (image, question) pair, humans were tasked with the creation of a new scene using existing clip-art objects \cite{zitnick2013bringing} that was similar to the existing image, but had a negated answer on the same question, as shown in Figure \ref{fig:zhang2016yin_balancing_procedure} below.
+Despite VQA 1.0's strengths, the authors identify the first main hurdle for VQA datasets, highlighting that if left to their own devices, VQA models will exploit statistical priors present in textual information. They describe how language-only methods perform surprisingly well compared to models that harness both question and image features, noting that a simple ``per-question type prior'' model achieves 71.03\% and 35.77\% on binary and numeric questions, and an LSTM with only question word embeddings performs similarly at 78.20\% and 35.68\%  \cite{antol2015vqa}. Further studies \cite{goyal2017making, zhang2016yin} reinforce these observations, highlighting the skewed answer distributions of both the real-world and synthetic VQA datasets, demonstrating that models could leverage language priors to effectively answer some types of questions without requiring any knowledge of associated images. \citeauthor{zhang2016yin} focus on the imbalance in the answer distribution of binary questions in the VQA dataset, pointing out that `yes' is the answer to 68\% of all binary questions in the abstract scenes dataset. Furthermore, they propose a potential solution that allows the answer distribution of binary questions in the existing abstract scenes dataset to be balanced: for each (image, question) pair, humans were tasked with the creation of a new scene using existing clip-art objects \cite{zitnick2013bringing} that was similar to the existing image, but had a negated answer on the same question, as shown in \figureautorefname{  \ref{fig:zhang2016yin_balancing_procedure}} below.
 
 \begin{figure}[H]
     \centering
@@ -588,14 +588,14 @@ Despite VQA 1.0's strengths, the authors identify the first main hurdle for VQA 
     \label{fig:zhang2016yin_balancing_procedure}
 \end{figure}
 
-Despite this method's success in reducing the proportion of unbalanced (image, question) pairs by almost 72\%, 20.48\% (image, question) pairs in the balanced dataset did not have a complementary (image, question) pair; 5.93\% because a complementary scene could not be created due to limitations of the abstract scenes clip-art library, and 14.55\% due to disagreement between the answers collected by workers for a given scene. A similar approach was used for non-binary questions in the creation of the VQA 2.0 dataset, as summarised in Table \ref{tab:dataset_comparison} above. \citeauthor{hudson2019gqa} approach the task of dataset balancing from a different angle, aiming to mitigate biases in the answer distributions of the GQA dataset whilst maintaining some degree of representation of real-world priors.
+Despite this method's success in reducing the proportion of unbalanced (image, question) pairs by almost 72\%, 20.48\% (image, question) pairs in the balanced dataset did not have a complementary (image, question) pair; 5.93\% because a complementary scene could not be created due to limitations of the abstract scenes clip-art library, and 14.55\% due to disagreement between the answers collected by workers for a given scene. A similar approach was used for non-binary questions in the creation of the VQA 2.0 dataset, as summarised in \tableautorefname{  \ref{tab:dataset_comparison}} above. \citeauthor{hudson2019gqa} approach the task of dataset balancing from a different angle, aiming to mitigate biases in the answer distributions of the GQA dataset whilst maintaining some degree of representation of real-world priors.
 
 Whilst it is certainly important that dataset creators mitigate biases in their work, it is also the responsibility of VQA model authors to ensure that the ways in which image and question data is fed to their models is also able to be justified; many models,  incorporate BiLSTMs \cite{hudson2018compositional} or LSTMs \cite{andreas2016neural} to obtain question-level representations, however by processing the input data in this manner, it becomes difficult to determine the extent to which the reasoning part of the model is exploiting probabilistic priors in the dataset. By embedding and processing the question as a graph, interpretability studies can be performed on the model to ensure the reasoning part of the model performs as intended.
 
 \section{Visual Question Answering Methods}
 \label{section:vqa_methods}
 
-It has been observed that the architectures that leverage additional information such as scene graphs rather than just raw image features tend to perform better. This is clearly illustrated by \citeauthor{hudson2019gqa_preprint} in Figure \ref{fig:gqa_input_representation} below:
+It has been observed that the architectures that leverage additional information such as scene graphs rather than just raw image features tend to perform better. This is clearly illustrated by \citeauthor{hudson2019gqa_preprint} in \figureautorefname{ \ref{fig:gqa_input_representation}} below:
 
 \begin{figure}[H]
     \centering
@@ -645,7 +645,7 @@ Whilst deep neural networks have proved useful for many classification tasks due
 
 \vspace{\baselineskip}
 
-Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \cite{antol2015vqa} of 58.7\%, the per-question-type statistics report only a 2.5\% and 1.4\% performance improvement over a LSTM language-only baseline on binary and numerical questions despite the 16\% improvement on `other'-type questions. This suggests that the success of the model is likely clouded by statistical biases in the dataset, evidenced by the use of a text-only model in the ensemble shown in Figure \ref{fig:andreas2016neural_neural_module_network}. As discussed by \citeauthor{hudson2018compositional}, the model depends on unreliable parsers and their ``hand-crafted'' design lacks extensibility. Moreover, attention maps on raw CNN features are used as the primary form of image data input. Whilst supplementary information like scene graphs and object annotations were not available at the time of writing, these data formats would allow for additional interactions and data transfer between modules, likely improving the network's ability to perform logical reasoning processes.
+Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \cite{antol2015vqa} of 58.7\%, the per-question-type statistics report only a 2.5\% and 1.4\% performance improvement over a LSTM language-only baseline on binary and numerical questions despite the 16\% improvement on `other'-type questions. This suggests that the success of the model is likely clouded by statistical biases in the dataset, evidenced by the use of a text-only model in the ensemble shown in \figureautorefname{ \ref{fig:andreas2016neural_neural_module_network}}. As discussed by \citeauthor{hudson2018compositional}, the model depends on unreliable parsers and their ``hand-crafted'' design lacks extensibility. Moreover, attention maps on raw CNN features are used as the primary form of image data input. Whilst supplementary information like scene graphs and object annotations were not available at the time of writing, these data formats would allow for additional interactions and data transfer between modules, likely improving the network's ability to perform logical reasoning processes.
 
 \begin{figure}[H]
     \centering
