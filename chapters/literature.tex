@@ -17,7 +17,7 @@ In the following subsections, I explore a variety of metrics for both class-base
 
 \begin{table}[htbp]
     \centering
-    \begin{xltabular}{\linewidth}{@{}lCCCl@{}}
+    \begin{tabularx}{\linewidth}{@{}lCCCl@{}}
         \toprule
         \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                           & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
         \multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Multi-label} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
@@ -33,14 +33,14 @@ In the following subsections, I explore a variety of metrics for both class-base
         ROUGE                                                &                                 &                                 & \checkmark                     & Text summarisation                                        \\
         METEOR                                               &                                 &                                 & \checkmark                     & Machine translation                                       \\
         CIDEr                                                &                                 &                                 & \checkmark                     & Image captioning                                          \\ \bottomrule
-        \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
-        \label{tab:vqa_metrics_suitability}
-    \end{xltabular}
+    \end{tabularx}
+    \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
+    \label{tab:vqa_metrics_suitability}
 \end{table}
 
 \begin{table}[htbp]
     \begin{footnotesize}
-      \begin{xltabular}{\linewidth}{@{}lLL@{}}
+      \begin{tabularx}{\linewidth}{@{}lLL@{}}
         \toprule
             \multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                                                    & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                                                              \\ \midrule
             Accuracy                            & - Simple and interpretable.                                                                & - Penalises slightly incorrect answers harshly.                                                                                                                         \\
@@ -65,10 +65,10 @@ In the following subsections, I explore a variety of metrics for both class-base
             METEOR                              & - Accounts for synonyms                                                                    &                                                                                                                                                                         \\
                                                 & - Accounts for morphological discrepancies                                                 &                                                                                                                                                                         \\
                                                 & - Accounts for both precision and recall                                                   &                                                                                                                                                                         \\ \bottomrule
+    \end{tabularx}
+    \end{footnotesize}
     \caption[Advantages and disadvantages of metrics for various VQA tasks]{A comparison of metrics and their advantages and disadvantages for various VQA tasks.}
     \label{tab:vqa_metrics_comparison}
-    \end{xltabular}
-  \end{footnotesize}
 \end{table}
 
 \subsection{Semantic Similarity Measures}
@@ -169,8 +169,45 @@ where \(N\), \(A\) and \(B\) are as defined in \equationautorefname{ \ref{eq:wup
 
 The mean consensus metric rewards candidate answers that coincide with more frequent reference answers, whilst the minimum consensus metric rewards candidate answers according to their similarity to the closest reference answer.
 
-\subsection{GQA Metrics}
+\subsection{Metrics for Visual Reasoning}
+
+As discussed earlier, the standard accuracy metric penalises partially correct answers as harshly as incorrect answers. When using accuracy alone, it is impossible to distinguish between a model that provides reasonable but incorrect answers and one that provides nonsensical answers. Moreover, the standard accuracy metric gives no insights into how a VQA model arrived at its answer to a given question and image.
+
+To combat these issues, \citeauthor{hudson2019gqa} developed five new metrics in tandem with their GQA dataset \cite{hudson2019gqa} to evaluate the internal reasoning processes of VQA models: Consistency, Validity, Plausibility, Grounding and Distribution.
+
 \subsubsection{Consistency}
+
+The consistency metric is motivated by the following scenario:
+
+Say we have two questions \(q_0\) and \(q_1\) that ask about properties of the same image, \textit{e.g.} \(q_0 = \)\textit{`What colour is the apple?'} and  \(q_1 = \) \textit{`Is the apple red?'}
+
+Since both questions are asking about the same apple, a consistent model is one that does not contradict itself in answering the two questions \textit{e.g.} \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`yes'} are consistent answers, where \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`no'} are not.
+
+To calculate consistency, each question-answer pair \(q, a\) in the GQA dataset is annotated with a set of entailed questions \(E_q\). For the example above, \(q_1\) is an entailed question of \(q_0\), since knowing the answer to \(q_0\) infers the answer to \(q_1\).
+
+\begin{algorithm}[htbp]
+\KwResult{Write here the result }
+ initialization\;
+ \While{While condition}{
+  instructions\;
+  \eIf{condition}{
+   instructions1\;
+   instructions2\;
+   }{
+   instructions3\;
+  }
+ }
+ \caption{Algorithm for computing consistency given a set of questions \(Q\), a set of entailed questions \(E_q\) for each \(q \in Q\), a set of reference answers \(A\) and a set of candidate answers \(\hat{A}\)).}
+\end{algorithm}
+
+
+% On 4000 random questions of the GQA dataset, \citeauthor{hudson2019gqa} report a human consistency of 98.4, and accuracy of 89.3, indicating that humans are mostly consistent but not always accurate in their responses.
+
+Unfortunately, the consistency metric does not account for inaccurately answered questions. There is certainly an argument to be made that including incorrect answers in the consistency calculation would skew the consistency metric in favour of more accurate models. Moreover, including these incorrect answers could give large consistency scores for poorer models that exploit statistical priors in the dataset's answer distribution.
+Nonetheless, knowing consistency amongst incorrectly answered questions gives information about the model's overall reasoning skills and tendency to exploit statistical biases in certain question types. Hence, for error analysis purposes, it would be more suitable to compute consistency over incorrectly answered questions instead of computing consistency over all questions.
+
+% Multi-question learning?
+
 \subsubsection{Validity}
 \subsubsection{Plausibility}
 \subsubsection{Grounding}
@@ -356,7 +393,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
 \begin{landscape}
   \begin{footnotesize}
       \begin{center}
-        \begin{xltabular}{\linewidth}{@{}LlllLLLLLL@{}}
+        \begin{longtable}[c]{llllllllll}
           \toprule
           \textbf{Dataset}
           & \textbf{Year}
@@ -560,7 +597,7 @@ In this section, I address the first major hurdle for the VQA task as introduced
           & -
           & -
           & Accuracy, BLEU \\
-          \end{xltabular}
+          \end{longtable}
       \end{center}
   \end{footnotesize}
 \end{landscape}

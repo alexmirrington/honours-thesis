@@ -54,6 +54,7 @@
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{amsmath}
+
 % Maths symbols
 
 %-------------------- Document sections, headers, footers, and bibliography
@@ -70,18 +71,21 @@
 	allcolors    = black
 }
 
-% Command renewals, New commands etc.
-\renewcommand{\thefootnote}{\arabic{footnote}}
-
 % More packages
-\usepackage{xltabular}
-
-\newcolumntype{C}{>{\centering\arraybackslash}X}
-\newcolumntype{L}{>{\raggedright\arraybackslash}X}
-\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\usepackage{tabularx}
+\usepackage{longtable}
 \usepackage{multirow}
 \usepackage{multicol}
 \usepackage{float}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{forest}
+\usepackage[ruled,noline,algochapter,dotocloa]{algorithm2e}
+% Command renewals, New commands etc.
+\renewcommand{\thefootnote}{\arabic{footnote}}
+
+% Table commands and column types
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
