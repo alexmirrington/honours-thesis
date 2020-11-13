@@ -79,7 +79,7 @@ Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the 
 
 \begin{equation}
     WUP(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}
-    \label{eq:wup}
+    \label{equation:wup}
 \end{equation}
 
 where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in \figureautorefname{ \ref{fig:wups_tree}}.
@@ -99,7 +99,7 @@ Whilst WUP similarity can capture similarities between a target and predicted co
 
 \begin{equation}
     \textsc{WUPS}(A, B) = \frac{1}{N} \sum_{i=1}^N \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
-    \label{eq:wups}
+    \label{equation:wups}
 \end{equation}
 
 To apply this metric to VQA tasks, we let \(A\) and \(B\) be a sequence of sets of predicted and ground-truth answers respectively, each of size \(N\). Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
@@ -135,7 +135,7 @@ Introduced by \citeauthor{antol2015vqa} in \citeyear{antol2015vqa}, the VQA cons
 
 \begin{equation}
     \textsc{Accuracy} = \min \left( \frac{n}{3}, 1 \right)
-    \label{eq:vqa_consensus_accuracy}
+    \label{equation:vqa_consensus_accuracy}
 \end{equation}
 
 where \(n\) is the number of answers in the set of reference answers that match a given candidate answer, \textit{i.e.} an answer is considered entirely correct if it matches 3 or more of the 10 reference answers for the corresponding question and image.
@@ -156,16 +156,16 @@ Motivated by the relatively poor human baseline performance (Accuracy: 50.20\%, 
 
 \begin{equation}
     \textsc{WUPS}_{\text{mean}}(A, B) =     \frac{1}{NK} \sum_{i=1}^N \sum_{i=1}^K \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
-    \label{eq:wups_mean_consensus}
+    \label{equation:wups_mean_consensus}
 \end{equation}
 
 
 \begin{equation}
     \textsc{WUPS}_{\text{min}}(A, B) =     \frac{1}{N} \sum_{i=1}^N \max_{k=1}^K \left( \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\} \right)
-    \label{eq:wups_min_consensus}
+    \label{equation:wups_min_consensus}
 \end{equation}
 
-where \(N\), \(A\) and \(B\) are as defined in \equationautorefname{ \ref{eq:wups}}, and \(K\) is the number of reference answers for the \(i\)-th dataset sample.
+where \(N\), \(A\) and \(B\) are as defined in \equationautorefname{ \ref{equation:wups}}, and \(K\) is the number of reference answers for the \(i\)-th dataset sample.
 
 The mean consensus metric rewards candidate answers that coincide with more frequent reference answers, whilst the minimum consensus metric rewards candidate answers according to their similarity to the closest reference answer.
 
@@ -204,7 +204,7 @@ To calculate consistency, each question-answer pair \(q, a\) in the GQA dataset 
         \Return \(\frac{s_c}{|\{q_i \in Q \mid E_{q_i} \neq \emptyset\}|}\)
     }
     \caption[Consistency metric algorithm]{Consistency metric algorithm}
-    \label{algorithm:consistency_metric}
+    \label{algorithm:consistency}
 \end{algorithm}
 
 % On 4000 random questions of the GQA dataset, \citeauthor{hudson2019gqa} report a human consistency of 98.4, and accuracy of 89.3, indicating that humans are mostly consistent but not always accurate in their responses.
@@ -215,9 +215,64 @@ Nonetheless, knowing consistency amongst incorrectly answered questions gives in
 % Multi-question learning?
 
 \subsubsection{Validity}
+
+The validity metric is the most lenient of the GQA metrics, and simply captures whether a candidate answer corresponds with the type of answer the question demands. For example, valid answers for questions starting with `What colour' are colours like `red' or `blue', where answers like `yes' or `three' would be invalid.
+
+To calculate validity, the GQA evaluation script \cite{hudson2019evaluation_script} contains a set of valid answers \(V_q\) for every question in the dataset. For each question \(q \in Q\) and its corresponding candidate answer \(\hat{a}_q\), the validity metric is simply:
+
+\begin{equation}
+    \textsc{Validity} = \frac{1}{|Q|}\sum_{q \in Q} \begin{cases}
+        1, &\text{if } \hat{a}_q \in V_q\\
+        0, &\text{otherwise }\\
+    \end{cases}
+    \label{equation:validity}
+\end{equation}
+
 \subsubsection{Plausibility}
+
+Where the validity metric aims to measure whether answers to questions are non-degenerate, plausibility measures whether the candidate answer is rational by checking for co-occurrence of the answer and the question's subject in the scene graphs for the rest of the dataset.
+
+In practice, plausibility is computed in the same way as validity, using a pre-computed set of plausible answers \(P_q\)  for each question in place of the set of valid answers \(V_q\) used in \equationautorefname{ \ref{equation:validity}}.
+
+The method used to compute \(P_q\) for each question depends on the question's type; for the GQA dataset, the scene graph contains attributes, objects and relations, meaning that plausibility needs to be computed differently depending on whether the question's answer is an object, relation or attribute. Moreover, plausibility also needs to be computed for other types of questions whose answers are not in the scene graph, such as binary and counting type questions.
+
+For the sake of brevity, I will focus on two different question types to give an intuition about how sets of plausible answers are determined.
+
+For questions that ask about an attribute of an object \(o\), an attribute is considered plausible if it co-occurs with \(o\) at least once in the scene graphs for other images in the dataset. For example, `red' would be a plausible answer to the question `What colour is the apple?' if the dataset contains at least one image of a red apple, where `blue' would be implausible.
+
+For questions that ask about a target object \(t\) given a subject \(s\) and relation \(r\) \textit{e.g.} `What is the man holding?', \(t\) is considered plausible if there exists a relation \(s, r, t\) in the scene graph for any image in the dataset. 
+
 \subsubsection{Grounding}
+
+\(D\): dataset
+\(\mathcal{R}\): sets of region pointers for each question image pair in \(D\)
+\(\hat{\mathcal{R}}\): attended image regions for each question image pair in \(D\)
+
+\(\mathcal{R} = \{R_{(q,i)} \mid (q,i) \in D\}\)
+\(\hat{\mathcal{R}} = \{\hat{R}_{(q,i)} \mid (q,i) \in D\}\)
+
+score = 0
+for each region in \(\mathcal{R}\):
+    for each region in \(\hat{\mathcal{R}}\):
+        score += attention(\(\hat{\mathcal{R}}\)) * intersectionRate(\(\hat{\mathcal{R}}\), \(\mathcal{R}\))
+        where intersectionRate(A, B) = Intersection(A, B) / Area(A) i.e. precision-based measure.
+
+
+\begin{algorithm}[htbp]
+    \Function{\(D, \mathcal{R}\)}{
+
+    }
+    \caption[Grounding metric algorithm]{Grounding metric algorithm}
+    \label{algorithm:grounding}
+\end{algorithm}
+
 \subsubsection{Distribution}
+
+Given the importance of dataset balancing and the influence of language priors on model performance as discussed in \sectionautorefname{ \ref{section:vqa_datasets}}, the distribution metric compares the distributions of reference and candidate answer sets. This provides a way of measuring whether a VQA model exploits statistical priors and focuses on more common answers or whether it can predict less-frequent answers based on its knowledge of the question and image.
+
+The similarity score of the candidate and reference distributions for each question type is computed using the Pearson Chi-squared statistic \cite{pearson1900x}, and the distribution metric is a weighted average of these scores, with the weights being the number of questions of that type.
+
+{\color{red} TODO: Insert formula written down on GQA paper (derived from the eval code)}
 
 \subsection{Metrics for Open-ended VQA}
 \label{subsection:open_ended_vqa_metrics}
