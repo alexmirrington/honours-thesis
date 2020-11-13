@@ -183,23 +183,29 @@ Say we have two questions \(q_0\) and \(q_1\) that ask about properties of the s
 
 Since both questions are asking about the same apple, a consistent model is one that does not contradict itself in answering the two questions \textit{e.g.} \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`yes'} are consistent answers, where \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`no'} are not.
 
-To calculate consistency, each question-answer pair \(q, a\) in the GQA dataset is annotated with a set of entailed questions \(E_q\). For the example above, \(q_1\) is an entailed question of \(q_0\), since knowing the answer to \(q_0\) infers the answer to \(q_1\).
+To calculate consistency, each question-answer pair \(q, a\) in the GQA dataset is annotated with a set of entailed questions \(E_q\). For the example above, \(q_1\) is an entailed question of \(q_0\), since knowing the answer to \(q_0\) infers the answer to \(q_1\). Given a the set of questions \(Q\) that a model answered correctly and a set entailed questions for each \(q \in Q\) denoted \(\mathcal{E} = \{E_q \mid q \in Q\}\), the consistency metric is calculated according to \algorithmcfname{ \ref{algorithm:consistency_metric}}.
 
 \begin{algorithm}[htbp]
-\KwResult{Write here the result }
- initialization\;
- \While{While condition}{
-  instructions\;
-  \eIf{condition}{
-   instructions1\;
-   instructions2\;
-   }{
-   instructions3\;
-  }
- }
- \caption{Algorithm for computing consistency given a set of questions \(Q\), a set of entailed questions \(E_q\) for each \(q \in Q\), a set of reference answers \(A\) and a set of candidate answers \(\hat{A}\)).}
+    \Function{\(Q, \mathcal{E}\)}{
+        \(s_c \leftarrow 0\)\\
+        \ForEach{\(\{q_i \in Q \mid E_{q_i} \neq \emptyset\}\)}{
+            \(s_{q_i} \leftarrow 0\)\\
+            \ForEach{
+                \(q_e \in E_{q_i}\)
+            }{
+                \lIf{
+                    \(q_e \in Q\)
+                }{
+                    \(s_{q_i} \leftarrow s_{q_i} + 1\)
+                }
+            }
+            \(s_c \leftarrow s_c + \frac{s_{q_i}}{|E_{q_i}|}\)
+        }
+        \Return \(\frac{s_c}{|\{q_i \in Q \mid E_{q_i} \neq \emptyset\}|}\)
+    }
+    \caption[Consistency metric algorithm]{Consistency metric algorithm}
+    \label{algorithm:consistency_metric}
 \end{algorithm}
-
 
 % On 4000 random questions of the GQA dataset, \citeauthor{hudson2019gqa} report a human consistency of 98.4, and accuracy of 89.3, indicating that humans are mostly consistent but not always accurate in their responses.
 
