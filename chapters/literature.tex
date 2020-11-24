@@ -251,12 +251,14 @@ For questions that ask about a target object \(t\) given a subject \(s\) and rel
 \(\mathcal{R} = \{R_{(q,i)} \mid (q,i) \in D\}\)
 \(\hat{\mathcal{R}} = \{\hat{R}_{(q,i)} \mid (q,i) \in D\}\)
 
+
 score = 0
 for each region in \(\mathcal{R}\):
     for each region in \(\hat{\mathcal{R}}\):
         score += attention(\(\hat{\mathcal{R}}\)) * intersectionRate(\(\hat{\mathcal{R}}\), \(\mathcal{R}\))
         where intersectionRate(A, B) = Intersection(A, B) / Area(A) i.e. precision-based measure.
 
+Average the above over all samples
 
 \begin{algorithm}[htbp]
     \Function{\(D, \mathcal{R}\)}{
@@ -665,6 +667,21 @@ In this section, I address the first major hurdle for the VQA task as introduced
 
 \footnotetext{For open-ended answers, an answer is considered `correct' if it matches at least three of the ten human-provided answers. For multiple choice answers, a traditional accuracy metric is used.}
 
+\textbf{VQAv1} \cite{antol2015vqa} Real images were drawn from COCO \cite{lin2014microsoft}, and abstract scenes were created using clip-art objects \cite{zitnick2013bringing}. Questions and answers were collected using an Amazon Mechanical Turk (AMT) interface.
+
+\textbf{VG} \cite{krishna2017visual} Images from the intersection of COCO \cite{lin2014microsoft} and YFCC100M \cite{thomee2016yfcc100m}. Questions, answers and scene graphs were collected using an AMT interface.
+
+\textbf{V7W} \cite{zhu2016visual7w} Images are a subset of the Visual Genome dataset. Questions, answers and object-level groundings were collected using an AMT interface.
+
+\textbf{VQAv2} \cite{goyal2017making, zhang2016yin} Built on top of VQA 1.0, new (image, question, answer) tuples were created from existing tuples by asking AMT workers to choose an image from 24 nearest neighbours of the existing tuple's image such that the answer to the new image is not the answer to the existing image for the same question.
+
+\textbf{CLEVR} \cite{johnson2017clevr} Images were generated randomly from a scene graph containing objects, attributes and relations between geometric objects. Questions and answers were generated from functional program templates evaluated on the scene graph for a given image. Scene graphs and functional programs were retained and are included for the training and validation sets.
+
+\textbf{TDIUC} \cite{kafle2017analysis} Questions were collected from COCO-QA and VG, generated from COCO and VG segmentation and object/attribute annotations respectively, or created by human volunteers. Images from COCO and VG were used if associated with a question.
+
+\textbf{GQA} \cite{hudson2019gqa} Scene graphs were created using various preprocessing techniques from VG scene graphs. Questions were produced compositionally from combinations of templates derived from VQA 2.0 and manually-created templates, using scene graph traversals to fill in subjects, objects, relations and attributes, whilst simultaneously filling in the functional program templates associated with the question types. An additional balancing helped mitigate statistical priors that are often exploited by models, whilst maintaining real-world priors.
+
+
 \subsection{Early Work} 
 
 Given the recent rise in popularity of Visual Question Answering tasks, \citeauthor{antol2015vqa} recognised a need for a new, sufficiently large dataset that contained free-form, open-ended questions that still allowed results to be quantified; this need was realised by two datasets: an open-ended dataset derived from COCO \cite{lin2014microsoft}, as well as a smaller synthetic dataset with similarly created questions.\cite{antol2015vqa} The key contributions of these datasets were two-fold:
@@ -790,12 +807,117 @@ Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \
 
 % BAN: TODO
 
-\section{Question Embedding in Visual Question Answering}
+\subsection{Graph Methods}
 
-\section{Image Embedding in Visual Question Answering}
+\noindent
+\textbf{Aligned Dual Channel Graph Convolutional Networks for VQA} \cite{huang2020aligned}
+\label{huang2020aligned}
 
-\section{Multi-modal Fusion in Visual Question Answering}
+Current graph-based VQA methods focus only on capturing relationships between objects in images, and process textual information using traditional RNN-based approaches, indicating a need to close the semantic gap between question and image domains. \citeauthor{huang2020aligned} propose graphical representations of question data allow for multi-modal reasoning when reconciled with image objects. The authors of this paper have three main aims:
 
+\begin{enumerate}
+    \item To reconcile the objects and their relationships in images with words and their relationships in questions as a way of reasoning on multimodal data.
+    \item To develop a method for generating meaningful graphical representations of question data for use in VQA tasks.
+    \item To prove that graph-based methods perform on-par or better than existing SOTA VQA approaches.
+\end{enumerate}
+
+The methodology behind the model can be summarised as follows:
+
+\begin{itemize}
+    \item I-GCN
+    \begin{itemize}
+        \item Between 10 and 100 object proposals per image, each \(\in \R^{2048}\)
+        \item Graphs edges are determined by bounding box intersection-over-union and a linear embedding of object vectors at the edge's endpoints.
+    \end{itemize}
+    \item Q-GCN
+    \begin{itemize}
+        \item Questions words represented with 300-dim GloVe embeddings \cite{pennington2014glove}, then encoded using an LSTM.
+        \item Graph edge existence is determined using a Stanford dependency parser, and nodes store question word embeddings.
+    \end{itemize}
+    \item Attention alignment
+    \begin{itemize}
+        \item Self-attention on question words
+        \item Attention on visual features using question attention results as a query.
+        \item Linear multimodal fusion between attention outputs \(\tilde{H}_v\) and \(\tilde{H}_q\), with BCE loss computed over the candidate answer vocabulary:
+        \[H_r = W_v^\top \tilde{H}_v + W_q^\top \tilde{H}_q\]
+        \[softmax(W_e H_r + b_e)\]    
+    \end{itemize}
+\end{itemize}
+Whilst one of the first methods to leverage graph strcutures for question embeddings, the scene graph generation method captures only naive spatial relations, compared to a model like ReGAT which models both explicit and implicit spatial and semantic relationships \cite{li2019relation}. Moreover, dependency-parsed graphs lack spatial and semantic information; they capture structural relationships between words that do not directly translate to spatial/semantic relationships in the joint question-image domain. In addition, the attention alignment module operates on two different data modes, each with their own semantic space; a more successful alignment module would first project data streams onto the same latent space before reasoning about the relationships between image and question objects.
+
+\subsection{Attention Methods}
+
+\subsection{Fusion Methods}
+
+\subsection{Modular Methods}
+
+\section{Model Performance Summary}
+
+\subsection{VQAv2.0}
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C C C C C C @{}}
+        \hline
+        \multirow{2}{*}{\textbf{Model}} & \multicolumn{4}{c}{Test-dev} & \multicolumn{4}{c}{Test-std} \\
+        \cline{2-5}\cline{6-9}
+        & All & Yes/No & Num. & Other & All & Yes/No & Num. & Other \\
+        \hline
+        % Fusion
+        BLOCK \cite{ben2019block} & 67.58 & 83.6 & 47.33 & 58.51 & 67.92 & 83.98 & 46.77 & 58.79 \\
+        \hline
+        % Attention
+        % Graph
+    \end{tabularx}
+    \caption{A comparison of various models for different question types on the VQA v2.0 dataset.}
+\end{table}
+
+\subsection{CLEVR}
+
+% \begin{table}[htbp]
+%     \centering
+%     \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C C C @{}}
+%         \hline
+%         \multirow{2}{*}{\textbf{Model}} & \multicolumn{4}{c}{Test-dev} & Test-std \\
+%         \cline{2-5}\cline{6-6}
+%         & Y/N & Number & Other & All & All \\
+%         \hline
+%         MAC \cite{hudson2018compositional} & & & & & \\
+%         \hline
+%     \end{tabularx}
+%     \caption{A comparison of various models on the VQA dataset the accuracy metric.}
+% \end{table}
+
+\subsection{GQA}
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C @{}}
+        \hline
+        \multirow{2}{*}{\textbf{Model}} & \multicolumn{3}{c}{Test} \\
+        \cline{2-4}
+        & Binary & Open & All \\
+        \hline
+        % Fusion
+        BLOCK \cite{ben2019block} & - & - & - \\
+        \hline
+    \end{tabularx}
+    \caption{A comparison of various models for different question types on the GQA test set using the accuracy metric.}
+\end{table}
+
+\begin{table}[htbp]
+    \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C C C C @{}}
+        \hline
+        \multirow{2}{*}{\textbf{Model}} & \multicolumn{6}{c}{Test} \\
+        \cline{2-7}
+        & Distribution & Grounding & Validity & Plausibility & Consistency & Accuracy \\
+        \hline
+        % Fusion
+        BLOCK \cite{ben2019block} & - & - & - & - & - & - \\
+        \hline
+    \end{tabularx}
+    \caption{A comparison of various models on the GQA test set for multiple metrics.}
+\end{table}
 
 % Model list 8-12
 
