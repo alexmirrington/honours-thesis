@@ -4,18 +4,29 @@
 \section{Architecture Overview}
 \label{section:architecture_overview}
 
-In this section, I propose a new model for single-concept open-ended visual question answering tasks. The proposed model comprises six main components:
+In this section, I propose a new model for single-concept open-ended visual question answering tasks. The proposed model comprises six main components, as shown in \figureautorefname{ \ref{fig:model_overview}} and outlined briefly below:
 
-\begin{enumerate}
-  \item Question embedding
-  \item Question module
-  \item Scene graph embedding
-  \item Scene graph module
-  \item Reasoning module
-  \item Output module
-\end{enumerate}
+\textbf{Question embedding}
 
-A high-level overview of the model is shown in \figureautorefname{ \ref{fig:model_overview}}
+In classic NLP fashion, the question embedding component is responsible for the preprocessing and vectorisation of questions for use by the rest of the model.
+
+\textbf{Question module}
+The question module has two main roles: the first is to learn a sequence of contextual words {\color{red}(TODO: Insert nomenclature)} that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the question as a whole.
+
+\textbf{Scene graph embedding}
+
+The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, we use ground-truth scene graphs from the GQA in order to evaluate the effectiveness of sparse graph-based models, however this component can be readily extended to utilise the output of existing scene graph generation models, giving rise to a true end-to-end VQA model.
+
+\textbf{Scene graph module}
+
+The primary goal of the scene graph module is to learn a dense representation of scene graph features that can be used as a knowledge-base for the reasoning module to draw information from when answering questions.
+
+\textbf{Reasoning module}
+
+Given the output features of the scene graph and question modules, the reasoning module is in charge of determining which visual features are relevant to the question and vice-versa. The reasoning capabilities of many existing VQA models could be leveraged here; I justify my reasoning module of choice and describe its implementation in detail in \sectionautorefname{ \ref{section:reasoning_module}}.
+
+\textbf{Output module}
+The output module is the simplest part of the architecture, and is responsible for transforming the output of the reasoning module into a concrete answer to the input question. I delve into the design decisions behind the output module and how it might be modified for other VQA tasks in \sectionautorefname{ \ref{section:output_module}}.
 
 \begin{figure}[htbp]
     \centering
@@ -24,18 +35,21 @@ A high-level overview of the model is shown in \figureautorefname{ \ref{fig:mode
     \label{fig:model_overview}
 \end{figure}
 
-The question embedding and question module are responsible for
-
 \section{Question Embedding and Module}
 \label{section:question_input_module}
+\begin{itemize}
+    \item GloVe vs random normal distribution. Glove required less tuning since the vector norms already worked well.
+\end{itemize}
 
 \section{Scene Graph Embedding and Module}
 \label{section:scene_graph_input_module}
 
-The primary goal of the scene graph module is to learn a dense representation of scene graph features that can be used as a knowledge-base for the reasoning module to draw information from when answering questions. Both the GQA and CLEVR datasets contain ground-truth scene graph information for each image in the training and validation sets. For GQA, each image is annotated with a global \texttt{location} and \texttt{weather} attribute,  as well as a list of objects, the objects attributes \textit{e.g.} colour, shape, texture and its relations to other objects in the image.
+ Both the GQA and CLEVR datasets contain ground-truth scene graph information for each image in the training and validation sets. For GQA, each image is annotated with a global \texttt{location} and \texttt{weather} attribute,  as well as a list of objects, the objects attributes \textit{e.g.} colour, shape, texture and its relations to other objects in the image.
 
 \section{Reasoning Module}
 \label{section:reasoning_module}
+
+{\color{red}Partly chose MAC network since is is already well-evaluated on the GQA dataset.}
 
 Given the goal of the question module is to learn a dense contextual and syntactic representation of the question, and the goal of the scene graph module is to capture dependency information between objects, attributes and relations in the scene, we still need to combine and reason about this extracted information. All VQA models have to handle this multi-modal fusion and reasoning in some capacity, with adopting taking fusion-only approaches, whilst others learn self-attention or bidirectional attention weights between question and image modalities, and others leverage the strengths of both methods. For my model, I leverage the reasoning capabilities of the Compositional Attention Network \citeauthor{hudson2018compositional}, a recurrent model that decomposes complex question-answering problems into discrete reasoning steps, each of which is performed by a single cell in the network. The Compositional Attention Network achieved state-of-the-art results on the CLEVR dataset in \citeyear{hudson2018compositional}, achieving 
 
