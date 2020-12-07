@@ -313,7 +313,7 @@ BLEU and METEOR were originally developed for automatic evaluation of machine tr
 \begin{itemize}
     \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
     \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
-    \item Brevity penalty is required to avoid short answers like ``of the'', where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
+    \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
 \end{itemize}
 
 
@@ -338,7 +338,7 @@ By default, BLEU is defined as the brevity penalty multiplied by the geometric m
 \end{equation*}
 
 \begin{itemize}
-    \item VQA datasets rarely contain open ended answers. COCO comes with 5 captions per image, GQA comes with 1 open-ended answer per question. Even when we do have open ended answers, a single, one sentence is not enough for BLEU to be successful since it is designed for large corpora with multiple source translations; If the ground truth answer refers to a ``carton'' but the predicted answer uses the word ``box'', \(n\)-gram precision decreases despite semantic similarities between the two words. 
+    \item VQA datasets rarely contain open ended answers. COCO comes with 5 captions per image, GQA comes with 1 open-ended answer per question. Even when we do have open ended answers, a single, one sentence is not enough for BLEU to be successful since it is designed for large corpora with multiple source translations; If the ground truth answer refers to a \textit{carton} but the predicted answer uses the word \textit{box}, \(n\)-gram precision decreases despite semantic similarities between the two words. 
 \end{itemize}
 
 \subsubsection{ROUGE}
@@ -703,7 +703,7 @@ Despite VQA 1.0's strengths, the authors identify the first main hurdle for VQA 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.35\textwidth]{zhang2016yin_balancing_procedure.png}
-    \caption{\citeauthor{zhang2016yin} demonstrate their answer distribution balancing technique. Given the scene on the left and the question ``Is the girl walking the bike'', workers were tasked with creating a scene that differs from the scene on the left but has the opposite answer to the question, as illustrated by the scene and answer on the right.}
+    \caption{\citeauthor{zhang2016yin} demonstrate their answer distribution balancing technique. Given the scene on the left and the question \textit{Is the girl walking the bike}, workers were tasked with creating a scene that differs from the scene on the left but has the opposite answer to the question, as illustrated by the scene and answer on the right.}
     \label{fig:zhang2016yin_balancing_procedure}
 \end{figure}
 

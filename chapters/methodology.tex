@@ -6,28 +6,6 @@
 
 In this section, I propose a new model for single-concept open-ended visual question answering tasks. The proposed model comprises six main components, as shown in \figureautorefname{ \ref{fig:model_overview}} and outlined briefly below:
 
-\textbf{Question embedding}
-
-In classic NLP fashion, the question embedding component is responsible for the preprocessing and vectorisation of questions for use by the rest of the model.
-
-\textbf{Question module}
-The question module has two main roles: the first is to learn a sequence of contextual words {\color{red}(TODO: Insert nomenclature)} that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the question as a whole.
-
-\textbf{Scene graph embedding}
-
-The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, we use ground-truth scene graphs from the GQA in order to evaluate the effectiveness of sparse graph-based models, however this component can be readily extended to utilise the output of existing scene graph generation models, giving rise to a true end-to-end VQA model.
-
-\textbf{Scene graph module}
-
-The primary goal of the scene graph module is to learn a dense representation of scene graph features that can be used as a knowledge-base for the reasoning module to draw information from when answering questions.
-
-\textbf{Reasoning module}
-
-Given the output features of the scene graph and question modules, the reasoning module is in charge of determining which visual features are relevant to the question and vice-versa. The reasoning capabilities of many existing VQA models could be leveraged here; I justify my reasoning module of choice and describe its implementation in detail in \sectionautorefname{ \ref{section:reasoning_module}}.
-
-\textbf{Output module}
-The output module is the simplest part of the architecture, and is responsible for transforming the output of the reasoning module into a concrete answer to the input question. I delve into the design decisions behind the output module and how it might be modified for other VQA tasks in \sectionautorefname{ \ref{section:output_module}}.
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{model_overview.png}
@@ -35,13 +13,33 @@ The output module is the simplest part of the architecture, and is responsible f
     \label{fig:model_overview}
 \end{figure}
 
-\section{Question Embedding and Module}
-\label{section:question_input_module}
-\begin{itemize}
-    \item GloVe vs random normal distribution. Glove required less tuning since the vector norms already worked well.
-\end{itemize}
+\textbf{Question embedding:} In classic NLP fashion, the question embedding component is responsible for the preprocessing and vectorisation of raw question data for use by the rest of the model.
 
-\section{Scene Graph Embedding and Module}
+\textbf{Question module:} The question module has two main roles: the first is to learn a sequence of contextual words {\color{red}(TODO: Insert nomenclature)} that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the question as a whole.
+
+\textbf{Scene graph embedding:} The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, we use ground-truth scene graphs from the GQA in order to evaluate the effectiveness of sparse graph-based models, however this component can be readily extended to utilise the output of existing scene graph generation models, giving rise to a true end-to-end VQA model.
+
+\textbf{Scene graph module:} The primary goal of the scene graph module is to learn a dense representation of scene graph features that can be used as a knowledge-base for the reasoning module to draw information from when answering questions.
+
+\textbf{Reasoning module:} Given the output features of the scene graph and question modules, the reasoning module is in charge of determining which visual features are relevant to the question and vice-versa. The reasoning capabilities of many existing VQA models could be leveraged here; I justify my reasoning module of choice and describe its implementation in detail in \sectionautorefname{ \ref{section:reasoning_module}}.
+
+\textbf{Output module:} The output module is the simplest part of the architecture, and is responsible for transforming the output of the reasoning module into a concrete answer to the input question. I delve into the design decisions behind the output module and how it might be modified for other VQA tasks in \sectionautorefname{ \ref{section:output_module}}.
+
+\section{Question Embedding}
+\label{section:question_embedding}
+
+The question embedding component of the architecture is responsible for two major tasks: preprocessing and vectorisation. The preprocessing step is performed prior to the training of the model, where vectorisation of preprocessed question words occurs at runtime. 
+
+I use a neural preprocessing pipeline for each raw question string in the dataset, comprising tokenisation, part-of-speech (POS) tagging, lemmatisation and dependency parsing steps.\footnote{For this architecture, only the tokenisation step is required since the question module uses word embeddings but not syntactic dependency information. Graph-based question modules use syntactic dependencies for graph construction, as described in \sectionautorefname{ \ref{sec:ablation_studies}}.} For reproducibility, I use the Stanza NLP package \cite{qi2020stanza} for all steps of the pipeline.
+
+After tokenisation, each question token is converted to an index to enable vector embedding lookups during training. A mapping of all question tokens to their respective indices is kept, and shared between the training and validation sets. Reference answers are converted to indices in a similar fashion, however they are not tokenised first. Multi-word answers like \textit{parking meter} or \textit{cutting board} are treated as a single concept, identically to single-word answers like \textit{bed}. This ensures  multi-word answers can be predicted just as easily as single-word answers and allows the output module to treat the question-answering task as a multi-class classification problem across the set of all candidate answers.
+
+At runtime, each question token is converted to a 300-dimensional GloVe vector \cite{pennington2014glove}, then token embeddings are stacked together, yielding a a question tensor \(q \in \R ^{l_q \times d}\) where \(l_q\) is the number of tokens in the question. Questions \(\{q_1, ..., q_n\}\) are then padded to length \(l = \max_{i} l_{q_i}\) and stacked together to give a batch of questions \(Q \in \R^{n \times l \times d}\), the input to the question module.
+
+\section{Question Module}
+\label{section:question_module}
+
+\section{Scene Graph Embedding and Scene Graph Module}
 \label{section:scene_graph_input_module}
 
  Both the GQA and CLEVR datasets contain ground-truth scene graph information for each image in the training and validation sets. For GQA, each image is annotated with a global \texttt{location} and \texttt{weather} attribute,  as well as a list of objects, the objects attributes \textit{e.g.} colour, shape, texture and its relations to other objects in the image.
