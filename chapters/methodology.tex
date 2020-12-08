@@ -34,15 +34,25 @@ I use a neural preprocessing pipeline for each raw question string in the datase
 
 After tokenisation, each question token is converted to an index to enable vector embedding lookups during training. A mapping of all question tokens to their respective indices is kept, and shared between the training and validation sets. Reference answers are converted to indices in a similar fashion, however they are not tokenised first. Multi-word answers like \textit{parking meter} or \textit{cutting board} are treated as a single concept, identically to single-word answers like \textit{bed}. This ensures  multi-word answers can be predicted just as easily as single-word answers and allows the output module to treat the question-answering task as a multi-class classification problem across the set of all candidate answers.
 
-At runtime, each question token is converted to a 300-dimensional GloVe vector \cite{pennington2014glove}, then token embeddings are stacked together, yielding a a question tensor \(q \in \R ^{l_q \times d}\) where \(l_q\) is the number of tokens in the question. Questions \(\{q_1, ..., q_n\}\) are then padded to length \(l = \max_{i} l_{q_i}\) and stacked together to give a batch of questions \(Q \in \R^{n \times l \times d}\), the input to the question module.
+At runtime, each question token is converted to a \(d = 300\) dimensional GloVe vector \cite{pennington2014glove}, then token embeddings for a given question are stacked together, yielding a matrix of question features \(H_q \in \R ^{l_q \times d}\) where \(l_q\) is the number of tokens in the question.
 
 \section{Question Module}
 \label{section:question_module}
 
-\section{Scene Graph Embedding and Scene Graph Module}
-\label{section:scene_graph_input_module}
+BiLSTM \cite{hochreiter1997long}
+
+I describe variations of the question module in \sectionautorefname{ \ref{sec:ablation_studies}}.
+
+
+\section{Scene Graph Embedding}
+\label{section:scene_graph_embedding}
 
  Both the GQA and CLEVR datasets contain ground-truth scene graph information for each image in the training and validation sets. For GQA, each image is annotated with a global \texttt{location} and \texttt{weather} attribute,  as well as a list of objects, the objects attributes \textit{e.g.} colour, shape, texture and its relations to other objects in the image.
+
+\section{Scene Graph Module}
+\label{section:scene_graph_module}
+
+{\color{red} TODO: Verify this still holds: Interestingly, using non-linearities such as ReLU between GAT convolutions destroys the rich information provided by the GloVe embeddings by setting negative values to zero.}
 
 \section{Reasoning Module}
 \label{section:reasoning_module}
