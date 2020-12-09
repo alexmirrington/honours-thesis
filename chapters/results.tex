@@ -28,11 +28,14 @@ The effects of the Hyperband method are clearly seen in \figureautorefname{ \ref
     \begin{subfigure}[t]{\textwidth}
         \includegraphics[width=\textwidth]{hyperparameter_optimisation_validation_loss.png}
         \label{fig:hyperparameter_optimisation_validation_loss}
+        \caption{Validation loss throughout the hyperparameter optimisation process.}
     \end{subfigure}
     \par\bigskip % force a bit of vertical whitespace
+    \par\bigskip
     \begin{subfigure}[b]{\textwidth}
         \includegraphics[width=\textwidth]{hyperparameter_optimisation_validation_accuracy.png}
         \label{fig:hyperparameter_optimisation_validation_accuracy}
+        \caption{Validation accuracy throughout the hyperparameter optimisation process. Greyed out points correspond to models with a loss greater than 10.}
     \end{subfigure}
     \caption{A summary of validation loss and accuracy throughout the hyperparameter optimisation process. Each point represents a trained model, and its colour indicates how many epochs the model was trained for.}
     \label{fig:hyperparameter_optimisation_validation_loss_and_accuracy}
