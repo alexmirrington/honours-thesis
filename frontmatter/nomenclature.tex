@@ -8,37 +8,45 @@
   \ifstrequal{#1}{X}{General}{}}}}}%
 ]}
 
-% % General
-% \nomenclature[X]{\(I_n\)}{An identity matrix of size \(n \times n\).}
+% General
+\nomenclature[X]{\(I_n\)}{An identity matrix of size \(n \times n\).}
 
-% % Operators
-% \nomenclature[O]{\(a \mathbin\Vert b\)}{The concatenation of two vectors \(a\) and \(b\).}
+% Operators
+\nomenclature[O]{\(a \mathbin\Vert b\)}{The concatenation of two vectors \(a\) and \(b\).}
 
-% % Data
-% \nomenclature[D, 00]{\(S = \{(X_i, y_i) \mid i \in \Z^+, i \leq n\}\)}{A visual question answering dataset containing \(n\) samples.}
+% Data
+\nomenclature[D, 00]{\(S = \{(x_i, y_i) \mid i \in \Z^+, i \leq n\}\)}{A visual question answering dataset containing \(n\) samples.}
 
-% \nomenclature[D, 01]{\(X\)}{A sample from a visual question answering dataset, containing a question and an image.}
+\nomenclature[D, 01]{\(x\)}{A sample from a visual question answering dataset, containing a question and a collection of visual features in which the question is grounded.}
 
-% \nomenclature[D, 02]{\(y\)}{A ground-truth answer to a visually-grounded question}
+\nomenclature[D, 02]{\(y\)}{A ground-truth answer to a visually-grounded question}
 
-% \nomenclature[D]{\(\hat{y}\)}{A predicted answer to a visually-grounded question.}
+\nomenclature[D]{\(\hat{y}\)}{A predicted answer to a visually-grounded question.}
 
-% % \nomenclature[D]{\(Q\)}{A visually-grounded question.}
+\nomenclature[D]{\(q\)}{A visually-grounded question.}
 
-% % \nomenclature[D]{\(V\)}{A visual representation of an image including but not limited to the image itself, a scene graph, spatial or object-based features.}
+\nomenclature[D]{\(Q_S\)}{An ordered sequence of questions in a dataset \(S\)}
 
-% % Graphs
-% \nomenclature[G, 00]{\(\mathcal{G} = (\mathcal{V}, \mathcal{E})\)}{A directed graph.}
+\nomenclature[D]{\(Q_[i:i+k]\)}{An ordered sequence of a subset of questions in a dataset \(S\) from index \(i\) to \(i + k\), representing a batch of size \(k\)}
 
-% \nomenclature[G, 01]{\(\mathcal{V} = \{v_i \mid i \in \Z^+\}\)}{A set of vertices of a directed graph}
+\nomenclature[D]{\(v\)}{A collection of visual features. These features may be in the form of an image, a scene graph, spatial or object-based features.}
 
-% \nomenclature[G, 02]{\(\mathcal{E} = \{(v_i, v_j) \mid i \in \Z^+, j \in \Z^+\}\)}{A set of edges of a directed graph.}
+\nomenclature[D]{\(V_S\)}{The set of all visual features in a dataset \(S\)}
 
-% \nomenclature[G]{\(v\)}{A single graph node.}
+\nomenclature[G]{\(H\)}{A matrix of embedded features.}
 
-% \nomenclature[G]{\(A \in \R^{\mid \mathcal{V}\mid \times \mid \mathcal{V} \mid}\)}{An adjacency matrix given a graph \(\mathcal{G}\) with vertices \(\mathcal{V}\).}
+% Graphs
+\nomenclature[G, 00]{\(\mathcal{G} = (\mathcal{V}, \mathcal{E})\)}{A directed graph.}
 
-% \nomenclature[G]{\(D \in \R^{\mid \mathcal{V}\mid \times \mid \mathcal{V} \mid}\)}{A degree matrix with diagonal elements \(D_{ii} = \sum_{j} A_{ij}\)}
+\nomenclature[G, 01]{\(\mathcal{V} = \{v_i \mid i \in \Z^+\}\)}{A set of vertices of a directed graph}
 
-% \nomenclature[G]{\(\Tilde{A} = A + I_{\mid \mathcal{V} \mid}\)}{An adjacency matrix with added self-loops.}
+\nomenclature[G, 02]{\(\mathcal{E} = \{(v_i, v_j) \mid i \in \Z^+, j \in \Z^+\}\)}{A set of edges of a directed graph.}
+
+\nomenclature[G]{\(v\)}{A single graph node.}
+
+\nomenclature[G]{\(A \in \R^{\mid \mathcal{V}\mid \times \mid \mathcal{V} \mid}\)}{An adjacency matrix given a graph \(\mathcal{G}\) with vertices \(\mathcal{V}\).}
+
+\nomenclature[G]{\(D \in \R^{\mid \mathcal{V}\mid \times \mid \mathcal{V} \mid}\)}{A degree matrix with diagonal elements \(D_{ii} = \sum_{j} A_{ij}\)}
+
+\nomenclature[G]{\(\Tilde{A} = A + I_{\mid \mathcal{V} \mid}\)}{An adjacency matrix with added self-loops.}
 
