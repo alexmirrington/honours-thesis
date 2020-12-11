@@ -55,6 +55,7 @@ The preprocessing of objects, relations and attributes is similar to the way ans
 
 At runtime, each object, relation and attribute index is associated with a \(d = 300\) dimensional GloVe vector, then all vectors are stacked together to produce an embedding matrix of scene graph node features \(H_V\) spanning the object, relation and attribute vocabulary of the dataset \(S\), \textit{i.e.} \(H_V \in \R^{(|S_o| + |S_r| + |S_a|) \times d}\) where \(S_o = \{v_o \mid ((q, v), y) \in S\}\) is the set of unique objects in \(S\), \(S_r = \{v_r \mid ((q, v), y) \in S\}\) and \(S_a = \{v_a \mid ((q, v), y) \in S\}\). For the GQA dataset, there are a total of \(|S_o| = 1703\) unique objects, \(|S_r| = 310\) unique relations, and \(|S_a| = 617\) unique attributes across the train and validation sets. These global node features are shared by all scene graphs, and fine-tuned via backpropagation  during training.
 
+{\color{blue} Pick up from here}
 
  As each batch of scene graphs is loaded into memory, we select the relevant node embeddings according \(\)
 
