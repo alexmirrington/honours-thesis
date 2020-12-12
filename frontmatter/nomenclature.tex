@@ -15,25 +15,27 @@
 \nomenclature[O]{\(a \mathbin\Vert b\)}{The concatenation of two vectors \(a\) and \(b\).}
 
 % Data
-\nomenclature[D, 00]{\(S = \{(x_i, y_i) \mid i \in \Z^+, i \leq n\}\)}{A visual question answering dataset containing \(n\) samples.}
+\nomenclature[D, 00]{\(S = \{((q_i, r_i), a_i)\}_{i=1}^n\)}{A visual question answering (VQA) dataset of \(n\) samples, each comprising a question \(q\), a visual representation \(r\) in which the question is grounded, and an answer \(a\).}
 
-\nomenclature[D, 01]{\(x\)}{A sample from a visual question answering dataset, containing a question and a collection of visual features in which the question is grounded.}
+% \nomenclature[D, 00]{\(B = \{((q_j, r_j), a_j)\}_{j=i}^{i+k}\)}{A subset or mini-batch of a (VQA) dataset \(S\). \(B\) has size }
 
-\nomenclature[D, 02]{\(y\)}{A ground-truth answer to a visually-grounded question}
+\nomenclature[D, 01]{\(q\)}{A visually-grounded question.}
 
-\nomenclature[D]{\(\hat{y}\)}{A predicted answer to a visually-grounded question.}
+\nomenclature[D, 02]{\(r\)}{A visual representation in which a question is grounded. Since different VQA datasets contain one or more visual representations for each dataset sample (\textit{e.g.} an image, a scene graph, a set of spatial or object-based features, or a combination of these), I specify the kind of data \(r\) represents for a given context.}
 
-\nomenclature[D]{\(q\)}{A visually-grounded question.}
+\nomenclature[D, 03]{\(a\)}{A ground-truth answer to a visually-grounded question}
 
-\nomenclature[D]{\(Q\)}{A subset of questions from a dataset.}
+\nomenclature[D, 04]{\(\hat{a}\)}{A predicted answer to a visually-grounded question.}
 
-\nomenclature[D]{\(v\)}{A collection of visual features. These features may be in the form of an image, a scene graph, spatial or object-based features.}
+\nomenclature[D, 05]{\(Q = \{q \mid ((q, s), y) \in S\}\)}{The collection of all questions in a dataset \(S\).}
 
-\nomenclature[D]{\(V\)}{A subset of visual features from a dataset.}
+\nomenclature[D, 06]{\(Q_{[i:i+k]} = \{q_j \mid ((q_j, s_j), y_j) \in S\}_{j=i}^{\min(i + k, n)}\)}{A batch of questions of size \(\min(k, n - i)\) from a dataset \(S\) of size \(n\), starting at index \(i\).}
 
-{\color{red} TODO: slicing syntax for batches/subsets?}
+\nomenclature[D, 07]{\(R = \{r \mid ((q, r), y) \in S\}\)}{The collection of all visual representations in a dataset \(S\).}
 
-\nomenclature[G]{\(H\)}{A matrix of embedded features.}
+\nomenclature[D, 08]{\(R_{[i:i+k]} = \{r_j \mid ((q_j, r_j), y_j) \in S\}_{j=i}^{\min(i + k, n)}\)}{A batch of visual representations of size \(\min(k, n - i)\) from a dataset \(S\) of size \(n\), starting at index \(i\).}
+
+\nomenclature[D]{\(H\)}{A matrix of embedded features.}
 
 % Graphs
 \nomenclature[G, 00]{\(\mathcal{G} = (\mathcal{V}, \mathcal{E})\)}{A directed graph.}
@@ -42,7 +44,9 @@
 
 \nomenclature[G, 02]{\(\mathcal{E} = \{(v_i, v_j) \mid i \in \Z^+, j \in \Z^+\}\)}{A set of edges of a directed graph.}
 
-\nomenclature[G]{\(v\)}{A single graph node.}
+\nomenclature[G, 03]{\(v\)}{A vertex of a graph \(\mathcal{G}\).}
+
+\nomenclature[G, 04]{\(\Vec{v}\)}{A node embedding vector corresponding to a vertex \(v \in \mathcal{V}\). {\color{red}TODO: Consider \(\Vec{h}_v\)}}
 
 \nomenclature[G]{\(A \in \R^{\mid \mathcal{V}\mid \times \mid \mathcal{V} \mid}\)}{An adjacency matrix given a graph \(\mathcal{G}\) with vertices \(\mathcal{V}\).}
 
