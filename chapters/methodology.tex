@@ -4,6 +4,8 @@
 \section{Architecture Overview}
 \label{section:architecture_overview}
 
+{\color{red} TODO: Refer reader back to list of symbols.}
+
 In this section, I propose a new model for single-concept open-ended visual question answering tasks. The proposed model comprises six main components, as shown in \figureautorefname{ \ref{fig:model_overview}} and outlined briefly below:
 
 \begin{figure}[htbp]
@@ -25,8 +27,8 @@ In this section, I propose a new model for single-concept open-ended visual ques
 
 \textbf{Output module:} The output module is the simplest part of the architecture, and is responsible for transforming the output of the reasoning module into a concrete answer to the input question. I delve into the design decisions behind the output module and how it might be modified for other VQA tasks in \sectionautorefname{ \ref{section:output_module}}.
 
-\section{Question Embedding}
-\label{section:question_embedding}
+\section{Question Embedding and Module}
+\label{section:question_embedding_and_module}
 
 The question embedding component of the architecture is responsible for two major tasks: preprocessing and vectorisation. The preprocessing step is performed prior to the training of the model, where vectorisation of preprocessed question words occurs at runtime. 
 
@@ -38,15 +40,12 @@ At runtime, each question token is converted to a \(d_q = 300\) dimensional GloV
 
 {\color{red} Express in terms of vocabulary lookup?}
 
-\section{Question Module}
-\label{section:question_module}
-
 BiLSTM \cite{hochreiter1997long}
 
 I describe variations of the question module in \sectionautorefname{ \ref{sec:ablation_studies}}.
 
 
-\section{Scene Graph Embedding}
+\section{Scene Graph Embedding and Module}
 \label{section:scene_graph_embedding}
 
 \subsection{Motivation}
@@ -58,13 +57,17 @@ Both the GQA and CLEVR datasets contain ground-truth scene graph information for
 \(r\) like so:
 
 \begin{align*}
-    r &= (r_o, r_r, r_a, r_{(s,r,o)}, r_{(o, a)})\\
-    r_o & = \text{The set of all unique objects in \(r\)}\\
-    r_r & = \text{The set of all unique relations in \(r\)}\\
-    r_a & = \text{The set of all unique attributes in \(r\)}\\
-    r_{(s,r,o)} \subseteq r_o \times r_r \times r_o & = \text{The set of (subject, relation, object) triples in \(r\)}\\
-    r_{(o, a)} \subseteq r_o \times r_a & = \text{The set of (object, attribute) pairs in \(r\)}\\
+    r \quad & \text{A scene graph, } (r_o, r_r, r_a, r_{(s,r,o)}, r_{(o, a)})\\
+    r_o \quad  & \text{The sequence of all objects in \(r\), not necessarily unique.}\\
+    r_r \quad & \text{The set of all unique relations in \(r\)}\\
+    r_a \quad & \text{The set of all unique attributes in \(r\)}\\
+    r_{(s,r,o)} \quad & \text{The sequence of (subject, relation, object) triples in } r,\\
+    & ((x, y, z) \mid x \in r_o, y \in r_r, z \in r_o)\\
+    r_{(o, a)} \quad & \text{The sequence of (object, attribute) pairs in \(r\),}\\
+    & ((x, y) \mid x \in r_o, y \in r_a)\\
 \end{align*}
+
+Note that I represent \(r_o\) as a sequence and not a set since some scene graphs \(r\) may contain multiple instances of the same type of object, \textit{e.g.} an image of a city sidewalk may contain multiple people, each of which have their own attributes and relationships with other objects in the scene.
 
 There are multiple points to consider when converting a general scene graph representation \(r\) to its directed graph \(\mathcal{G}_r\) and associated node features \(H_r\); my scene graph embedding choice has two main motivations:
 
@@ -125,9 +128,10 @@ y, \(\mathcal{G}_v\) and \(H_v\) are created according to \algorithmcfname{ \ref
 
 \begin{algorithm}
     \Function{\(r_o, r_r, r_a, r_{(s, r, o)}, r_{(a, o)}\)}{
-        \(\mathcal{V}_v, \mathcal{E}_v\)
+        \(\mathcal{V}_r \leftarrow \emptyset\)\\
+        \(\mathcal{E}_r \leftarrow \emptyset\)\\
         % \(s_c \leftarrow 0\)\\
-        % \ForEach{\(\{q_i \in Q \mid E_{q_i} \neq \emptyset\}\)}{
+        \ForEach{\(\{o_i \in r_o\)}{
         %     \(s_{q_i} \leftarrow 0\)\\
         %     \ForEach{
         %         \(q_e \in E_{q_i}\)
@@ -139,8 +143,8 @@ y, \(\mathcal{G}_v\) and \(H_v\) are created according to \algorithmcfname{ \ref
         %         }
         %     }
         %     \(s_c \leftarrow s_c + \frac{s_{q_i}}{|E_{q_i}|}\)
-        % }
-        % \Return \(\frac{s_c}{|\{q_i \in Q \mid E_{q_i} \neq \emptyset\}|}\)
+        }
+        \Return \((\mathcal{V}_v, \mathcal{E}_v)\)
     }
     \caption[Scene Graph Construction Algorithm]{Scene Graph Construction Algorithm}
     \label{algorithm:scene_graph_construction}
