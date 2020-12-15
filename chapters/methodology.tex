@@ -53,7 +53,7 @@ I describe variations of the question module in \sectionautorefname{ \ref{sec:ab
 
 The primary goal of the scene graph embedding process is to build a directed graph \(\mathcal{G}_r = (\mathcal{V}_r, \mathcal{E}_r)\) and an associated node feature matrix \(H_r \in \R^{|\mathcal{V}| \times d_r}\) from a visual representation \(r\). These node features are essential information for the scene graph module, which utilises node-based graph convolutions to capture dependencies and relationships between nodes in the graph. In this dissertation, I intentionally use gold-standard scene graphs as a visual input to evaluate the effectiveness of different scene graph modules, as discussed in \sectionautorefname{ \ref{sec:ablation_studies}}. Since my primary focus is on scene graphs as a visual input signal, I will consider all general visual representations \(r\) to be scene graphs for the remainder of this section.
 
-Both the GQA and CLEVR datasets contain ground-truth scene graph information for each image in the training and validation sets. Although different datasets store scene graph information differently, the three basic components of a scene graph are objects, relationships and attributes. For example, the CLEVR dataset contains three object types (cube, sphere, cylinder), twelve attribute types covering size (small, large), material (metal, rubber) and colour (red, green, blue, yellow, purple, cyan, brown, grey), and four spatial relationships (left, right, in front, behind). The GQA dataset is more complex, containing, a total of 1703 unique objects, 310 unique relations, and 617 unique attributes across the combined train and validation sets. Adopting common notation from \cite{hudson2019gqa, li2019relation, yang2018graph}, each directed relationship between two objects in a scene graph can be described as a triplet \texttt{<subject, relation, object>}, \textit{e.g.} \texttt{<parrot, behind, fence>}\footnote{Although the \texttt{subject} and \texttt{object} are both represented by objects in a scene graph, this notation disambiguates the direction of the relationship by drawing upon well-defined grammatical terms, \textit{e.g.} the triple \texttt{<parrot, behind, fence>} is readliy converted to the clause: \textit{The parrot is behind the fence}.}. For scene graphs containing attributes, we can use a pair \texttt{<object, attribute>} to denote attribute associations, \textit{e.g.} \texttt{<parrot, white>}. More formally, we can represent a raw scene graph 
+Both the GQA and CLEVR datasets contain ground-truth scene graph information for each image in the training and validation sets. Although different datasets store scene graph information differently, the three basic components of a scene graph are objects, relationships and attributes. For example, the CLEVR dataset contains three object types (cube, sphere, cylinder), twelve attribute types covering size (small, large), material (metal, rubber) and colour (red, green, blue, yellow, purple, cyan, brown, grey), and four spatial relationships (left, right, in front, behind). The GQA dataset is more complex, containing, a total of 1703 unique objects, 310 unique relations, and 617 unique attributes across the combined train and validation sets. Adopting common notation from \cite{hudson2019gqa, li2019relation, yang2018graph}, each directed relationship between two objects in a scene graph can be described as a triplet \texttt{<subject, relation, object>}, \textit{e.g.} \texttt{<parrot, behind, fence>}\footnote{Although the \texttt{subject} and \texttt{object} are both represented by objects in a scene graph, this notation disambiguates the direction of the relationship by drawing upon well-defined grammatical terms, \textit{e.g.} \texttt{<parrot, behind, fence>} corresponds to the clause: \textit{The parrot is behind the fence}.}. For scene graphs containing attributes, we can use a pair \texttt{<object, attribute>} to denote attribute associations, \textit{e.g.} \texttt{<parrot, white>}. More formally, we can represent a raw scene graph 
 \(r\) like so:
 
 \begin{align*}
@@ -83,75 +83,79 @@ The second motivation poses an issue: assume we have \(n_o\) objects and \(n_r\)
 \subsection{Technical details}
 \label{section:scene_graph_embedding_details}
 
-The preprocessing of objects, relations and attributes is similar to the way answers were processed in the question embedding embedding step: all objects, relations and attributes are converted to indices, keeping a separate map of tokens to indices for each. This ensures that words which may be used as an object or an attribute \textit{e.g. glass} are distinguished based on context. This allows the scene graph module to learn different embeddings for the same word based on the contexts in which they occur in a scene graph.
+The preprocessing of objects, relations and attributes is similar to the way answers were processed in the question embedding embedding step; each unique object, attribute or relation is converted to a unique index regardless of whether it is a single-word concept like \textit{parrot} or a multi-word concept like \textit{to the left of}. To simplify graph construction and embedding lookups, I use a combined index set for objects, relations and attributes, computed across the combined train and validation sets \(S\). All unique objects, relations and attributes are converted to indices, with objects, relations and attributes corresponding to indices in the ranges \([0, |S_o|)\), \([|S_o|, |S_o| + |S_r|)\) and  \([|S_o| + |S_r|, |S_o| + |S_r| + |S_a|)\) respectively, where \(S_o = \bigcup_{r \in R} \{x \mid x \in r_o\}\) is the set of unique scene graph objects in \(S\), \(S_r = \bigcup_{r \in R} r_r\) is the set of unique scene graph relations in \(S\) and \(S_a = \bigcup_{r \in R} r_a\) is the set of unique scene graph  attributes in \(S\). By computing the sets of unique objects, attributes and relations separately, I ensure that words which may be used as an object or an attribute \textit{e.g. glass} are given an two indices, one in the object index subset and one in the attribute index subset. Consequently, the scene graph module is able to learn different embeddings for the same word based on the contexts in which they occur in a scene graph.
 
-At runtime, each object, relation and attribute index is associated with a \(d_r = 300\) dimensional GloVe vector, then all vectors are stacked together to produce an embedding matrix of scene graph node features \(H_S\) spanning the object, relation and attribute vocabulary of the combined train and validation datasets \(S\), \textit{i.e.} \(H_S \in \R^{(|S_o| + |S_r| + |S_a|) \times d_r}\) where \(S_o = \bigcup_{r \in R} r_o\) is the set of unique scene graph objects in \(S\), \(S_r = \bigcup_{r \in R} r_r\) is the set of unique scene graph relations in \(S\) and \(S_a = \bigcup_{r \in R} r_a\) is the set of unique scene graph  attributes in \(S\). 
+At runtime, each object, relation and attribute index is associated with a \(d_r = 300\) dimensional GloVe vector. For multi-word objects, relations and attributes, I average the GloVe embeddings for each word to avoid out-of-vocabulary (OOV) issues. All vectors are then stacked together to produce an embedding matrix of scene graph node features \(H_S\) spanning the object, relation and attribute vocabulary of the combined train and validation datasets \(S\), \textit{i.e.} \(H_S \in \R^{(|S_o| + |S_r| + |S_a|) \times d_r}\). The first \(|S_o|\) rows correspond to object embeddings, the next \(|S_r|\) to relations, and the last \(|S_a|\) to attributes. These global node features \(H_S\) are shared by all scene graphs, and fine-tuned via backpropagation  during training. This fine-tuning is particularly important for multi-word relations like \textit{to the right of} and \textit{to the left of}, where the averaged GloVe vectors of individual words may not capture the meaning of the relation effectively.
 
-These global node features \(H_S\) are shared by all scene graphs, and fine-tuned via backpropagation  during training.
-{\color{red} TODO: Explain better}
-For each scene graph \(v\), relevant node embeddings for objects, relations and attributes are selected from \(H_S\) according to the node indices determined in the preprocessing step. This yields a matrix of node embeddings for that scene graph, \(H_v\)
+Given a single preprocessed scene graph \(r\), the elements of \(r_o, r_r\) and \(r_a\) are all represented as indices, with each index corresponding to a row in \(H_S\). Obtaining the relevant embeddings for a scene graph \(r\) is thus as simple as selecting all rows in \(H_S\) indexed by a elements in \(\{x \mid x \in r_o\}, r_r\) and \(r_a\), the sets of unique object, relation and attribute indices respectively. This yields a node feature matrix \(H_r \in \R^{(|\{x \mid x \in r_o\}| + |r_r| + |r_a|) \times d_r}\). The same applies for a batch of scene graphs \(V\), except unique indices are computed across all objects, relations and attributes in the batch.
 
+After retrieving relevant node embeddings, the final directed graph \(\mathcal{G}_r\) is created according to \algorithmcfname{ \ref{algorithm:scene_graph_construction}}. Since each vertex in the graph corresponds to either an object, relation or attribute index, the embedding for that vertex is easily obtained from the node feature matrix \(H_r\).
 
-y, \(\mathcal{G}_v\) and \(H_v\) are created according to \algorithmcfname{ \ref{algorithm:scene_graph_construction}}:
-
-% for obj_dict in objects:
-%     labels.append([])
-%     boxes.append([])
-%     attrs.append([])
-%     coos.append(([], []))
-%     relations.append([])
-%     obj_key_to_idx = {key: idx for idx, key in enumerate(obj_dict.keys())}
-%     for obj_key, obj_data in obj_dict.items():
-%         name = obj_data["name"]
-%         box = (
-%             obj_data["x"],
-%             obj_data["y"],
-%             obj_data["x"] + obj_data["w"],
-%             obj_data["y"] + obj_data["h"],
-%         )
-%         labels[-1].append(name)
-%         if name not in self._object_to_index:
-%             self._object_to_index[name] = len(self._object_to_index)
-%         boxes[-1].append(box)
-%         attrs[-1].append(obj_data["attributes"])
-%         for attr in obj_data["attributes"]:
-%             if attr not in self._attr_to_index:
-%                 self._attr_to_index[attr] = len(self._attr_to_index)
-%         # Populate relation indices
-%         for relation in obj_data["relations"]:
-%             coos[-1][0].append(obj_key_to_idx[obj_key])
-%             coos[-1][1].append(obj_key_to_idx[relation["object"]])
-%             relations[-1].append(relation["name"])
-%             if relation["name"] not in self._rel_to_index:
-%                 self._rel_to_index[relation["name"]] = len(self._rel_to_index)
-% return boxes, labels, attrs, coos, relations
-
-\begin{algorithm}
-    \Function{\(r_o, r_r, r_a, r_{(s, r, o)}, r_{(a, o)}\)}{
-        \(\mathcal{V}_r \leftarrow \emptyset\)\\
-        \(\mathcal{E}_r \leftarrow \emptyset\)\\
-        % \(s_c \leftarrow 0\)\\
-        \ForEach{\(\{o_i \in r_o\)}{
-        %     \(s_{q_i} \leftarrow 0\)\\
-        %     \ForEach{
-        %         \(q_e \in E_{q_i}\)
-        %     }{
-        %         \lIf{
-        %             \(q_e \in Q\)
-        %         }{
-        %             \(s_{q_i} \leftarrow s_{q_i} + 1\)
-        %         }
-        %     }
-        %     \(s_c \leftarrow s_c + \frac{s_{q_i}}{|E_{q_i}|}\)
+\begin{algorithm}[htbp]
+    \Function{\(r_o, r_r, r_a, r_{(s, r, o)}, r_{(o, a)}\)}{
+        \(\mathcal{V}_\text{obj}, \mathcal{V}_\text{rel}, \mathcal{V}_\text{attr} \leftarrow \emptyset, \emptyset, \emptyset\)\\
+        \(\mathcal{E}_{\text{(obj,rel)}}, \mathcal{E}_{\text{(rel,obj)}},
+        \mathcal{E}_{\text{(obj,obj)}},
+        \mathcal{E}_{\text{(attr,obj)}} \leftarrow \emptyset, \emptyset, \emptyset, \emptyset\)\\
+        \ForEach{\(x \in r_o\)}{
+            Construct a vertex \(v_x\) corresponding to object index \(x\)\\
+            \(\mathcal{V}_\text{obj} \leftarrow \mathcal{V}_\text{obj} \cup \{v_x\}\)\\
         }
-        \Return \((\mathcal{V}_v, \mathcal{E}_v)\)
+        \ForEach{\((x, y, z) \in r_{(s, r, o)}\)}{
+            Construct a vertex \(v_y\) corresponding to relation index \(y\)\\
+            \(\mathcal{V}_\text{rel} \leftarrow \mathcal{V}_\text{rel} \cup \{v_y\}\)\\
+            Look up vertices \(v_x, v_z\)in \(\mathcal{V}_\text{obj}\) corresponding to indices \(x\) and \(y\) respectively.\\
+            \(\mathcal{E}_{\text{(obj,rel)}} \leftarrow \mathcal{E}_{\text{(obj,rel)}} \cup \{(v_x, v_y)\}\)\\
+            \(\mathcal{E}_{\text{(rel,obj)}} \leftarrow \mathcal{E}_{\text{(rel,obj)}} \cup \{(v_y, v_z)\}\)\\
+            \(\mathcal{E}_{\text{(obj,obj)}} \leftarrow \mathcal{E}_{\text{(obj,obj)}} \cup \{(v_x, v_z)\}\)\\
+        }
+        \ForEach{\(x \in r_a\)}{
+            Construct a vertex \(v_x\) corresponding to attribute index \(x\)\\
+            \(\mathcal{V}_\text{attr} \leftarrow \mathcal{V}_\text{attr} \cup \{v_x\}\)\\
+        }
+        \ForEach{\((x, y) \in r_{(o, a)}\)}{
+            Look up vertex \(v_x \in \mathcal{V}_\text{obj}\) corresponding to object index \(x\).\\
+            Look up vertex \(v_y \in \mathcal{V}_\text{attr}\) corresponding to attribute index \(y\).\\
+            \(\mathcal{E}_{\text{(attr,obj)}} \leftarrow \mathcal{E}_{\text{(attr,obj)}} \cup \{(v_y, v_x)\}\)
+        }
+        \(\mathcal{V}_r \leftarrow \mathcal{V}_\text{obj} \sqcup \mathcal{V}_\text{rel} \sqcup \mathcal{V}_\text{attr}\)\\
+        \(\mathcal{E}_r \leftarrow \mathcal{E}_{\text{(obj,rel)}} \sqcup \mathcal{E}_{\text{(rel,obj)}} \sqcup
+        \mathcal{E}_{\text{(obj,obj)}} \sqcup
+        \mathcal{E}_{\text{(attr,obj)}}\)\\
+        \Return \((\mathcal{V}_r, \mathcal{E}_r)\)
     }
     \caption[Scene Graph Construction Algorithm]{Scene Graph Construction Algorithm}
     \label{algorithm:scene_graph_construction}
 \end{algorithm}
 
-As illustrated in \figureautorefname{ \ref{fig:model_overview}}, and described in \algorithmcfname{ \ref{algorithm:scene_graph_construction}},  \(\mathcal{V}_V\) contains a node for every object, relation and attribute in the scene graph. Nonetheless, constructing the scene graph in this manner allows the direct application of sparse node-based graph convolutional layers in the scene graph module.
-{\color{red} TODO: Further work on edge convolutions?}
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{scene_graph_construction_image.png}
+        \label{fig:scene_graph_construction_image}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{scene_graph_construction_graph.png}
+        \label{fig:scene_graph_construction_graph}
+    \end{subfigure}
+    \caption{A sample from the GQA validation set and its scene graph \(\mathcal{G}_r\), constructed according to \algorithmcfname{ \ref{algorithm:scene_graph_construction}}. Object, relation and attribute nodes are coloured blue, orange and green respectively.}
+    \label{fig:scene_graph_construction}
+\end{figure}
+
+For clarity, I represent \(\mathcal{V}_r\) and \(\mathcal{V}_e\) as unions of disjoint subsets in \algorithmcfname{ \ref{algorithm:scene_graph_construction}}, where each subset of vertices and edges is constructed slightly differently. To gain a better understanding of the different types of vertices and edges in \(\mathcal{G}_r\) and the motivations behind their inclusion in the graph, let's explore each of these subsets separately, giving some examples from \figureautorefname{ \ref{fig:scene_graph_construction}}.
+
+\(\mathcal{V}_\text{obj}\) contains a node for each object in \(r_o\). Since \(r_o\) is a sequence and not a set, \(\mathcal{V}_v\) may contain multiple nodes corresponding to objects that have the same type/index but refer to different entities in \(r\). We see this in \figureautorefname{ \ref{fig:scene_graph_construction}}, where there are two object nodes labelled \textit{utensil}, one corresponding to a fork and the other to a knife. Moreover, I use the sequence \(r_o\) for object node creation over the objects in \(r_{(s, r, o)}\) or \(r_{(o, a)}\), since \(r_o\) may contain objects with no associated relations or attributes. As a result, \(\mathcal{G}_r\) often contains multiple connected components.
+
+\(\mathcal{V}_\text{rel}\) contains a node for each relation in \(r_{s, r, o}\). Again, since \(r_{s, r, o}\) is a sequence and not a set, \(\mathcal{V}_v\) may contain multiple nodes corresponding to relations with the type/index but with differing source and target entities in \(r\). This is clear in \figureautorefname{ \ref{fig:scene_graph_construction}}, where we see many instances of common relations like \textit{to the left of} and \textit{to the right of}.
+
+\(\mathcal{V}_\text{attr}\) contains a node for each attribute in \(r_a\). Since \(r_a\) is a set, only a single node is created for each type of attribute. The construction of \(\mathcal{E}_\text{attr,obj}\) ensures that attribute nodes can only ever have outgoing edges, meaning their embeddings are never updated by graph convolutions in the scene graph module. As a result, there is no need to create multiple nodes for attributes with the same name/index but different target objects.
+
+\(\mathcal{E}_{\text{(obj,rel)}}\) only contains edges from objects to relations (blue to orange in \figureautorefname{ \ref{fig:scene_graph_construction}}), allowing the scene graph module to capture subject-relation interactions. Conversely, \(\mathcal{E}_{\text{(rel,obj)}}\) contains edges from relations to objects (orange to blue), allowing the scene graph module to learn object representations that include information about incoming relations, as well as the subject of those relations via second-order message passing. \(\mathcal{E}_{\text{(obj,obj)}}\) contains edges from objects to objects (blue to blue) whenever there is a relation between the two objects. This allows direct message passing between object nodes, which may prove useful in cases where we care less about relationship type and more about whether two objects are related or not \textit{e.g.} for logical or counting-based questions. Lastly, \(\mathcal{E}_{\text{(attr,obj)}}\) \(\mathcal{E}_r\) contains an edge from each attribute to its associated object (green to blue). These edges encourage the fortification of object representations with attribute information, allowing objects of the same type to be distinguished according to their individual features.
+
+{\color{red} TODO: Talk about batching operations}
+
+Given a batch of graphs \(\mathcal{G}_R\), we must
+
 
 % CLEVR scene graph example:
 
