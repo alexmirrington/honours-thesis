@@ -1,12 +1,9 @@
-<mxfile host="app.diagrams.net" modified="2020-12-17T05:52:15.947Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="L7WdLpJCW9ysmNoKJWYS" version="13.10.8" type="github">
+<mxfile host="app.diagrams.net" modified="2020-12-17T05:57:38.449Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="VNb0ewTeOnHf06JK4dzX" version="13.10.8" type="github">
   <diagram id="DTr5TzhJc7Mo3Jtl7aWu" name="Page-1">
-    <mxGraphModel dx="383" dy="365" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
+    <mxGraphModel dx="654" dy="622" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="u5gKyDJOYuqHdPGIhYjo-1" value="" style="shape=image;imageAspect=0;verticalLabelPosition=bottom;verticalAlign=top;image=https://pytorch.org/docs/stable/_images/ELU.png;" vertex="1" parent="1">
-          <mxGeometry x="360" y="360" width="120" height="120" as="geometry" />
-        </mxCell>
         <mxCell id="5LrO9uCOD_D74uFUd5fg-33" value="&lt;b&gt;6.&amp;nbsp;&lt;/b&gt;Output Module" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;labelPosition=center;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingTop=0;spacingBottom=5;" parent="1" vertex="1">
           <mxGeometry x="140" y="200" width="460" height="120" as="geometry" />
         </mxCell>
@@ -116,6 +113,21 @@
               <mxPoint x="13.333333333333332" y="13.333333333333332" />
             </Array>
           </mxGeometry>
+        </mxCell>
+        <mxCell id="u5gKyDJOYuqHdPGIhYjo-24" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="562.5" y="250" width="5" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="u5gKyDJOYuqHdPGIhYjo-18" value="" style="rect;whiteSpace=wrap;html=1;strokeColor=#666666;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;spacingRight=10;fontStyle=2;fontColor=#333333;gradientColor=#ffffff;fillColor=#E6E6E6;" vertex="1" parent="u5gKyDJOYuqHdPGIhYjo-24">
+          <mxGeometry width="5" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="u5gKyDJOYuqHdPGIhYjo-19" value="" style="rect;whiteSpace=wrap;html=1;strokeColor=#666666;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;spacingRight=10;fontStyle=2;fontColor=#333333;fillColor=#666666;" vertex="1" parent="u5gKyDJOYuqHdPGIhYjo-24">
+          <mxGeometry y="5" width="5" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="u5gKyDJOYuqHdPGIhYjo-20" value="" style="rect;whiteSpace=wrap;html=1;strokeColor=#666666;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;spacingRight=10;fontStyle=2;fontColor=#333333;fillColor=#B3B3B3;" vertex="1" parent="u5gKyDJOYuqHdPGIhYjo-24">
+          <mxGeometry y="10" width="5" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="u5gKyDJOYuqHdPGIhYjo-21" value="" style="rect;whiteSpace=wrap;html=1;strokeColor=#666666;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;spacingRight=10;fontStyle=2;fontColor=#333333;fillColor=#E6E6E6;" vertex="1" parent="u5gKyDJOYuqHdPGIhYjo-24">
+          <mxGeometry y="15" width="5" height="5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
