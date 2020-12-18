@@ -4,9 +4,8 @@
 \section{Architecture Overview}
 \label{section:architecture_overview}
 
-{\color{red} TODO: Refer reader back to list of symbols.}
+In this section, I propose a new model for single-concept open-ended visual question answering tasks. The proposed model comprises six main components, as shown in \figureautorefname{ \ref{fig:model_overview}} and outlined briefly below. In the following subsections, I explain the motivations behind each architecture component, along with detailed descriptions of their composition. I refer the reader to the \nomref{frontmatter:nomenclature} in the front matter for descriptions of common nomenclature used in this chapter.
 
-In this section, I propose a new model for single-concept open-ended visual question answering tasks. The proposed model comprises six main components, as shown in \figureautorefname{ \ref{fig:model_overview}} and outlined briefly below:
 
 \begin{figure}[htbp]
     \centering
@@ -17,7 +16,7 @@ In this section, I propose a new model for single-concept open-ended visual ques
 
 \textbf{Question embedding:} In classic NLP fashion, the question embedding component is responsible for the preprocessing and vectorisation of raw question data for use by the rest of the model.
 
-\textbf{Question module:} The question module has two main roles: the first is to learn a sequence of contextual words {\color{red}(TODO: Insert nomenclature)} that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the question as a whole.
+\textbf{Question module:} The question module has two main roles: the first is to learn a sequence of word embeddings that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the question as a whole.
 
 \textbf{Scene graph embedding:} The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, I use ground-truth scene graphs from the GQA dataset to evaluate the effectiveness of various scene graph modules under perfect-sight conditions. This component can be readily extended to utilise the output of existing scene graph generation models \cite{yang2018graph, li2019relation}, yielding a true end-to-end VQA model.
 

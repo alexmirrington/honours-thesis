@@ -50,12 +50,6 @@
 %\usepackage[position=top,singlelinecheck=false,captionskip=4pt]{subfig} 
 % Multiple figures in an individual figure. Fig. 1 a, b, c, etc. each with, or without, it's own individual caption, and with a global caption for all sub figures.
 
-%-------------------- Nomenclature
-\usepackage[intoc]{nomencl}
-\makenomenclature
-\renewcommand{\nomname}{List of Symbols}
-\usepackage{etoolbox}  % For symbol grouping
-
 %-------------------- Special symbols and fonts
 \usepackage{amssymb}
 \usepackage{amsfonts}
@@ -65,6 +59,12 @@
 
 %-------------------- Document sections, headers, footers, and bibliography
 \usepackage{fancyhdr}
+
+%-------------------- Nomenclature
+\usepackage[refpage,intoc]{nomencl}
+\usepackage{etoolbox}  % For symbol grouping
+\renewcommand{\nomname}{List of Symbols}
+\makenomenclature
 
 %-------------------- Bibliography
 
@@ -76,7 +76,6 @@
 	colorlinks   = true,
 	allcolors    = black
 }
-
 
 % More packages
 \usepackage{tabularx}
@@ -91,6 +90,7 @@
 % Command renewals, New commands etc.
 \renewcommand{\thefootnote}{\arabic{footnote}}
 \renewcommand{\Vec}{\boldsymbol}
+\newcommand{\nomref}[1]{\hyperref[#1]{\nomname}}
 
 % Math
 \newcommand{\N}{\mathbb{N}}
