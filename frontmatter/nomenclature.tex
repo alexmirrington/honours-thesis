@@ -4,15 +4,14 @@
   \ifstrequal{#1}{D}{Data}{%
   \ifstrequal{#1}{M}{Metrics}{%
   \ifstrequal{#1}{G}{Graphs}{%
-  \ifstrequal{#1}{O}{Operators}{%
-  \ifstrequal{#1}{X}{General}{}}}}}%
+  \ifstrequal{#1}{X}{General}{
+  \ifstrequal{#1}{A}{Model Architecture}{}}}}}%
 ]}
 
 % General
 \nomenclature[X]{\(I_n\)}{An identity matrix of size \(n \times n\).}
 
-% Operators
-\nomenclature[O]{\(a \mathbin\Vert b\)}{The concatenation of two vectors \(a\) and \(b\).}
+\nomenclature[X]{\(a \mathbin\Vert b\)}{The concatenation of two vectors \(a\) and \(b\).}
 
 % Data
 \nomenclature[D, 00]{\(S = \{((q_i, r_i), a_i)\}_{i=1}^n\)}{A visual question answering (VQA) dataset of \(n\) samples, each comprising a question \(q\), a visual representation \(r\) in which the question is grounded, and an answer \(a\).}
@@ -33,9 +32,21 @@
 
 \nomenclature[D, 07]{\(R = \{r \mid ((q, r), y) \in S\}\)}{The collection of all visual representations in a dataset \(S\).}
 
-\nomenclature[D, 08]{\(R_{[i:i+k]} = \{r_j \mid ((q_j, r_j), y_j) \in S\}_{j=i}^{\min(i + k, n)}\)}{A batch of visual representations of size \(\min(k, n - i)\) from a dataset \(S\) of size \(n\), starting at index \(i\).}
+\nomenclature[D, 08]{\(R_{[i:i+k]} = \{r_j \mid ((q_j, r_j), y_j) \in S\}_{j=i}^{\min(i + k, n)}\)}{A batch of visual representations of size \(\min(k, n - i)\) from a dataset \(S\) of size \(n\), starting at index \(i\). For readability, I refer to the size of the batch dimension of tensors as \(k\) even though smaller batches of size \(\min(k, n - i)\) may occur.}
 
-\nomenclature[D]{\(H\)}{A matrix of embedded features.}
+% Model
+
+\nomenclature[A, 00]{\(H_{\cdot}\)}{An embedding matrix for some entity \(\cdot\), \textit{e.g.} a visual representation \(r\), a question 
+\(q\) or batches thereof.}
+
+\nomenclature[A, 01]{\(K_{\cdot}\)}{A knowledge-base for some entity \(\cdot\), \textit{e.g.} a visual representation \(r\), a question \(q\) or batches thereof.}
+
+\nomenclature[A, 02]{\(W\)}{A trainable weight tensor.}
+
+\nomenclature[A, 03]{\(b\)}{A trainable additive bias tensor.}
+
+\nomenclature[A, 02]{\(d_{\cdot}\)}{A scalar used to denote the feature dimension of a vector, matrix or tensor \(\cdot\).}
+
 
 % Graphs
 \nomenclature[G, 00]{\(\mathcal{G} = (\mathcal{V}, \mathcal{E})\)}{A directed graph.}
@@ -46,7 +57,7 @@
 
 \nomenclature[G, 03]{\(v\)}{A vertex of a graph \(\mathcal{G}\).}
 
-\nomenclature[G, 04]{\(\Vec{v}\)}{A node embedding vector corresponding to a vertex \(v \in \mathcal{V}\). {\color{red}TODO: Consider \(\Vec{h}_v\)}}
+% \nomenclature[G, 04]{\(\Vec{v}\)}{A node embedding vector corresponding to a vertex \(v \in \mathcal{V}\). {\color{red}TODO: Consider \(\Vec{h}_v\)}}
 
 \nomenclature[G]{\(A \in \R^{\mid \mathcal{V}\mid \times \mid \mathcal{V} \mid}\)}{An adjacency matrix given a graph \(\mathcal{G}\) with vertices \(\mathcal{V}\).}
 
