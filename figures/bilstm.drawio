@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-12-20T07:32:58.677Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="fUPhf7vYmEYKLvI3EhDx" version="14.0.4" type="github">
+<mxfile host="app.diagrams.net" modified="2020-12-20T07:33:05.998Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="Iyeb-k2Q5hEC8wr6ZQOD" version="14.0.4" type="github">
   <diagram id="ltEULJLLvogZ89pORJv0" name="Page-1">
     <mxGraphModel dx="556" dy="529" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="1" shadow="0">
       <root>
@@ -124,7 +124,7 @@
             <mxPoint x="560" y="380" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="qVPC-9UD2aIQqUdPAprL-157" value="$$K_q$$" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="qVPC-9UD2aIQqUdPAprL-101">
+        <mxCell id="qVPC-9UD2aIQqUdPAprL-157" value="$$K_q$$" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" vertex="1" connectable="0" parent="qVPC-9UD2aIQqUdPAprL-101">
           <mxGeometry x="0.7517" y="1" relative="1" as="geometry">
             <mxPoint x="38" y="1" as="offset" />
           </mxGeometry>
