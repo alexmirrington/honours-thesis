@@ -51,12 +51,21 @@ To obtain \(K_{Q_{[i:i+k]}}\) and \(\mathcal{Q}_{Q_{[i:i+k]}}\), batched questio
 
 \(K_{Q_{[i:i+k]}}\)
 
-\begin{figure}[htbp]
+
+\begin{figure}
     \centering
+    \begin{subfigure}[l]{0.75\textwidth}
     \includegraphics[width=\textwidth]{bilstm.png}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.24\textwidth}
+        \begin{equation}
+            x = y
+        \end{equation}
+    \end{subfigure}
     \caption{An overview of the question module architecture, a bidirectional LSTM.}
     \label{fig:question_module_bilstm}
 \end{figure}
+
 
 
 \section{Scene Graph Embedding and Module}
