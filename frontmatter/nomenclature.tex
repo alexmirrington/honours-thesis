@@ -9,9 +9,11 @@
 ]}
 
 % General
-\nomenclature[X]{\(I_n\)}{An identity matrix of size \(n \times n\).}
+\nomenclature[X, 00]{\(I_n\)}{An identity matrix of size \(n \times n\).}
 
-\nomenclature[X]{\([a \cat b]\)}{The concatenation of two vectors \(a\) and \(b\).}
+\nomenclature[X, 01]{\(x_1 \cat x_2\)}{The concatenation of two vectors \(a\) and \(b\).}
+
+\nomenclature[X, 02]{\([x_1, ..., x_p]\)}{The concatenation of \(d\) tensors of the same size along a new first dimension. \textit{e.g.} If \(x_i \in \R^q\), then \([x_1, ..., x_p] \in \R^{p \times q}\)}
 
 % Data
 \nomenclature[D, 00]{\(S = \{((q_i, r_i), a_i)\}_{i=1}^n\)}{A visual question answering (VQA) dataset of \(n\) samples, each comprising a question \(q\), a visual representation \(r\) in which the question is grounded, and an answer \(a\).}
