@@ -10,7 +10,7 @@ In this section, I propose a new model for single-concept open-ended visual ques
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{model_overview.png}
-    \caption{A high-level overview of the proposed visual-question-answering model.}
+    \caption[An overview of the proposed visual-question-answering model.]{\textbf{Model Overview.} A high-level overview of the proposed visual-question-answering model. Both questions and scene graphs are embedded as tensors, then contextual features are obtained by the question and scene graph modules. Finally, the reasoning and output modules formulate an answer to the question.}
     \label{fig:model_overview}
 \end{figure}
 
@@ -29,6 +29,8 @@ In this section, I propose a new model for single-concept open-ended visual ques
 \section{Question Embedding and Module}
 \label{section:question_embedding_and_module}
 
+\subsubsection{Preprocessing and Embedding}
+
 The question embedding component of the architecture is responsible for two major tasks: preprocessing and vectorisation. The preprocessing step is performed prior to the training of the model, where vectorisation of preprocessed question words occurs at runtime. 
 
 I use a neural preprocessing pipeline for each raw question string in the dataset, comprising tokenisation, part-of-speech (POS) tagging, lemmatisation and dependency parsing steps.\footnote{For this architecture, only the tokenisation step is required since the question module uses word embeddings but not syntactic dependency information. Graph-based question modules use syntactic dependencies for graph construction, as described in \subsectionautorefname{ \ref{subsec:question_module_ablations}}.} For reproducibility, I use the Stanza NLP package \cite{qi2020stanza} for all steps of the pipeline.
@@ -37,36 +39,42 @@ After tokenisation, each question \(q\) is represented as a sequence of tokens \
 
 At runtime, each question token is converted to a \(d_{H_q} = 300\) dimensional GloVe vector \cite{pennington2014glove}, then token embeddings for a given question are stacked together, yielding a matrix of question features \(H_q \in \R^{l_q \times d_{H_q}}\) where \(l_q\) is the number of tokens in the question. For a batch of questions \(Q_{[i:i+k]}\) the corresponding features \(\{H_{q_i}, ..., H_{q_{i+k-1}}\}\) are padded with zeros along the first dimension and then stacked to yield a batch of question features \(H_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{H_q}}\), where \(l = \max_{i \leq j < i+k} l_{q_j}\), the number of tokens in the longest question in the batch.\footnote{In practice, \(H_{Q_{[i:i+k]}}\) is constructed and batched similarly to \(H_{R_{[i:i+k]}}\) as described in \subsectionautorefname{ \ref{sec:scene_graph_embedding_details}} to allow the training of graph-based question modules. I avoid graph-specific notation here for clarity, reserving it for \subsectionautorefname{ \ref{subsec:question_module_ablations}}, where I discuss graph-based question module variants in depth.}
 
-
-% The question module has two main roles: the first is to learn a sequence of contextual words {\color{red}(TODO: Insert nomenclature)} that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the question as a whole.
-
+\subsubsection{Question Module}
 
 Given a batch of question features \(H_{Q_{[i:i+k]}}\) from the question embedding component, the question module is responsible for learning a holistic representation of each question in the batch, as well as capturing the syntactic and contextual dependencies between words in each question. More formally, the question module learns a  \(d_{K_q}\) dimensional vector for each of the \(k\) questions in the batch, denoted \(\mathcal{Q}_{Q_{[i:i+k]}} \in \R^{k \times d_{K_q}}\), as well as a knowledge base of contextual question words \(K_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{K_q}}\).
 
-A variety of architectures have been used to obtain these representations in VQA contexts, the most common being recurrent models like LSTMs \cite{hochreiter1997long} or GRUs \cite{cho2014learning}, used by \cite{perez2017film, hudson2018compositional, lu2016hierarchical, yu2019deep} and \cite{anderson2018bottom, teney2018tips, li2019relation, liu2019densely, gao2019dynamic, kim2018bilinear} respectively. More recently, others have explored graph-based question processing architectures like GCNs and GATs for text classification \cite{yao2019graph, liu2020tensor} and now VQA \cite{huang2020aligned}, however initial experiments showed more promising results with a traditional bidirectional LSTM. I compare and analyse the performance of various question modules in \subsectionautorefname{ \ref{subsec:question_module_ablations}}.
+A variety of architectures have been used to obtain these representations in VQA contexts, the most common being recurrent models like LSTMs \cite{hochreiter1997long} or GRUs \cite{cho2014learning}, used by \cite{perez2017film, hudson2018compositional, lu2016hierarchical, yu2019deep} and \cite{anderson2018bottom, teney2018tips, li2019relation, liu2019densely, gao2019dynamic, kim2018bilinear} respectively. More recently, others have explored graph-based question processing architectures like GCNs and GATs for text classification \cite{yao2019graph, liu2020tensor} and now VQA \cite{huang2020aligned}. After trying a variety of question modules, my initial experiments showed more promising results with a traditional bidirectional LSTM, depicted in \figureautorefname{ \ref{fig:question_module_bilstm}}. I compare and analyse the performance of various question modules in \subsectionautorefname{ \ref{subsec:question_module_ablations}}.
 
-To obtain \(K_{Q_{[i:i+k]}}\) and \(\mathcal{Q}_{Q_{[i:i+k]}}\), batched question embeddings \(H_{Q_{[i:i+k]}}\) are passed through a single-layer bidirectional LSTM, with each direction having a hidden layer dimension of \(\frac{d_{K_q}}{2} = 128\). I refer the reader to \sectionautorefname{ \ref{sec:hyperparameter_optimisation}} for details on how these parameters were determined. For each question \(q \in Q_{[i:i+k]}\), the contextual knowledge-base vectors for each word are the concatenated outputs of the forward and backward LSTMs, where the \(i\)th word in \(q\) corresponds to the \(i\)th LSTM step, \textit{i.e.} \(K_q = \left [ \overrightarrow{y_0} \cat \overleftarrow{y_0}, ..., \overrightarrow{y_{l_q}} \cat \overleftarrow{y_{l_q}}\right]\). Of course, questions are processed as a batch, giving the entire question knowledge base \(K_{Q_{[i:i+k]}} = [K_q]\) {\color{red} TODO: Batched operations, using \([x_0, ..., x_n]\) notation}
-
-
-
-\(K_{Q_{[i:i+k]}}\)
-
-
-\begin{figure}
+\begin{figure}[htbp]
     \centering
-    \begin{subfigure}[l]{0.75\textwidth}
+    \begin{subfigure}[l]{0.4\textwidth}
     \includegraphics[width=\textwidth]{bilstm.png}
     \end{subfigure}
-    \begin{subfigure}[r]{0.24\textwidth}
+    \begin{subfigure}[r]{0.59\textwidth}
         \begin{equation}
-            x = y
+            \overrightarrow{y_t} = \overrightarrow{\text{LSTM}}(H_q^{(t)}) \in \R^\frac{d_{K_q}}{2}, 1 \leq t \leq l_q\\
+            \label{equation:question_module_forward_y_t}
+        \end{equation}
+        \begin{equation}
+            \overleftarrow{y_t} = \overleftarrow{\text{LSTM}}(H_q^{(t)}) \in \R^\frac{d_{K_q}}{2}, 1 \leq t \leq l_q\\
+            \label{equation:question_module_backward_y_t}
+        \end{equation}
+        \begin{equation}
+            K_q = \left [ \overrightarrow{y_0} \cat \overleftarrow{y_0}, ..., \overrightarrow{y_{l_q}} \cat \overleftarrow{y_{l_q}}\right] \in \R^{l_q \times d_{K_q}}\\
+            \label{equation:question_module_K_q}
+        \end{equation}
+        \begin{equation}
+            \mathcal{Q}_q = \overrightarrow{h_{l_q}}\cat \overleftarrow{h_{1}} \in \R^{d_{K_q}}
+            \label{equation:question_module_Q_q}
         \end{equation}
     \end{subfigure}
-    \caption{An overview of the question module architecture, a bidirectional LSTM.}
+    \caption[An overview of the question module architecture.]{\textbf{Question module architecture.} For each question \(q\), the question module takes a matrix of question embeddings \(H_q\) as an input, and produces a knowledge-base of contextual word information \(K_q\) as well as a question embedding vector \(\mathcal{Q}_q\).}
     \label{fig:question_module_bilstm}
 \end{figure}
 
+To obtain \(K_{Q_{[i:i+k]}}\) and \(\mathcal{Q}_{Q_{[i:i+k]}}\), batched question embeddings \(H_{Q_{[i:i+k]}}\) are passed through a single-layer bidirectional LSTM, with each direction having a hidden layer dimension of \(\frac{d_{K_q}}{2} = 128\). I refer the reader to \sectionautorefname{ \ref{sec:hyperparameter_optimisation}} for details on how these parameters were determined. For each question \(q \in Q_{[i:i+k]}\), the contextual knowledge-base vectors for each word are the concatenated outputs of the forward and backward LSTMs \(\overrightarrow{y_t}\) and \(\overleftarrow{y_t}\) at each time step \(t\) respectively. In \equationautorefname{ \ref{equation:question_module_forward_y_t}} and \equationautorefname{ \ref{equation:question_module_backward_y_t}}, I represent the \(t\)th word in \(q\) as \(H_q^{(t)}\), which is used to derive \(\overrightarrow{y_t}\) and \(\overleftarrow{y_t}\) for each \(t\). Since LSTM weights are shared between time steps, the \(t\)th step of the forward LSTM is able to capture contextual information from the previous \(t-1\) steps, provided \(t\) is not excessively large.\footnote{In the GQA and CLEVR datasets, the longest questions are in the order of 25-30 words.} The same can be said for the backward LSTM, except it captures contextual information starting from the end of the question, as shown in \figureautorefname{ \ref{fig:question_module_bilstm}}. After obtaining \(\overrightarrow{y_t}\) and \(\overleftarrow{y_t}\) for each \(1 \leq t \leq l_q\), the contextual knowledge-base \(K_q\) is built according to \equationautorefname{ \ref{equation:question_module_K_q}}. Similarly to \cite{hudson2018compositional}, the holistic representation \(\mathcal{Q}_q\) of a question \(q\) is obtained by concatenating the final hidden states of the forward and backward LSTM passes, since they contain contextual information for all question words in each direction. More formally, the respective forward and backward final hidden states \(\overrightarrow{h_{l_q}}\) and \(\overleftarrow{h_{1}}\) are combined according to \equationautorefname{ \ref{equation:question_module_Q_q}} to yield \(\mathcal{Q}_q\).
 
+ Of course, all questions in the batch are processed simultaneously to yield the entire contextual knowledge base \(K_{Q_{[i:i+k]}} = [K_{q_i}, ..., K_{q_{i+k-1}}]\) and question representations \(\mathcal{Q}_{Q_{[i:i+k]}} = [\mathcal{Q}_{q_i}, ..., \mathcal{Q}_{q_{i+k-1}}]\). Both \(K_{Q_{[i:i+k]}}\) and \(\mathcal{Q}_{Q_{[i:i+k]}}\) are inputs to the reasoning module, as described in \sectionautorefname{ \ref{section:reasoning_module}}.
 
 \section{Scene Graph Embedding and Module}
 \label{section:scene_graph_embedding}
@@ -162,7 +170,7 @@ After retrieving relevant node embeddings, the final directed graph \(\mathcal{G
         \includegraphics[width=\textwidth]{scene_graph_construction_graph.png}
         \label{fig:scene_graph_construction_graph}
     \end{subfigure}
-    \caption{A sample from the GQA validation set and its scene graph \(\mathcal{G}_r\), constructed according to \algorithmcfname{ \ref{algorithm:scene_graph_construction}}. Object, relation and attribute nodes are coloured blue, orange and green respectively.}
+    \caption[An image from the GQA dataset and its corresponding scene graph \(\mathcal{G}_r\).]{A sample from the GQA validation set and its scene graph \(\mathcal{G}_r\), constructed according to \algorithmcfname{ \ref{algorithm:scene_graph_construction}}. Object, relation and attribute nodes are coloured blue, orange and green respectively.}
     \label{fig:scene_graph_construction}
 \end{figure}
 
@@ -220,7 +228,7 @@ In order to leverage the computational benefits of sparse tensor operations impl
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{output_module.png}
-    \caption{An overview of the output module, as implemented in the original P}
+    \caption{An overview of the output module, as implemented in the original paper.}
     \label{fig:output_module}
 \end{figure}
 
