@@ -111,6 +111,8 @@ The first point insinuates that objects, attributes and relations should be embe
 
 The second motivation poses an issue: assume we have \(n_o\) objects and \(n_r\) relations for any particular scene graph. Assuming all \(n_o\) objects are represented as nodes in the graph, then embedding every relationship between two objects as a node instead of an edge increases the upper bound of nodes in the graph from \(O(n_o)\) to \(O(n_o + n_r) = O(n_o^2)\) nodes, increasing the computational complexity of any parts of the model that operate on the graph's nodes. Conversely, omitting relational data from node embeddings may hinder the model's ability to answer questions requiring logical reasoning about relationships between objects. I explore this trade-off between computational complexity and performance in \sectionautorefname{ \ref{sec:ablation_studies}}.
 
+{\color{red} TODO: Consider number of edges due to relations increases from \(n_r \rightarrow 2n_r\). Since GAT/GCN complexity is bounded by number of edges, this is acceptable, under the condition that we can handle sparse operations efficiently, since all relation nodes only ever have one incoming and one outgoing edge.}
+
 \subsection{Technical details}
 \label{sec:scene_graph_embedding_details}
 
