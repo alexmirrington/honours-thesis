@@ -763,23 +763,7 @@ Despite this, very few (if any) models are effectively using similar graph embed
 \end{itemize}
 
 
-\subsubsection*{Module Networks}
-\addcontentsline{toc}{subsubsection}{Module Networks}
 
-Whilst deep neural networks have proved useful for many classification tasks due to their inherent ability to extract correlations between input and output, they are difficult to interpret and struggle to perform complex reasoning tasks. In order to increase interpretability and coerce deep learning models to perform more structured reasoning steps, \citeauthor{andreas2016neural} proposed the creation of multiple network `modules', each capable of performing a specific reasoning step, similar to each component of the functional programs found in the CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa} datasets.
-
-\vspace{\baselineskip}
-
-Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \cite{antol2015vqa} of 58.7\%, the per-question-type statistics report only a 2.5\% and 1.4\% performance improvement over a LSTM language-only baseline on binary and numerical questions despite the 16\% improvement on `other'-type questions. This suggests that the success of the model is likely clouded by statistical biases in the dataset, evidenced by the use of a text-only model in the ensemble shown in \figureautorefname{ \ref{fig:andreas2016neural_neural_module_network}}. As discussed by \citeauthor{hudson2018compositional}, the model depends on unreliable parsers and their ``hand-crafted'' design lacks extensibility. Moreover, attention maps on raw CNN features are used as the primary form of image data input. Whilst supplementary information like scene graphs and object annotations were not available at the time of writing, these data formats would allow for additional interactions and data transfer between modules, likely improving the network's ability to perform logical reasoning processes.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\textwidth]{module_network.png}
-    \caption{\citeauthor{andreas2016neural} propose the Neural Module Network, in which reasoning operations are strung together based on parser outputs and use combinations and transformations of attention maps on image features to predict a final answer to the question.}
-    \label{fig:andreas2016neural_neural_module_network}
-\end{figure}
-
-\citeauthor{andreas2016learning} improve upon their earlier work with a more robust method for generating compositional module layouts from questions, combining LSTM embeddings of the question with representations of candidate module layouts to select a module layout using a reinforcement learning approach. This model sees only a slight improvement over their previous iteration, however provides a novel framework for a variety of graph-based reasoning tasks; the scene graphs and functional programs in CLEVR and GQA are strong supervisory training data for such models, and recent scene graph generation techniques \cite{yang2018graph} would prove useful in generalising models to images that have not been previously annotated.
 
 % \subsubsection*{Attention Mechanisms}
 % \addcontentsline{toc}{subsubsection}{Attention Mechanisms}
@@ -875,6 +859,21 @@ Whilst one of the first methods to leverage graph strcutures for question embedd
 
 \subsection{Modular Methods}
 
+\subsubsection{Neural Module Networks}
+
+Whilst deep neural networks have proved useful for many classification tasks due to their inherent ability to extract correlations between input and output, they are difficult to interpret and struggle to perform complex reasoning tasks. In order to increase interpretability and coerce deep learning models to perform more structured reasoning steps, \citeauthor{andreas2016neural} proposed the creation of multiple network \textit{modules}, each capable of performing a specific reasoning step, similar to each component of the functional programs found in the CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa} datasets.
+
+Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \cite{antol2015vqa} of 58.7\%, the per-question-type statistics report only a 2.5\% and 1.4\% performance improvement over a LSTM language-only baseline on binary and numerical questions despite the 16\% improvement on \textit{other}-type questions. This suggests that the success of the model is likely clouded by statistical biases in the dataset, evidenced by the use of a text-only model in the ensemble shown in \figureautorefname{ \ref{fig:andreas2016neural_neural_module_network}}. As discussed by \citeauthor{hudson2018compositional}, the model depends on unreliable parsers and their ``hand-crafted'' design lacks extensibility. Moreover, attention maps on raw CNN features are used as the primary form of image data input. Whilst supplementary information like scene graphs and object annotations were not available at the time of writing, these data formats would allow for additional interactions and data transfer between modules, likely improving the network's ability to perform logical reasoning processes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{module_network.png}
+    \caption[A Neural Module Network VQA Model \cite{andreas2016neural}]{\citeauthor{andreas2016neural} propose the Neural Module Network \cite{andreas2016neural}, in which reasoning operations are strung together based on parser outputs and use combinations and transformations of attention maps on image features to predict a final answer to the question.}
+    \label{fig:andreas2016neural_neural_module_network}
+\end{figure}
+
+\citeauthor{andreas2016learning} improve upon their earlier work with a more robust method \cite{andreas2016learning} for generating compositional module layouts from questions, combining LSTM embeddings of the question with representations of candidate module layouts to select a module layout using a reinforcement learning approach. This model sees only a slight improvement over their previous iteration, however provides a novel framework for a variety of graph-based reasoning tasks; the scene graphs and functional programs in CLEVR and GQA are strong supervisory training data for such models, and recent scene graph generation techniques \cite{yang2018graph} would prove useful in generalising models to images that have not been previously annotated.
+
 \section{Model Performance Summary}
 
 \subsection{VQAv2.0}
@@ -960,9 +959,6 @@ Whilst one of the first methods to leverage graph strcutures for question embedd
 
 % Methodology
 % Graph R-CNN
-
-\subsection*{Interpretability of Multi-modal Reasoning Tasks}
-\addcontentsline{toc}{subsection}{Interpretability of Multi-modal Reasoning Tasks}
 
 %%%%%
 
