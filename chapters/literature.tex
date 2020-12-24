@@ -880,21 +880,20 @@ Despite this, very few (if any) models are effectively using similar graph embed
 \subsection{Graph Methods}
 
 Originally proposed for inductive and transductive node-classification tasks, the graph attention network (GAT) \cite{velivckovic2017graph} has gained the attention of computer vision researchers in the last three years, particularly for image-to-scene-graph \cite{yang2018graph} and text-to-scene-graph \cite{han2020victr} generation, and, more recently, visual question answering \cite{li2019relation, huang2020aligned}.
-Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with ReGAT \cite{li2019relation} achieving state-of-the-art results on the VQA 2.0 and VQA-CP v2 datasets in \citeyear{li2019relation}, and DC-GCN \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQA 2.0 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using gold-standard scene graph information. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information.
+Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with ReGAT \cite{li2019relation} achieving state-of-the-art results on the VQAv2 and VQA-CPv2 datasets in \citeyear{li2019relation}, and DC-GCN \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQAv2 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using gold-standard scene graph information. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information. In the following subsections, I outline how GCN and GAT architectures can be leveraged for VQA tasks, before giving a brief overview and analysis of the DC-GCN and ReGAT VQA architectures.
 
-\textbf{Semi-Supervised Classification with Graph Convolutional Networks} \cite{kipf2016semi}
+\subsubsection{Semi-Supervised Classification with Graph Convolutional Networks} \cite{kipf2016semi}
 \label{kipf2016semi}
 Originally proposed for graph-based semi-supervised classification tasks, the Graph Convolutional Network (GCN) extends the core concepts of Convolutional Neural Networks (CNNs) to sparse graphs; instead of performing convolutions on regions of pixels, GCNs convolve features from connected nodes in graphs.
 {\color{red} TODO expand, including important features}
 
 \noindent
 
-\textbf{Graph Attention Networks} \cite{velivckovic2017graph}
+\subsubsection{Graph Attention Networks} \cite{velivckovic2017graph}
 \label{velivckovic2017graph}
 {\color{red} TODO expand, including important features}
 
-\noindent
-\textbf{Aligned Dual Channel Graph Convolutional Networks for VQA} \cite{huang2020aligned}
+\subsubsection{Aligned Dual Channel Graph Convolutional Networks for VQA} \cite{huang2020aligned}
 \label{huang2020aligned}
 
 Current graph-based VQA methods focus only on capturing relationships between objects in images, and process textual information using traditional RNN-based approaches, indicating a need to close the semantic gap between question and image domains. \citeauthor{huang2020aligned} propose graphical representations of question data allow for multi-modal reasoning when reconciled with image objects. The authors of this paper have three main aims:
@@ -929,6 +928,8 @@ The methodology behind the model can be summarised as follows:
 \end{itemize}
 Whilst one of the first methods to leverage graph strcutures for question embeddings, the scene graph generation method captures only naive spatial relations, compared to a model like ReGAT which models both explicit and implicit spatial and semantic relationships \cite{li2019relation}. Moreover, dependency-parsed graphs lack spatial and semantic information; they capture structural relationships between words that do not directly translate to spatial/semantic relationships in the joint question-image domain. In addition, the attention alignment module operates on two different data modes, each with their own semantic space; a more successful alignment module would first project data streams onto the same latent space before reasoning about the relationships between image and question objects.
 
+\subsubsection{Relation-aware Graph Attention Networks for Visual Question Answering} \cite{li2019relation}
+
 \subsection{Attention Methods}
 
 % Model list 8-12
@@ -951,6 +952,8 @@ Whilst one of the first methods to leverage graph strcutures for question embedd
 
 
 \subsubsection*{Compositional Attention Networks for Machine Reasoning (\cite{hudson2018compositional}), ICLR 2018}
+
+{\color{red} TODO: Clean up, convert references to MAC to `compositional attention network'}
 
 Motivated by the lack of interpretable models capable of performing complex reasoning tasks, \citeauthor{hudson2018compositional} create a robust attention-based model (MAC Network) capable of performing explicit reasoning steps without the external supervision of structured data such as scene graphs or functional programs. They demonstrate the effectiveness of the MAC network by performing experiments using the CLEVR (\cite{johnson2017clevr}) dataset, achieving a new top accuracy of 98.9\%. Additionally, they perform extensive ablations to investigate the effects of different model components on overall performance, and demonstrate its interpretability on various question types by visualising the internal attention weights of the model in terms of the original question and image. In addition to outperforming all existing SOTA models on the full CLEVR dataset, MAC networks also perform surprisingly well on subsets of CLEVR, with an accuracy of up to 35\% higher than other SOTA models on a 10\% subset. Whist the MAC network performs outstandingly on the CLEVR dataset, subsequent studies have shown that its performance decreases on more realistic datasets such as GQA (\cite{hudson2019gqa}), where it achieved only 54.6\%. When incorporating GQA scene graphs into the knowledge base, MAC network performance improved to around 84\%; this suggests that whilst the architecture of the MAC network is strong, providing more structured data to the network allows its cells to perform logical reasoning steps more effectively. In the original paper, question words and context are extracted using a bi-LSTM, however more structured data like semantic graph representations could improve both accuracy and interpretability of the model.
 
