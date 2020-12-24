@@ -297,55 +297,99 @@ Since I focus on VQA as a multi-class classification problem in this dissertatio
 
 Originally developed for automatic evaluation of machine translation systems, the Bi-Lingual Evaluation Understudy (BLEU) metric was created in an effort to reduce dependence on manual evaluation methods and thus promote more rapid prototyping of ideas. The three keys to its success in the machine translation field are its efficiency, language independence and correlation with human evaluation results.
 
-\textbf{Motivations:}
+In the context of machine translation, the core component of the BLEU metric compares groups of \(n\) adjacent words (\(n\)-grams) in a candidate translation to \(n\)-grams in a group of reference translations using a modified precision measure. This comparison is best described with an example:
 
-\begin{itemize}
-    \item Machine translation
-    \item Human evaluation can take months
-    \item Bi-Lingual Evaluation Understudy (BLEU) is:
-    \begin{itemize}
-        \item ``Quick''
-        \item ``Inexpensive''
-        \item ``Language independent''
-        \item Accurate (``Correlates highly with human evaluation'')
-    \end{itemize}
-    \item 
-    \item Derived from word-error-rate metric used in speech recognition, modified to allow for subtle word reorderings and substitutions.
-\end{itemize}
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{r|l}
+        Candidate & \textbf{the} \textbf{the} the the the the the \\
+        Reference 1 & \textbf{the} cat is on \textbf{the} mat \\
+        Reference 2 & there is a cat on the mat \\
+    \end{tabular}
+    \caption[An illustration of BLEU's modified \(n\)-gram precision measure \cite{papineni2002bleu}]{An example given by \cite{papineni2002bleu} of a poor candidate translation that performs well \((7/7)\) on the standard unigram precision measure, but poorly \((2/7)\) on the modified unigram precision measure used by BLEU.}
+    \label{tab:bleu_ngraph_precision}
+\end{table}
 
+As illustrated in \tableautorefname{ \ref{tab:bleu_ngraph_precision}}, the standard \(n\)-gram precision measure simply counts how many \(n\)-grams in the candidate translation appear in any of the reference translations, allowing poor translations that repeat common \(n\)-grams to perform well. To combat this, the BLEU metric uses a modified \(n\)-gram precision measure, where it calculates a clipped number of \(n\)-gram matches between the candidate and reference translations: in the example in \tableautorefname{ \ref{tab:bleu_ngraph_precision}}, the unclipped candidate count of the unigram \textit{the} is 7, but the clipped count is 2, since the maximum number of occurrences of the unigram \textit{the} in any reference translation is 2.
 
-\textbf{General Caveats:}
+\cite{papineni2002bleu} extend their modified \(n\)-gram precision measure to multiple sentences, however I omit this section for the sake of clarity since open-ended VQA answers are almost always phrased as single sentences.
 
-\begin{itemize}
-    \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
-    \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
-    \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
-\end{itemize}
+Whilst these modified \(n\)-gram precisions are useful for gaining an idea of whether a candidate translation is good or bad, the BLEU metric accounts for the fact that different\(n\)-gram precisions capture different aspects of a translation. For example, unigram precision is useful for measuring whether a candidate translation uses the same words as a reference translation, but cannot account for the \textit{fluency} of a translation like bigram or trigram precisions can. To address this, the BLEU metric combines multiple modified \(n\)-gram precision scores according to \equationautorefname{ \ref{equation:bleu_metric}}.
 
+\begin{equation}
+    \textsc{BLEU} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
+    \label{equation:bleu_metric}
+\end{equation}
 
-\textbf{Application to VQA:}
+In \equationautorefname{ \ref{equation:bleu_metric}}, we see that the BLEU metric is defined as some brevity penalty \(P_B\) multiplied by the geometric mean of individual \(n\)-gram precisions \(p_n\). This brevity penalty is essential for ensuring candidate translations are not too short; a candidate translation can achieve a modified precision score of 1 if it contains a single \(n\)-gram and that \(n\)-gram is in one of the reference answers. The brevity penalty achieves this by comparing the length of the candidate translation \(c\) to the length of the reference translation closest in length to \(c\), denoted \(r\), taking a value \(< 1\) whenever \(c < r\). Moreover, the penalty decays exponentially towards zero as \(c \rightarrow 0\), as seen in \equationautorefname{ \ref{equation:bleu_brevity_penalty}}.
 
-Brevity penalty in the context of VQA:
-
-{\color{red} TODO: Check image captioning paper and see if this is the adopted approach. Also check DAQUAR and COCO-QA papers.} Assume a candidate answer may contain multiple sentences and a ground truth answer may contain multiple sentences. In the most common case, the number of sentences in both the candidate and ground truth answers is 1. For cases with multiple sentences we can treat multiple sentences as a single sentence when computing \(n\)-grams, as in \cite{papineni2002bleu}. For a candidate answer of length \(c\) and a reference answer length of \(r\) (for each candidate sentence, the reference length is the corresponding ground-truth sentence with the closest length. \(r\) is the sum of these reference lengths across all sentences in the corpus, though the corpus is small for VQA applications.) The brevity penalty \(P_B\) is thus:
-
-\begin{equation*}
+\begin{equation}
     P_B = \begin{cases}
     1, &\text{if } c > r\\
     e^{\frac{1-r}{c}}, &\text{if } c \leq r\\
     \end{cases}
-\end{equation*}
+    \label{equation:bleu_brevity_penalty}
+\end{equation}
+
+Naturally, the BLEU metric can be used for any natural language evaluation task where we need to compare a candidate sentence to a reference sentence. This includes open-ended VQA evaluation, where we compare sentence-based candidate answers to one or more reference answers.
+
+Analysing the design decisions of the BLEU metric, we see that it handles a variety of issues that apply to open-ended VQA evaluation. Firstly, it encourages responses of appropriate length; the brevity penalty ensures that candidate responses are not too short, and the modified \(n\)-gram precision measure inherently penalises responses that include superfluous \(n\)-grams not found in reference responses. This ensures that candidate responses not only get the question correct, but provide an answer in the context of a sentence. Secondly, by including \(n\)-gram precision measures for multiple values of \(n\), it ensures candidate answers are correct and fluent in their vocabulary usage.
+
+Unfortunately, there are numerous disadvantages to using the BLEU metric for open-ended VQA evaluation. The first is that open-ended VQA answers often have a large overlap with their corresponding question. For example, given the question \textit{What colour is the apple?} and a reference answer \textit{The apple is red.}, a candidate answer \textit{The apple is.} would achieve a modified unigram, bigram and trigram precision of 1 despite drawing all of its words from the question and not providing a concrete answer.
+Secondly, VQA datasets rarely contain multiple open-ended answers. For example, the GQA dataset \cite{hudson2019gqa} comes with a single open-ended answer per question. This means that a candidate answer that is correct but differs in phrasing to the reference answer may achieve a low BLEU score. This occurs because BLEU was originally designed for large corpora with multiple reference translations sourced from different people to promote answer variety.
+Moreover, the BLEU metric does not account for synonyms or morphological variations of words. If the ground truth answer refers to a \textit{carton} but the predicted answer uses the word \textit{box}, or \textit{cartons}, we observe a decrease in \(n\)-gram precision despite the semantic or morphological similarities between words used by the candidate and reference answers.
+
+Whilst some of these issues are addressed by more recent NLG metrics like ROUGE, METEOR and CIDEr, these metrics were still designed for evaluating other types of natural language tasks, and have their own disadvantages when used for open-ended VQA evaluation. As a result, the development of a metric that is suitable for open-ended VQA is still an open research problem.
 
 
-By default, BLEU is defined as the brevity penalty multiplied by the geometric mean of \(n\)-gram precisions \(p_n = \frac{\sum{c \in C} \sum g_n \in c }{\sum{c' \in C} \sum g_n' \in c}\) for \(n \in [1, 4]\):
+% For some \(n \geq 1\), the BLEU metric defines the modified \(n\)-gram precision as \(p_n = \frac{\sum{c \in C} \sum g_n \in c }{\sum{c' \in C} \sum g_n' \in c}\), where \(C\) is a set of candidate answers
 
-\begin{equation*}
-    \textsc{BLEU} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
-\end{equation*}
+% \textbf{Motivations:}
 
-\begin{itemize}
-    \item VQA datasets rarely contain open ended answers. COCO comes with 5 captions per image, GQA comes with 1 open-ended answer per question. Even when we do have open ended answers, a single, one sentence is not enough for BLEU to be successful since it is designed for large corpora with multiple source translations; If the ground truth answer refers to a \textit{carton} but the predicted answer uses the word \textit{box}, \(n\)-gram precision decreases despite semantic similarities between the two words. 
-\end{itemize}
+% \begin{itemize}
+%     \item Machine translation
+%     \item Human evaluation can take months
+%     \item Bi-Lingual Evaluation Understudy (BLEU) is:
+%     \begin{itemize}
+%         \item ``Quick''
+%         \item ``Inexpensive''
+%         \item ``Language independent''
+%         \item Accurate (``Correlates highly with human evaluation'')
+%     \end{itemize}
+%     \item 
+%     \item Derived from word-error-rate metric used in speech recognition, modified to allow for subtle word reorderings and substitutions.
+% \end{itemize}
+
+
+% \textbf{General Caveats:}
+
+% \begin{itemize}
+%     \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
+%     \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
+%     \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
+% \end{itemize}
+
+
+% \textbf{Application to VQA:}
+
+% Brevity penalty in the context of VQA:
+
+% {\color{red} TODO: Check image captioning paper and see if this is the adopted approach. Also check DAQUAR and COCO-QA papers.} Assume a candidate answer may contain multiple sentences and a ground truth answer may contain multiple sentences. In the most common case, the number of sentences in both the candidate and ground truth answers is 1. For cases with multiple sentences we can treat multiple sentences as a single sentence when computing \(n\)-grams, as in \cite{papineni2002bleu}. For a candidate answer of length \(c\) and a reference answer length of \(r\) (for each candidate sentence, the reference length is the corresponding ground-truth sentence with the closest length. \(r\) is the sum of these reference lengths across all sentences in the corpus, though the corpus is small for VQA applications.) The brevity penalty \(P_B\) is thus:
+
+% \begin{equation}
+%     P_B = \begin{cases}
+%     1, &\text{if } c > r\\
+%     e^{\frac{1-r}{c}}, &\text{if } c \leq r\\
+%     \end{cases}
+%     \label{equation:bleu_brevity_penalty}
+% \end{equation}
+
+% \begin{itemize}
+%     \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
+%     \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
+%     \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
+% \end{itemize}
+
 
 % \subsubsection{ROUGE}
 
