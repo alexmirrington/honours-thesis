@@ -505,8 +505,9 @@ In this section, I address the first major hurdle for the VQA task as introduced
 
 \begin{landscape}
   \begin{footnotesize}
-      \begin{center}
-        \begin{longtable}[c]{llllllllll}
+        \begin{longtable}{
+            P{0.15\linewidth}cccP{0.08\linewidth}P{0.075\linewidth}P{0.125\linewidth}P{0.125\linewidth}P{0.1\linewidth}
+        }
           \toprule
           \textbf{Dataset}
           & \textbf{Year}
@@ -514,18 +515,14 @@ In this section, I address the first major hurdle for the VQA task as introduced
           & \textbf{Questions}
           & \textbf{Image Source}
           & \textbf{Question Creation}
-          & \textbf{Question Category Count}
           & \textbf{Answer Type}
           & \textbf{Additional Data}
           & \textbf{Evaluation Metrics}\\
           \midrule
           \endhead
 
-          \midrule
-          \endfoot
-
           \bottomrule\\
-          \caption[A comparison of VQA datasets and their variations.]{A comparison of relevant features of the most popular VQA datasets. Dataset variations are listed in regular font below their bolded counterparts.}
+          \caption[A comparison of VQA datasets and their variations.]{A comparison of relevant features of the most popular VQA datasets. Dataset variations are listed in regular font below their bolded counterparts. For clarity, I make the distinction between single-concept and open-ended VQA tasks:  what many datasets call an \textit{open-ended} VQA task is a task requiring a short 1-3 word (\textit{single-concept}) answer. Most often, these types of tasks are approached as a classification problem across the entire answer vocabulary of the dataset. I reserve the \textit{open-ended} answer type for VQA tasks that require full-sentence answers.}
           \label{tab:dataset_comparison}
           \endlastfoot
 
@@ -535,187 +532,175 @@ In this section, I address the first major hurdle for the VQA task as introduced
           & 12,468  % 12,468 questions
           & NYU-Depth V2 \cite{silberman2012indoor}
           & Both
-          & 4
           & Multi-label (894)
           & Human segmentation, image depth values, and object labels from NYU Depth V2.
           & Accuracy, WUPS \\
+        \midrule
           \textbf{Visual Madlibs} \cite{yu2015visual}
           & 2015
           & 10,738  % 10,738 images  % Filtered hard task?
           & 360,001  % 360,001 descriptions
           & COCO \cite{lin2014microsoft}
           & Human
-          & 12
           & Fill-in-the-blank, Multi-choice (4)
-          & -
+          & COCO annotations
           & Accuracy, BLEU \\
+          \midrule
           \textbf{COCO-QA}
           & 2015
           & 123,287
           & 117,684
           & COCO
           & Automatic
-          & 4
-          & Single-word
-          & -
+          & Single-concept
+          & COCO annotations
           & Accuracy, BLEU \\
+          \midrule
           \textbf{VQAv1} \cite{antol2015vqa}
           & 2015
           & 204K  % 204,721 images
           & 614K  % 614,163 questions % 6,141,630 ground truth answers % 1,842,489 plausible answers
           & COCO
           & Human
-          & -
-          & Open-ended, Multi-choice (18)
+          & Single-concept, Multi-choice (18)
           & COCO image captions
-          & Accuracy\footnotemark \\
+          & Accuracy, Consensus Accuracy\\
           Abstract Scenes
           & 2015
           & 50K  % 50,000 abstract scenes
           & 150K  % 150,000 questions % 1,500,000 ground truth answers % 450,000 plausible answers % 250,000 captions
-          & Clip art, 2D
+          & 2D clip art
           & Human
-          & -
-          & Open-ended, Multi-choice (18)
+          & Single-concept, Multi-choice (18)
           & Image captions
-          & Accuracy\footnotemark[\value{footnote}] \\
+          & Accuracy, Consensus Accuracy\\
           Changing Priors (CP) \cite{agrawal2018dont}
           & 2018
-          & {\color{red}\(\approx\)204K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
-          & {\color{red}\(\approx\)370K}  % Exact unkown, ~ 3.8M answers
+          & \(\approx\)204K  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
+          & \(\approx\)370K  % Exact unkown, ~ 3.8M answers
           & COCO
           & Human
-          & -
-          & Open-ended
+          & Single-concept
           & See VQAv1
-          & Accuracy\footnotemark[\value{footnote}] \\
+          & Consensus Accuracy \\
           Compositional VQA (C-VQA) \cite{agrawal2017cvqa}
           & 2017
           & 204K  % Some images repeated in train and test
           & 369K  % 369,861 questions, 3,698,610 answers
           & COCO
           & Human
-          & -
-          & Open-ended
+          & Single-concept
           & See VQAv1
-          & Accuracy\footnotemark[\value{footnote}] \\
+          & Consensus Accuracy \\
+          \midrule
           \textbf{VQAv2} \cite{goyal2017making}
           & 2017
           & 204K  % 204,721 images
           & 1.1M  % 1,105,904 questions % 11,059,040 ground truth answers
           & COCO
           & Human
-          & -
-          & Open-ended
-          & COCO image captions, Complementary image pairs
-          & Accuracy\footnotemark[\value{footnote}] \\
+          & Single-concept
+          & COCO image captions, complementary image pairs
+          & Accuracy, Consensus Accuracy \\
           Balanced Binary Abstract Scenes \cite{zhang2016yin}
           & 2016
           & 31K % 31,325 abstract scenes
           & 33K % 33,383 questions % 333,830 ground truth answers
-          & Clip art, 2D
+          & 2D clip art
           & Human
-          & -
           & Multi-choice (2)
           & Image captions
-          & Accuracy\footnotemark[\value{footnote}] \\
+          & Accuracy \\
           Changing Priors (CP) \cite{agrawal2018dont}
           & 2018
-          & {\color{red}\(\approx\)219K}  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
-          & {\color{red}\(\approx\)658K}  % Exact unkown, ~ 6.6M Answers
+          & \(\approx\)204K  % Exact unkown as calculation was based on sum of train and test which are not necessarily mutually exclusive on images.
+          & \(\approx\)658K  % Exact unkown, ~ 6.6M Answers
           & COCO
           & Human
-          & -
-          & Open-ended
+          & Single-concept
           & See VQAv2
-          & Accuracy\footnotemark[\value{footnote}] \\
+          & Consensus Accuracy  \\
+          \midrule
           \textbf{Visual Genome} \cite{krishna2017visual}
           & 2016
           & 108K  % 108,077 images
           & 1.7M  % 1,773,258 questions and answers
           & COCO, YFCC100M \cite{thomee2016yfcc100m}
           & Human
-          & -
-          & Open-ended
-          & COCO annotations, Region descriptions, Scene graphs
+          & Single-concept
+          & COCO annotations, region descriptions, scene graphs
           & Accuracy \\
+          \midrule
           \textbf{Visual7W} \cite{zhu2016visual7w}
           & 2016
           & 47K % 47,300
           & 327K % 327,939
           & COCO
           & Human
-          & -
-          & -
-          & - \\
+          & Single-concept, Multi-choice (4)
+          & Groundings for each object in each question-answer pair.
+          & Accuracy \\
+          \midrule
           \textbf{TDIUC} \cite{kafle2017analysis}
           & 2017
           & 167K % 167,437 images
           & 1.6M % 1,654,167 questions
           & COCO, Visual Genome
           & Both
-          & -
-          & Open-ended
-          & -
+          & Single-concept
+          & See Visual Genome.
           & Per-question-type accuracy, regular \& normalised arithmetic \& harmonic mean accuracy\\
+          \midrule
           \textbf{CLEVR} \cite{johnson2017clevr}
           & 2017
           & 100K  % 100,000 images
           & 999K  % 999,968 questions
-          & Computer-generated, 3D
+          & 3D renderings
           & Automatic
-          & -
-          & Open-ended
-          & Functional programs, Scene graphs
+          & Single-concept
+          & Functional programs, scene graphs
           & Accuracy \\
           CoGenT-A \& B
           & 2017
           & 100K
           & 999K
-          & Computer-generated, 3D 
+          & 3D renderings 
           & Automatic
-          & -
-          & Open-ended
-          & Functional programs, Scene graphs
+          & Single-concept
+          & Functional programs, scene graphs
           & Accuracy \\
           Humans
           & 2017
-          & -
+          & 32K  % 32,164
           & 32K  % 32,164
           & CLEVR
           & Human
-          & Open-ended
-          & See CLEVR
+          & Single-concept
+          & See CLEVR.
           & Accuracy \\
+          \midrule
           \textbf{GQA} \cite{hudson2019gqa}
           & 2019
           & 113K  % 113,018 images
           & 22.6M  % 22,669,678 questions
-          & -
+          & COCO, Visual Genome
           & Both
-          & -
-          & Open-ended
-          & Scene graphs, Functional programs, Full-sentence answers
+          & Single-concept, open-ended
+          & Scene graphs, functional programs, full-sentence answers, valid and plausible answer sets for each question, entailed questions.
           & Accuracy, Consistency, Validity, Plausibility, Distribution, Grounding \\
-          %  & - & - & - \\
-          % \textbf{V7W} \cite{zhu2016visual7w} & - & 47K & 0.32M & Multiple choice \\
-          % \textbf{TDIUC} \cite{kafle2017analysis} & - & 167K & 1.6M & Open-ended \\
-          \textbf{TextVQA} \cite{singh2019towards}
-          & -
-          & -
-          & -
-          & -
-          & -
-          & -
-          & -
-          & -
-          & Accuracy, BLEU \\
-          \end{longtable}
-      \end{center}
+        %   \textbf{TextVQA} \cite{singh2019towards}
+        %   & -
+        %   & -
+        %   & -
+        %   & -
+        %   & -
+        %   & -
+        %   & -
+        %   & -
+        %   & Accuracy, BLEU \\
+      \end{longtable}
   \end{footnotesize}
 \end{landscape}
-
-\footnotetext{For open-ended answers, an answer is considered `correct' if it matches at least three of the ten human-provided answers. For multiple choice answers, a traditional accuracy metric is used.}
 
 \textbf{VQAv1} \cite{antol2015vqa} Real images were drawn from COCO \cite{lin2014microsoft}, and abstract scenes were created using clip-art objects \cite{zitnick2013bringing}. Questions and answers were collected using an Amazon Mechanical Turk (AMT) interface.
 
