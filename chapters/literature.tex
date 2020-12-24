@@ -673,25 +673,15 @@ I summarise the most common VQA datasets along with their image sources, questio
           & COCO, Visual Genome
           & Both
           & Single-concept, open-ended
-          & Scene graphs, functional programs, full-sentence answers, valid and plausible answer sets for each question, entailed questions.
+          & Scene graphs, functional programs, full-sentence answers, valid and plausible answer sets for each question, entailed questions, faster R-CNN \cite{ren2016faster} features, ResNet-101 \cite{he2016deep} features.
           & Accuracy, Consistency, Validity, Plausibility, Distribution, Grounding \\
-        %   \textbf{TextVQA} \cite{singh2019towards}
-        %   & -
-        %   & -
-        %   & -
-        %   & -
-        %   & -
-        %   & -
-        %   & -
-        %   & -
-        %   & Accuracy, BLEU \\
       \end{longtable}
   \end{footnotesize}
 \end{landscape}
 
 \subsubsection{DAQUAR}
 
-As the first of many VQA datasets, the DAtaset for QUestion Answering on Real-world images (DAQUAR) was born from a desire to combine the advances of the computer vision (CV) and natural language processing (NLP) communities and tackle more complex problems. DAQUAR draws its images from the NYU-Depth V2 dataset, utilising its depth information to automatically segment and classify objects in the image. Interestingly, DAQUAR employs both question templates for automatic question generation as well as human-provided questions and answers, separating them into ``SynthQA'' and ``HumanQA'' benchmarks respectively.
+As the first of many VQA datasets, \textit{the DAtaset for QUestion Answering on Real-world images} (DAQUAR) was born from a desire to combine the advances of the computer vision (CV) and natural language processing (NLP) communities and tackle more complex problems. DAQUAR draws its images from the NYU-Depth V2 dataset, utilising its depth information to automatically segment and classify objects in the image. Interestingly, DAQUAR employs both question templates for automatic question generation as well as human-provided questions and answers, separating them into ``SynthQA'' and ``HumanQA'' benchmarks respectively.
 
 Whilst ahead of its time, DAQUAR has two primary issues that have hindered its widespread adoption:
 \begin{enumerate}
@@ -716,63 +706,61 @@ Whilst ahead of its time, DAQUAR has two primary issues that have hindered its w
     \label{table:daquar_templates}
 \end{table}
 
+% \textbf{VQAv1} \cite{antol2015vqa} Real images were drawn from COCO \cite{lin2014microsoft}, and . Questions and answers were collected using an Amazon Mechanical Turk (AMT) interface.
+
+% \textbf{VG} \cite{krishna2017visual} Images from the intersection of COCO \cite{lin2014microsoft} and YFCC100M \cite{thomee2016yfcc100m}. Questions, answers and scene graphs were collected using an AMT interface.
+
+% \textbf{V7W} \cite{zhu2016visual7w} Images are a subset of the Visual Genome dataset. Questions, answers and object-level groundings were collected using an AMT interface.
+
+% \textbf{VQAv2} \cite{goyal2017making, zhang2016yin} Built on top of VQA 1.0, new (image, question, answer) tuples were created from existing tuples by asking AMT workers to choose an image from 24 nearest neighbours of the existing tuple's image such that the answer to the new image is not the answer to the existing image for the same question.
+
+% \textbf{TDIUC} \cite{kafle2017analysis} Questions were collected from COCO-QA and VG, generated from COCO and VG segmentation and object/attribute annotations respectively, or created by human volunteers. Images from COCO and VG were used if associated with a question.
+
+% \textbf{GQA} \cite{hudson2019gqa} Scene graphs were created using various preprocessing techniques from VG scene graphs. Questions were produced compositionally from combinations of templates derived from VQA 2.0 and manually-created templates, using scene graph traversals to fill in subjects, objects, relations and attributes, whilst simultaneously filling in the functional program templates associated with the question types. An additional balancing helped mitigate statistical priors that are often exploited by models, whilst maintaining real-world priors.
+
 \subsubsection{VQAv1}
 
-Given the rise in popularity of VQA tasks inspired by DAQUAR, \citeauthor{antol2015vqa} recognised a need for a new, sufficiently large dataset that contained free-form, open-ended questions that still allowed results to be quantified; this need was realised by two datasets: an open-ended dataset derived from COCO \cite{lin2014microsoft}, as well as a smaller synthetic dataset containing abstract scenes assembled from 2D clip-art objects \cite{zitnick2013bringing}. These datasets are referred to as VQAv1 and Abstract Scenes (listed underneath VQAv1) in \tableautorefname{ \ref{tab:dataset_comparison}} respectively. The key contributions of these datasets were two-fold:
+Given the rise in popularity of VQA tasks inspired by DAQUAR, \citeauthor{antol2015vqa} recognised a need for a new, sufficiently large dataset that contained free-form, open-ended questions that still allowed results to be quantified; this need was realised by two datasets: an open-ended dataset derived from COCO \cite{lin2014microsoft}, as well as a smaller synthetic dataset containing abstract scenes assembled from 2D clip-art objects \cite{zitnick2013bringing}. These datasets are referred to as VQAv1 and Abstract Scenes (listed underneath VQAv1) in \tableautorefname{ \ref{tab:dataset_comparison}} respectively. The key contributions of these datasets are two-fold:
 
 \begin{enumerate}
     \item The real-world image dataset provided the first feasible dataset for benchmarking VQA models, thanks to its large size compared to existing VQA datasets like DAQUAR and COCO-QA. Whilst smaller, the synthetic abstract scenes dataset allowed researchers to investigate the underlying theory behind visual reasoning without focusing on the difficult task of extracting features from images.
     \item Both datasets employed a new consensus accuracy metric that rewards models for feasible answers based answers given by 10 human volunteers. Whilst not a perfect metric due to the small number of collected human answers, the authors correctly emphasise that metrics such as BLEU and ROUGE from other NLP tasks are not suited to the dataset, since the answers to questions are only ever single concepts, spanning 1-3 words. As a result, this consensus accuracy has been widely adopted as a standard metric for the evaluation of VQA systems. I refer the reader to \subsectionautorefname{ \ref{subsection:consensus_measures}} for details on the consensus accuracy metric.
 \end{enumerate}
 
-\textbf{VQAv1} \cite{antol2015vqa} Real images were drawn from COCO \cite{lin2014microsoft}, and . Questions and answers were collected using an Amazon Mechanical Turk (AMT) interface.
+Despite the large success and valuable contributions of the VQAv1 dataset, it suffers from large statistical biases in its answer set distribution. As an example, \cite{goyal2017making} points out that a VQA model that answers \textit{yes} to any question beginning with \textit{Do you see a ...} in the VQAv1 dataset achieves a consensus accuracy of 87\% on those questions. This is largely due to the question generation process and general human disposition; humans are much more likely to ask the question \textit{Do you see a dog?} if there is actually a dog in the image compared to if there is not. These skewed answer distributions encourage models to rely on question language priors and answer distribution priors to formulate answers without properly incorporating image data into their reasoning processes. I delve further into the impact of language priors in \subsectionautorefname{ \ref{subsec:lanauge_priors_in_vqa_datasets}}, focusing on dataset balancing methods developed by other dataset creators to help capture the observations we see in the real world more accurately.
 
-\textbf{VG} \cite{krishna2017visual} Images from the intersection of COCO \cite{lin2014microsoft} and YFCC100M \cite{thomee2016yfcc100m}. Questions, answers and scene graphs were collected using an AMT interface.
+\subsubsection{CLEVR}
+Motivated by the prevalance of skewed answer and question distributions in existing datasets, \citeauthor{johnson2017clevr} built the CLEVR dataset to help diagnose common issues and limitations with existing VQA models. They took an entirely different approach to question and image collection, automating both processes to give complete control over question, image and answer distributions.
 
-\textbf{V7W} \cite{zhu2016visual7w} Images are a subset of the Visual Genome dataset. Questions, answers and object-level groundings were collected using an AMT interface.
+The key to automating question and image generation is the scene graph, a representation of an image's objects, their attributes and their relationships to other objects. Each object is represented as a node in the scene graph and is annotated with zero or more attributes, and inter-object relationships are represented as  graph edges. Scene graphs were made popular in the VQA field by the Visual Genome dataset, but had been previously used for image retrieval tasks \cite{johnson2015image}. I refer the reader to \subsectionautorefname{ \ref{subsection:scene_graph_embedding_motivation}} for a formal description of a scene graph and its components.
 
-\textbf{VQAv2} \cite{goyal2017making, zhang2016yin} Built on top of VQA 1.0, new (image, question, answer) tuples were created from existing tuples by asking AMT workers to choose an image from 24 nearest neighbours of the existing tuple's image such that the answer to the new image is not the answer to the existing image for the same question.
+The creation of each question-image pair in the CLEVR dataset begins with a randomly generated scene graph containing objects \textit{e.g. cube, sphere, cylinder}, attributes \textit{e.g. colour, material and size} and inter-object relationships \textit{e.g. left, right, in front, behind}. Scene graph objects and their associated attributes are placed on a 2D plane, positioned according to the relationships encoded by the scene graph, and then rendered using Blender's Python API \cite{blender}. 
+Questions are drawn from a collection of around 360 templates, each of which is associated with a functional program. Choosing elements from the scene graph to populate the template and functional program results in a fully-formed question and functional program describing the reasoning processes required to answer the question for that scene graph. For example, the question template \textit{How many \{colour\} things are there?} is associated with a functional program \texttt{count(filter\_colour(\{colour\}, scene))}. To obtain an answer to a question-image pair, the associated functional program is evaluated on the scene graph to yield an object, attribute or relation.
 
-\textbf{CLEVR} \cite{johnson2017clevr} Images were generated randomly from a scene graph containing objects, attributes and relations between geometric objects. Questions and answers were generated from functional program templates evaluated on the scene graph for a given image. Scene graphs and functional programs were retained and are included for the training and validation sets.
+\subsubsection{GQA}
+Inspired by the complex compositional structure of questions in the CLEVR dataset and motivated by the lack of question annotations and suboptimal question and answer distributions in existing datasets, \citeauthor{hudson2019gqa} developed the GQA dataset. GQA is the largest VQA dataset to date, containing over 22 million questions in entirety, and over 1.7 million questions after applying balancing techniques to reduce biases in its question type and answer distributions. Moreover, it is accompanied by a myriad of additional annotations, ranging from scene graphs, functional programs and full-sentence answers to Faster R-CNN object features and ResNet-101 spatial features.
 
-\textbf{TDIUC} \cite{kafle2017analysis} Questions were collected from COCO-QA and VG, generated from COCO and VG segmentation and object/attribute annotations respectively, or created by human volunteers. Images from COCO and VG were used if associated with a question.
+Due to the complexity of the GQA dataset construction process, I provide a brief overview of the key steps below. I refer the avid reader to the original GQA publication \cite{hudson2019gqa} for unabridged details on the construction of the GQA dataset.
 
-\textbf{GQA} \cite{hudson2019gqa} Scene graphs were created using various preprocessing techniques from VG scene graphs. Questions were produced compositionally from combinations of templates derived from VQA 2.0 and manually-created templates, using scene graph traversals to fill in subjects, objects, relations and attributes, whilst simultaneously filling in the functional program templates associated with the question types. An additional balancing helped mitigate statistical priors that are often exploited by models, whilst maintaining real-world priors.
+At a glance, the GQA dataset construction process comprises four key stages:
 
+\begin{enumerate}
+    \item Scene graph preprocessing
+    \item Question creation
+    \item Dataset balancing
+    \item Entailment relation discovery
+\end{enumerate}
 
-The CLEVR dataset \cite{johnson2017clevr} is entirely computer generated, using renderings of assorted 3D solids with various colours as its visual signal, and compositional templates for question generation.
+{\color{red} TODO: Cover dataset creation process - refer to slides and notes in vqa-research repository.
 
+Scene graphs were created from Visual Genome scene graphs using various preprocessing techniques including ontology construction, edge pruning, and global property injection. Questions were produced compositionally from combinations of templates derived from VQA 2.0 and manually-created templates, using scene graph traversals to fill in subjects, objects, relations and attributes, whilst simultaneously filling in the functional program templates associated with the question types. An additional balancing helped mitigate statistical priors that are often exploited by models, whilst maintaining real-world priors.}
 
 
 
 \subsection{Language Priors and Question Type Distributions in VQA Datasets}
 \label{subsec:lanauge_priors_in_vqa_datasets}
 
-\subsubsection*{VQA: Visual Question Answering (\cite{antol2015vqa})}
-
-Given the underwhelming nature of existing visual question answering studies due to small datasets or restricted question or image contexts, the authors of this paper aim to create a diverse dataset that focuses on real-world questions about images. They created two datasets, one containing real-world images pulled from the MSCOCO dataset, and one containing abstract scenes to facilitate pioneering research into VQA tasks. The questions for both datasets were created by humans via an online interface, with a focus on question diversity and image relevance. In addition, ten answers for the questions were collected through a similar interface, and an accuracy metric was devised based on these human responses that accounts for variance in the quality of correct answers. Though this is necessary given the nature of the question generation process, the authors to not highlight why this accuracy metric was chosen over other alternatives; an important discussion given the subjective nature of answer quality. In addition, the question generation process resulted in answer distributions that are skewed towards a particular answer for many question types, encouraging models to rely on language priors to formulate answers without properly incorporating image data into their reasoning processes. However, to the authors' credit, these answer distributions are detailed meticulously in the appendices, but unfortunately these statistics do not find their way into the analysis of models found in many other papers, making it difficult to compare the extent to which different models take advantage of prior probabilities when answering questions.
-
-%%%%%
-
-\subsubsection*{Yin and Yang: Balancing and Answering Binary Visual Questions (\cite{zhang2016yin})}
-
-In this paper, the authors highlight the role of language priors in VQA dataset, providing concrete examples from the VQA 1.0 dataset (\cite{antol2015vqa}) where a simple model can form correct predictions solely based on question words; they show that these priors are present in multiple question types in the VQA 1.0 dataset, pointing out that questions starting with \textit{`What sport is'} can be correctly answered with the word \textit{`tennis'} 41\% of the time, and \textit{`yes'} is over twice as likely to be the answer to binary questions. The authors leverage the flexibility of abstract scenes in an attempt to eliminate language priors by modifying a copy of each image in the VQA abstract scenes dataset such the answer to the original question on the new image is negated. Though novel, this approach does not extend well to real-world image datasets, due to an inability to generate complementary images that are indistinguishable from photographs. Even with the benefits of abstract scenes, the balancing approach is unable to perfectly balance the binary portion of the dataset; for example, a question such as \textit{`Is it raining?'} cannot be negated effectively, since the clip-art object bank does not contain a rain graphic. Moreover, the approach is only applicable to binary questions, which comprise around 41\% of the VQA 1.0 dataset (\cite{antol2015vqa}). To demonstrate the effectiveness of this balancing technique, the authors compare the accuracy of four models when trained on the balanced and unbalanced binary question subset and tested on the unbalanced set of binary questions. They find that the language-only baseline suffers an 18\% decrease when trained on the balanced subset, and more complex models perform between 7-10\% worse. Whilst the paper presents a novel approach to VQA dataset balancing, its inability to completely balance binary questions in real and synthetic datasets alike makes it ineffective as a method for standardising VQA datasets.
-
-%%%%%
-
-% \subsubsection*{Making the V in VQA Matter: Elevating the Role of Image Understanding in Visual Question Answering (\cite{DBLP:journals/corr/GoyalKSBP16})}
-
-% Aim, summary, evaluation and relevance to research problem
-
-%%%%%
-
-\subsubsection*{GQA: A New Dataset for Real-World Visual Reasoning and Compositional Question Answering (\cite{hudson2019gqa}), CVPR 2019}
-
-Given the prevalence of statistical biases present in other VQA datasets, \citeauthor{hudson2019gqa} provide a VQA dataset with compositional questions grounded on real-world images, balancing answer distributions during dataset creation. In addition, image scene graphs and functional programs are used as tools to create the dataset, as well as provide additional supervision options to potential models, and form a basis for new evaluation metics: distribution, grounding, validity, plausibility and consistency. The effectiveness of these metrics in evaluating VQA models is demonstrated by a set of baseline tests on probabilistic prior, vision-only (CNN), language-only (LSTM), naive language and vision (CNN+LSTM) and state-of-the-art attention base models (BottomUp and MAC). The balancing procedure used aims to find a balance between uniformly distributing answers for certain question types and maintaining relevant real-world priors by setting upper and lower bounds on the occurrence ratio of different answers for a given question type. Whilst this approach enables a tunable degree of distribution-balancing, the authors do not discuss how they determined the best parameters to use in this process, stating only that ``the entropy of the answer distribution increased by 72\%'' after balancing. One major improvement that \citeauthor{hudson2019gqa} make over the VQA datasets is that they leverage structured data in their new metrics, shifting focus from debates about what makes an `accurate' answer to more human-centered measures like how plausible, valid and consistent a model's answers are. Whilst these metrics are certainly useful, they are not usable in other datasets due to lack of information. This has made the comparison of SOTA models more complex, highlighting a need for frequent summaries of model performance on various relevant datasets. This need is further substantiated by the absence of questions requiring external or common-sense knowledge, such as \textit{`Why is it raining?'} or \textit{`What sound does the animal make?'}, as found in the original VQA datasets.
-
-
-
-\subsection{Mitigating the Exploitation of Language Priors} 
+{\color{red} TODO: Combine to give a narrative of dataset balancing techniques over time.}
 
 Despite VQA 1.0's strengths, the authors identify the first main hurdle for VQA datasets, highlighting that if left to their own devices, VQA models will exploit statistical priors present in textual information. They describe how language-only methods perform surprisingly well compared to models that harness both question and image features, noting that a simple ``per-question type prior'' model achieves 71.03\% and 35.77\% on binary and numeric questions, and an LSTM with only question word embeddings performs similarly at 78.20\% and 35.68\%  \cite{antol2015vqa}. Further studies \cite{goyal2017making, zhang2016yin} reinforce these observations, highlighting the skewed answer distributions of both the real-world and synthetic VQA datasets, demonstrating that models could leverage language priors to effectively answer some types of questions without requiring any knowledge of associated images. \citeauthor{zhang2016yin} focus on the imbalance in the answer distribution of binary questions in the VQA dataset, pointing out that `yes' is the answer to 68\% of all binary questions in the abstract scenes dataset. Furthermore, they propose a potential solution that allows the answer distribution of binary questions in the existing abstract scenes dataset to be balanced: for each (image, question) pair, humans were tasked with the creation of a new scene using existing clip-art objects \cite{zitnick2013bringing} that was similar to the existing image, but had a negated answer on the same question, as shown in \figureautorefname{  \ref{fig:zhang2016yin_balancing_procedure}} below.
 
@@ -787,8 +775,26 @@ Despite this method's success in reducing the proportion of unbalanced (image, q
 
 Whilst it is certainly important that dataset creators mitigate biases in their work, it is also the responsibility of VQA model authors to ensure that the ways in which image and question data is fed to their models is also able to be justified; many models,  incorporate BiLSTMs \cite{hudson2018compositional} or LSTMs \cite{andreas2016neural} to obtain question-level representations, however by processing the input data in this manner, it becomes difficult to determine the extent to which the reasoning part of the model is exploiting probabilistic priors in the dataset. By embedding and processing the question as a graph, interpretability studies can be performed on the model to ensure the reasoning part of the model performs as intended.
 
+\subsubsection*{VQA: Visual Question Answering (\cite{antol2015vqa})}
+
+Given the underwhelming nature of existing visual question answering studies due to small datasets or restricted question or image contexts, the authors of this paper aim to create a diverse dataset that focuses on real-world questions about images. They created two datasets, one containing real-world images pulled from the MSCOCO dataset, and one containing abstract scenes to facilitate pioneering research into VQA tasks. The questions for both datasets were created by humans via an online interface, with a focus on question diversity and image relevance. In addition, ten answers for the questions were collected through a similar interface, and an accuracy metric was devised based on these human responses that accounts for variance in the quality of correct answers. Though this is necessary given the nature of the question generation process, the authors to not highlight why this accuracy metric was chosen over other alternatives; an important discussion given the subjective nature of answer quality. In addition, the question generation process resulted in answer distributions that are skewed towards a particular answer for many question types, encouraging models to rely on language priors to formulate answers without properly incorporating image data into their reasoning processes. However, to the authors' credit, these answer distributions are detailed meticulously in the appendices, but unfortunately these statistics do not find their way into the analysis of models found in many other papers, making it difficult to compare the extent to which different models take advantage of prior probabilities when answering questions.
+
+%%%%%
+
+\subsubsection*{Yin and Yang: Balancing and Answering Binary Visual Questions (\cite{zhang2016yin})}
+
+In this paper, the authors highlight the role of language priors in VQA dataset, providing concrete examples from the VQA 1.0 dataset (\cite{antol2015vqa}) where a simple model can form correct predictions solely based on question words; they show that these priors are present in multiple question types in the VQA 1.0 dataset, pointing out that questions starting with \textit{`What sport is'} can be correctly answered with the word \textit{`tennis'} 41\% of the time, and \textit{`yes'} is over twice as likely to be the answer to binary questions. The authors leverage the flexibility of abstract scenes in an attempt to eliminate language priors by modifying a copy of each image in the VQA abstract scenes dataset such the answer to the original question on the new image is negated. Though novel, this approach does not extend well to real-world image datasets, due to an inability to generate complementary images that are indistinguishable from photographs. Even with the benefits of abstract scenes, the balancing approach is unable to perfectly balance the binary portion of the dataset; for example, a question such as \textit{`Is it raining?'} cannot be negated effectively, since the clip-art object bank does not contain a rain graphic. Moreover, the approach is only applicable to binary questions, which comprise around 41\% of the VQA 1.0 dataset (\cite{antol2015vqa}). To demonstrate the effectiveness of this balancing technique, the authors compare the accuracy of four models when trained on the balanced and unbalanced binary question subset and tested on the unbalanced set of binary questions. They find that the language-only baseline suffers an 18\% decrease when trained on the balanced subset, and more complex models perform between 7-10\% worse. Whilst the paper presents a novel approach to VQA dataset balancing, its inability to completely balance binary questions in real and synthetic datasets alike makes it ineffective as a method for standardising VQA datasets.
+
+
+\subsubsection*{GQA: A New Dataset for Real-World Visual Reasoning and Compositional Question Answering (\cite{hudson2019gqa}), CVPR 2019}
+
+Given the prevalence of statistical biases present in other VQA datasets, \citeauthor{hudson2019gqa} provide a VQA dataset with compositional questions grounded on real-world images, balancing answer distributions during dataset creation. In addition, image scene graphs and functional programs are used as tools to create the dataset, as well as provide additional supervision options to potential models, and form a basis for new evaluation metics: distribution, grounding, validity, plausibility and consistency. The effectiveness of these metrics in evaluating VQA models is demonstrated by a set of baseline tests on probabilistic prior, vision-only (CNN), language-only (LSTM), naive language and vision (CNN+LSTM) and state-of-the-art attention base models (BottomUp and MAC). The balancing procedure used aims to find a balance between uniformly distributing answers for certain question types and maintaining relevant real-world priors by setting upper and lower bounds on the occurrence ratio of different answers for a given question type. Whilst this approach enables a tunable degree of distribution-balancing, the authors do not discuss how they determined the best parameters to use in this process, stating only that ``the entropy of the answer distribution increased by 72\%'' after balancing. One major improvement that \citeauthor{hudson2019gqa} make over the VQA datasets is that they leverage structured data in their new metrics, shifting focus from debates about what makes an `accurate' answer to more human-centered measures like how plausible, valid and consistent a model's answers are. Whilst these metrics are certainly useful, they are not usable in other datasets due to lack of information. This has made the comparison of SOTA models more complex, highlighting a need for frequent summaries of model performance on various relevant datasets. This need is further substantiated by the absence of questions requiring external or common-sense knowledge, such as \textit{`Why is it raining?'} or \textit{`What sound does the animal make?'}, as found in the original VQA datasets.
+
+
 \section{Visual Question Answering Methods}
 \label{section:vqa_methods}
+
+Given the widespread adoption of scene graph annotations in VQA datasets \cite{krishna2017visual, zhu2016visual7w, johnson2017clevr, hudson2019gqa} it makes sense to leverage scene graph information for training VQA models. {\color{red} TODO: expand and merge with draft text below} 
 
 It has been observed that the architectures that leverage additional information such as scene graphs rather than just raw image features tend to perform better. This is clearly illustrated by \citeauthor{hudson2019gqa_preprint} in \figureautorefname{ \ref{fig:gqa_input_representation}} below:
 
@@ -873,8 +879,8 @@ Despite this, very few (if any) models are effectively using similar graph embed
 
 \subsection{Graph Methods}
 
-
-\noindent
+Originally proposed for inductive and transductive node-classification tasks, the graph attention network (GAT) \cite{velivckovic2017graph} has gained the attention of computer vision researchers in the last three years, particularly for image-to-scene-graph \cite{yang2018graph} and text-to-scene-graph \cite{han2020victr} generation, and, more recently, visual question answering \cite{li2019relation, huang2020aligned}.
+Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with ReGAT \cite{li2019relation} achieving state-of-the-art results on the VQA 2.0 and VQA-CP v2 datasets in \citeyear{li2019relation}, and DC-GCN \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQA 2.0 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using gold-standard scene graph information. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information.
 
 \textbf{Semi-Supervised Classification with Graph Convolutional Networks} \cite{kipf2016semi}
 \label{kipf2016semi}
@@ -925,7 +931,34 @@ Whilst one of the first methods to leverage graph strcutures for question embedd
 
 \subsection{Attention Methods}
 
+% Model list 8-12
+
+% Base models
+% GCN
+% GAT
+
+% Focus
+% MAC
+% Dual channel GCNs
+% ReGAT
+% Neural state machine
+
+% Others
+% Text GCN
+
+% Methodology
+% Graph R-CNN
+
+
+\subsubsection*{Compositional Attention Networks for Machine Reasoning (\cite{hudson2018compositional}), ICLR 2018}
+
+Motivated by the lack of interpretable models capable of performing complex reasoning tasks, \citeauthor{hudson2018compositional} create a robust attention-based model (MAC Network) capable of performing explicit reasoning steps without the external supervision of structured data such as scene graphs or functional programs. They demonstrate the effectiveness of the MAC network by performing experiments using the CLEVR (\cite{johnson2017clevr}) dataset, achieving a new top accuracy of 98.9\%. Additionally, they perform extensive ablations to investigate the effects of different model components on overall performance, and demonstrate its interpretability on various question types by visualising the internal attention weights of the model in terms of the original question and image. In addition to outperforming all existing SOTA models on the full CLEVR dataset, MAC networks also perform surprisingly well on subsets of CLEVR, with an accuracy of up to 35\% higher than other SOTA models on a 10\% subset. Whist the MAC network performs outstandingly on the CLEVR dataset, subsequent studies have shown that its performance decreases on more realistic datasets such as GQA (\cite{hudson2019gqa}), where it achieved only 54.6\%. When incorporating GQA scene graphs into the knowledge base, MAC network performance improved to around 84\%; this suggests that whilst the architecture of the MAC network is strong, providing more structured data to the network allows its cells to perform logical reasoning steps more effectively. In the original paper, question words and context are extracted using a bi-LSTM, however more structured data like semantic graph representations could improve both accuracy and interpretability of the model.
+
 \subsection{Fusion Methods}
+
+\subsubsection*{BLOCK: Bilinear Superdiagonal Fusion for Visual Question Answering and Visual Relationship Detection (\cite{ben2019block})}
+
+The authors of this paper focus on the deceptively simple task of fusing multimodal data, specifically visual and textual data for VQA and VRD tasks. They present a block-superdiagonal decomposition for three-dimensional tensors, and demonstrate its effectiveness in constraining the complexity of full bilinear models. Furthermore, they link their work to the famous Tucker \cite{tucker1966some} and Candecomp/PARAFAC (CP) \cite{harshman1970foundations} decompositions, showing that the block decomposition combines both concepts, leveraging the number and size of blocks in the decomposition to find a balance between model complexity and depth of feature combinations. The decomposition is applied to both VQA and VRD tasks, compared against two baseline and six state-of-the-art fusion techniques, outperforming all existing models, despite having fewer trainable parameters than many other models. Given the focus of the paper, the authors unfortunately do not make an effort to investigate the interpretability of the model, leaving room for further experiments using more structured, interpretable input data than the image features and question vectors presented in the paper.
 
 \subsection{Modular Methods}
 
@@ -1012,44 +1045,3 @@ Whilst attaining a state-of-the-art result in 2016 on the VQA 1.0 test dataset \
     \caption{A comparison of various models on the GQA test set for multiple metrics.}
 \end{table}
 
-% Model list 8-12
-
-% Base models
-% GCN
-% GAT
-
-% Focus
-% MAC
-% Dual channel GCNs
-% ReGAT
-% Neural state machine
-
-% Others
-% Text GCN
-
-% Methodology
-% Graph R-CNN
-
-%%%%%
-
-\subsubsection*{BLOCK: Bilinear Superdiagonal Fusion for Visual Question Answering and Visual Relationship Detection (\cite{ben2019block})}
-
-The authors of this paper focus on the deceptively simple task of fusing multimodal data, specifically visual and textual data for VQA and VRD tasks. They present a block-superdiagonal decomposition for three-dimensional tensors, and demonstrate its effectiveness in constraining the complexity of full bilinear models. Furthermore, they link their work to the famous Tucker and Candecomp/PARAFAC (CP) decompositions, showing that the block decomposition combines both concepts, leveraging the number and size of blocks in the decomposition to find a balance between model complexity and depth of feature combinations. The decomposition is applied to both VQA and VRD tasks, compared against two baseline and six state-of-the-art fusion techniques, outperforming all existing models, despite having fewer trainable parameters than many other models. Given the focus of the paper, the authors unfortunately do not make an effort to investigate the interpretability of the model, leaving room for further experiments using more structured, interpretable input data than the image features and question vectors presented in the paper.
-
-%%%%%
-
-\subsubsection*{Compositional Attention Networks for Machine Reasoning (\cite{hudson2018compositional}), ICLR 2018}
-
-Motivated by the lack of interpretable models capable of performing complex reasoning tasks, \citeauthor{hudson2018compositional} create a robust attention-based model (MAC Network) capable of performing explicit reasoning steps without the external supervision of structured data such as scene graphs or functional programs. They demonstrate the effectiveness of the MAC network by performing experiments using the CLEVR (\cite{johnson2017clevr}) dataset, achieving a new top accuracy of 98.9\%. Additionally, they perform extensive ablations to investigate the effects of different model components on overall performance, and demonstrate its interpretability on various question types by visualising the internal attention weights of the model in terms of the original question and image. In addition to outperforming all existing SOTA models on the full CLEVR dataset, MAC networks also perform surprisingly well on subsets of CLEVR, with an accuracy of up to 35\% higher than other SOTA models on a 10\% subset. Whist the MAC network performs outstandingly on the CLEVR dataset, subsequent studies have shown that its performance decreases on more realistic datasets such as GQA (\cite{hudson2019gqa}), where it achieved only 54.6\%. When incorporating GQA scene graphs into the knowledge base, MAC network performance improved to around 84\%; this suggests that whilst the architecture of the MAC network is strong, providing more structured data to the network allows its cells to perform logical reasoning steps more effectively. In the original paper, question words and context are extracted using a bi-LSTM, however more structured data like semantic graph representations could improve both accuracy and interpretability of the model.
-
-%%%%%
-
-% \subsubsection*{FiLM: Visual Reasoning with a General Conditioning Layer (\cite{DBLP:journals/corr/abs-1709-07871}), AAAI 2018}
-
-% Aim, summary, evaluation and relevance to research problem
-
-%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Language Priors in VQA Datasets %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
