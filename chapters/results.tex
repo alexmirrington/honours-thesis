@@ -32,6 +32,8 @@
 \section{Hyperparameter Optimisation}
 \label{sec:hyperparameter_optimisation}
 
+These results represent a total of 55 days of GPU compute
+
 {\color{red}
   \begin{itemize}
     \item wandb \cite{wandb} implementation of bayesian optimisation, using the hyperband early stopping method
@@ -55,6 +57,24 @@ The effects of the Hyperband method are clearly seen in \figureautorefname{ \ref
         \caption{Validation accuracy throughout the hyperparameter optimisation process. Greyed out points correspond to models with a loss greater than 10.}
     \end{subfigure}
     \caption{A summary of validation loss and accuracy throughout the hyperparameter optimisation process. Each point represents a trained model, and its colour indicates how many epochs the model was trained for.}
+    \label{fig:hyperparameter_optimisation_validation_loss_and_accuracy}
+\end{figure}
+
+
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[l]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{trainable_question_embedding_validation_loss.png}
+        \label{fig:trainable_question_embedding_validation_loss}
+        \caption{Validation Loss}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/trainable_question_embedding_validation_accuracy.png}
+        \label{fig:hyperparameter_optimisation_validation_accuracy}
+        \caption{Validation Accuracy}
+    \end{subfigure}
+    \caption{}
     \label{fig:hyperparameter_optimisation_validation_loss_and_accuracy}
 \end{figure}
  
