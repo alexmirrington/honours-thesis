@@ -16,7 +16,7 @@ In this section, I propose a new model for single-concept visual question answer
 
 \textbf{Question embedding and processing module:} In classic NLP fashion, the question embedding component is responsible for the preprocessing and vectorisation of raw question data for use by the rest of the model. The question processing module has two main roles: the first is to learn a sequence of word embeddings that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the entire question.
 
-\textbf{Scene graph embedding and processing module:} The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, I use ground-truth scene graphs from the GQA dataset to evaluate the effectiveness of various scene graph modules under perfect-sight conditions. This component can be readily extended to utilise the output of existing scene graph generation models \cite{yang2018graph, li2019relation}, yielding a true end-to-end VQA model. The scene graph processing module then learns a dense knowledge-base that captures the interactions between scene graph object, relation and attribute embeddings. The reasoning module draws information from this knowledge-base when answering questions.
+\textbf{Scene graph embedding and processing module:} The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, I use the scene graphs provided as part of the GQA dataset to evaluate the effectiveness of various scene graph modules under controlled conditions. This component can be readily extended to utilise the output of existing scene graph generation models \cite{yang2018graph, li2019relation}, yielding a true end-to-end VQA model. The scene graph processing module then learns a dense knowledge-base that captures the interactions between scene graph object, relation and attribute embeddings. The reasoning module draws information from this knowledge-base when answering questions.
 
 \textbf{Reasoning module:} Given the output features of the scene graph and question processing modules, the reasoning module is in charge of determining which visual features are relevant to the question and vice-versa. The reasoning capabilities of many existing VQA models could be leveraged here; I justify my reasoning module of choice and describe its implementation in detail in \sectionautorefname{ \ref{section:reasoning_module}}.
 
@@ -78,9 +78,9 @@ To obtain \(K_{Q_{[i:i+k]}}\) and \(\mathcal{Q}_{Q_{[i:i+k]}}\), batched questio
 \subsection{Motivation}
 \label{subsection:scene_graph_embedding_motivation}
 
-The primary goal of the scene graph embedding process is to build a directed graph \(\mathcal{G}_r = (\mathcal{V}_r, \mathcal{E}_r)\) and an associated node feature matrix \(H_r \in \R^{n_r \times d_{H_r}}\) from a visual representation \(r\). These node features are essential information for the scene graph module, a three-layer Graph Attention Network (GAT) \cite{velivckovic2017graph} which utilises node-based graph convolutions to capture dependencies and relationships between nodes in the graph. In this dissertation, I intentionally use gold-standard scene graphs as a visual input to evaluate the effectiveness of different scene graph modules, as discussed in \sectionautorefname{ \ref{sec:ablation_studies}}. Since my primary focus is on scene graphs as a visual input signal, I will consider all general visual representations \(r\) to be scene graphs for the remainder of this section.
+The primary goal of the scene graph embedding process is to build a directed graph \(\mathcal{G}_r = (\mathcal{V}_r, \mathcal{E}_r)\) and an associated node feature matrix \(H_r \in \R^{n_r \times d_{H_r}}\) from a visual representation \(r\). These node features are essential information for the scene graph module, a three-layer Graph Attention Network (GAT) \cite{velivckovic2017graph} which utilises node-based graph convolutions to capture dependencies and relationships between nodes in the graph. In this dissertation, I intentionally use the scene graphs provided as part of the GQA dataset as a visual input to evaluate the effectiveness of different scene graph modules, as discussed in \sectionautorefname{ \ref{sec:ablation_studies}}. Since my primary focus is on scene graphs as a visual input signal, I will consider all general visual representations \(r\) to be scene graphs for the remainder of this section.
 
-Both the GQA and CLEVR datasets contain ground-truth scene graph information for each image in the training and validation sets. Although different datasets store scene graph information differently, the three basic components of a scene graph are objects, relationships and attributes. For example, the CLEVR dataset contains three object types (cube, sphere, cylinder), twelve attribute types covering size (small, large), material (metal, rubber) and colour (red, green, blue, yellow, purple, cyan, brown, grey), and four spatial relationships (left, right, in front, behind). The GQA dataset is more complex, containing, a total of 1703 unique objects, 310 unique relations, and 617 unique attributes across the combined train and validation sets. Adopting common notation from \cite{hudson2019gqa, li2019relation, yang2018graph}, each directed relationship between two objects in a scene graph can be described as a triplet \texttt{<subject, relation, object>}, \textit{e.g.} \texttt{<parrot, behind, fence>}\footnote{Although the \texttt{subject} and \texttt{object} are both represented by objects in a scene graph, this notation disambiguates the direction of the relationship by drawing upon well-defined grammatical terms, \textit{e.g.} \texttt{<parrot, behind, fence>} corresponds to the clause: \textit{The parrot is behind the fence}.}. For scene graphs containing attributes, we can use a pair \texttt{<object, attribute>} to denote attribute associations, \textit{e.g.} \texttt{<parrot, white>}. More formally, we can represent a raw scene graph 
+Both the GQA and CLEVR datasets contain scene graph information for each image in the training and validation sets. Although different datasets store scene graph information differently, the three basic components of a scene graph are objects, relationships and attributes. For example, the CLEVR dataset contains three object types (cube, sphere, cylinder), twelve attribute types covering size (small, large), material (metal, rubber) and colour (red, green, blue, yellow, purple, cyan, brown, grey), and four spatial relationships (left, right, in front, behind). The GQA dataset is more complex, containing, a total of 1703 unique objects, 310 unique relations, and 617 unique attributes across the combined train and validation sets. Adopting common notation from \cite{hudson2019gqa, li2019relation, yang2018graph}, each directed relationship between two objects in a scene graph can be described as a triplet \texttt{<subject, relation, object>}, \textit{e.g.} \texttt{<parrot, behind, fence>}\footnote{Although the \texttt{subject} and \texttt{object} are both represented by objects in a scene graph, this notation disambiguates the direction of the relationship by drawing upon well-defined grammatical terms, \textit{e.g.} \texttt{<parrot, behind, fence>} corresponds to the clause: \textit{The parrot is behind the fence}.}. For scene graphs containing attributes, we can use a pair \texttt{<object, attribute>} to denote attribute associations, \textit{e.g.} \texttt{<parrot, white>}. More formally, we can represent a raw scene graph 
 \(r\) like so:
 
 \begin{align*}
@@ -202,7 +202,7 @@ In this subsection, I analyse the time complexity of applying node-based convolu
 
 Most importantly, I prove that the worst-case computational complexity of propagating \(\mathcal{G}_r\) through a single-head GAT convolutional layer is in the order of \(\min\{\rho, F\}\) times more expensive than propagating \(r\) through the same layer, where \(F\) is the layer's input feature dimension and \(\rho = \frac{|r_{(s,r,o)}|}{|r_o|}\) is the ratio between the number of relation edges in \(r\) and the number of objects \(r_o\).
 
-Although I only use reference scene graphs from the GQA dataset, this result provides a useful guarantee for any models that use generated scene graphs. Any scene graph generation process requires determining relationships between pairs of objects and then pruning these candidate edges until the resultant graph is adequately sparse. Since \(\rho\) is the ratio between the number of relation edges and the number of objects in \(r\), it is a direct measure of relationship edge sparsity. Hence if we limit relationship edge sparsity in the scene graph generation process to some constant, we can directly control the trade-off between the worst-case computational complexity of GAT convolutional layers and the amount of relationship data that we provide to a model.
+Although I only use train and validation scene graphs from the GQA dataset, this result provides a useful guarantee for any models that use generated scene graphs. Any scene graph generation process requires determining relationships between pairs of objects and then pruning these candidate edges until the resultant graph is adequately sparse. Since \(\rho\) is the ratio between the number of relation edges and the number of objects in \(r\), it is a direct measure of relationship edge sparsity. Hence if we limit relationship edge sparsity in the scene graph generation process to some constant, we can directly control the trade-off between the worst-case computational complexity of GAT convolutional layers and the amount of relationship data that we provide to a model.
 
 According to the analysis of \citeauthor{velivckovic2017graph}, the time complexity of a single GAT attention head mapping features from dimension \(F\) to \(F'\) is \(O(|\mathcal{V}|FF' + |\mathcal{E}|F')\). A scene graph \(r\) by its default definition where we encode objects and their attributes as nodes and relations as edges has \(|r_o| + |r_a|\) nodes and \(|r_{(s, r, o)}| + |r_{(o, a)}|\) edges. The proposed scene graph construction algorithm represents every relation in \(r_{(s, r, o)}\) as a node connected to its subject and object object nodes. A skip-connection between the subject and object nodes is also added, meaning the resultant graph \(\mathcal{G}_r\) has \(|r_o| + |r_a| + |r_{(s, r, o)}|\) nodes and \(3|r_{(s, r, o)}| + |r_{(o, a)}| = O(|r_{(s, r, o)}| + |r_{(o, a)}|)\) edges.
 
@@ -238,7 +238,7 @@ Under these assumptions, we have that a GAT layer on \(\mathcal{G}_r\) has compl
 \section{Reasoning Module}
 \label{section:reasoning_module}
 
-{\color{red}Partly chose MAC network since is is already well-evaluated on the GQA dataset.}
+{\color{red}Partly chose compositional attention network since it is data-efficient, consequently reasonable quick to train and is well-established as a baseline model on the GQA dataset. Moreover, the compositional attention network is readily extended to any task that requires performing reasoning steps on an input signal, making it a prime candidate for replacing traditional CNN or Faster-RCNN features with scene graph embeddings.}
 
 Given the goal of the question module is to learn a dense contextual and syntactic representation of the question, and the goal of the scene graph module is to capture dependency information between objects, attributes and relations in the scene, we still need to combine and reason about this extracted information. All VQA models have to handle this multi-modal fusion and reasoning in some capacity: some adopt fusion-only approaches, whilst others learn self-attention or bidirectional attention weights between question and image modalities, and others leverage the strengths of both methods. For my model, I leverage the reasoning capabilities of the Compositional Attention Network \cite{hudson2018compositional}, a recurrent model that decomposes complex question-answering problems into discrete reasoning steps, each of which is performed by a single cell in the network. The Compositional Attention Network achieved state-of-the-art results on the CLEVR dataset in \citeyear{hudson2018compositional}, achieving {\color{red} TODO: complete}
 
@@ -257,22 +257,14 @@ In order to leverage the computational benefits of sparse tensor operations impl
     \label{fig:output_module}
 \end{figure}
 
-{\color{red}
-
-Move to Ablations
-
-\begin{itemize}
-  \item Concat + linear fusion (other fusion types?)
-  \item Bottom-up
-  \item MAC network
-\end{itemize}
-
-\subsection{Bottom-up}
-\label{subsection:bottom_up}
- ReLU proved to yield higher results over gated tanh when paired with GAT/GCN embeddings. In the original paper, CNN/R-CNN features are extracted in the preprocessing step, meaning there is no need for gradient propagation to the knowledge base embedding. Preliminary tests showed a need for learnable embeddings in graph convolutional models, and thus a need for end-to-end propagation of gradients.}
-
-
-
 \begin{itemize}
   \item Initial tests showed little performance difference between conditioning the current control state on previous control states. % #TODOInvestigate interpretability effects
 \end{itemize}
+
+% \subsection{Bottom-up}
+% \label{subsection:bottom_up}
+%  ReLU proved to yield higher results over gated tanh when paired with GAT/GCN embeddings. In the original paper, CNN/R-CNN features are extracted in the preprocessing step, meaning there is no need for gradient propagation to the knowledge base embedding. Preliminary tests showed a need for learnable embeddings in graph convolutional models, and thus a need for end-to-end propagation of gradients.}
+
+
+
+

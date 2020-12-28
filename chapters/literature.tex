@@ -218,7 +218,7 @@ I summarise the most common VQA datasets along with their image sources, questio
           & COCO, Visual Genome
           & Both
           & Single-concept, open-ended
-          & Scene graphs, functional programs, full-sentence answers, valid and plausible answer sets for each question, entailed questions, faster R-CNN \cite{ren2016faster} features, ResNet-101 \cite{he2016deep} features, ground-truth bounding boxes.
+          & Scene graphs, functional programs, full-sentence answers, valid and plausible answer sets for each question, entailed questions, faster R-CNN \cite{ren2016faster} features, ResNet-101 \cite{he2016deep} features, bounding boxes.
           & Accuracy, Consistency, Validity, Plausibility, Distribution, Grounding \\
       \end{longtable}
   \end{footnotesize}
@@ -355,7 +355,7 @@ For the rest of the questions in the VQAv2 dataset, \citeauthor{goyal2017making}
 
 Given the widespread adoption of scene graph annotations in VQA datasets \cite{krishna2017visual, zhu2016visual7w, johnson2017clevr, hudson2019gqa} it makes sense to leverage scene graph information for training VQA models. In previous years, many researchers have avoided using scene graphs as supervisory data, as they serve as an almost perfect visual signal. Additionally, scene graphs could not always be relied on as a supervisory data source; the scene graphs in the Visual Genome dataset were meticulously annotated by over 33,000 AMT workers \cite{krishna2017visual}, and the scene graphs in GQA required a large amount of additional pruning and modification to fit them to a standardised vocabulary of objects, relations and attributes. However, more recently, researchers have been using these datasets to develop scene graph generation methods \cite{xu2017scene, li2017scene, yang2018graph, tang2019learning}. As these scene graph generation methods become more accurate in their relationship existence and annotation methods, generated graphs as an image embedding for VQA tasks will become more and more effective.
 
-Consequently, the majority of the VQA methods that I cover in this literature review are graph-based, and leverage scene graphs in their reasoning processes. For completeness, I overview other types of VQA methods, including attention-based methods, fusion methods and neural module networks.
+Consequently, the majority of the VQA methods that I cover in this literature review are graph-based, and leverage scene graphs in their reasoning processes.
 
 % \subsubsection*{Attention Mechanisms}
 % \addcontentsline{toc}{subsubsection}{Attention Mechanisms}
@@ -396,84 +396,88 @@ Consequently, the majority of the VQA methods that I cover in this literature re
 \subsection{Graph Methods}
 
 Originally proposed for node classification tasks, both the Graph Convolutional Network (GCN) \cite{kipf2016semi} and Graph Attention network (GAT) \cite{velivckovic2017graph} have gained the attention of computer vision researchers in the last three years, particularly for image-to-scene-graph \cite{yang2018graph} and text-to-scene-graph \cite{han2020victr} generation, and, more recently, visual question answering \cite{li2019relation, huang2020aligned}.
-Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with Relation-aware Graph Attention networks (ReGAT) \cite{li2019relation} achieving state-of-the-art results on the VQAv2 and VQA-CPv2 datasets in \citeyear{li2019relation}, and aligned Dual-Channel GCN (DC-GCN) \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQAv2 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using gold-standard scene graph information. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information. In the remainder of this subsection, I outline how GCN and GAT architectures can be leveraged for VQA tasks, before giving a brief overview and analysis of the DC-GCN and ReGAT VQA architectures.
+Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with Relation-aware Graph Attention networks (ReGAT) \cite{li2019relation} achieving state-of-the-art results on the VQAv2 and VQA-CPv2 datasets in \citeyear{li2019relation}, and aligned Dual-Channel GCN (DC-GCN) \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQAv2 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using scene graph information provided in datasets like GQA and CLEVR. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information. In the remainder of this subsection, I outline how GCN and GAT architectures can be leveraged for VQA tasks, before giving a brief overview and analysis of the DC-GCN and ReGAT VQA architectures. I refer the reader to the \nomref{} for graph-specific nomenclature used in this subsection.
 
 \subsubsection{Graph Convolutional Networks (GCN)}
 % Semi-Supervised Classification with Graph Convolutional Networks
 Originally proposed for graph-based semi-supervised classification tasks, the Graph Convolutional Network (GCN) extends the core concepts of Convolutional Neural Networks (CNNs) to sparse graphs; instead of performing convolutions on regions of pixels, GCNs convolve features from connected nodes in graphs.
-{\color{red} TODO expand, including important features}
 
-\noindent
+Given a graph \(\mathcal{G} = (\mathcal{V}, \mathcal{E})\) and an associated matrix of node features for the \(l\)th GCN layer \(H^{(l)} \in \R^{|\mathcal{V}| \times d_l}\), a GCN has the following propagation rule:
+
+\begin{equation}
+    H^{(l + 1)} = f\left(\tilde{D}^{-\frac{1}{2}}\tilde{A}\tilde{D}^{-\frac{1}{2}}H^{(l)}W^{(l)}\right)
+    \label{equation:gcn_propagation_rule}
+\end{equation}
+
+where \(\tilde{A}\) is the adjacency matrix of \(\mathcal{G}\) with added self-loops, \(\tilde{D}\) is the degree matrix associated with \(\tilde{A}\), \(W^{(l) \in \R^{d_l \times d_{(l+1)}}}\) is a set of learnable weights for the \(l\)th layer of the GCN and \(f\) is some non-linear activation function.
+
+The beauty of the GCN convolution lies in the \(\tilde{D}^{-\frac{1}{2}}\tilde{A}\tilde{D}^{-\frac{1}{2}}\) portion of \equationautorefname{ \ref{equation:gcn_propagation_rule}}; by multiplying \(\tilde{A}\) in this manner, the \(i\)th node feature in \(H^{(l + 1)}\) becomes a linear combination of the \(i\)th element of \(H^{(l)}W^{(l)}\) and the elements of \(H^{(l)}W^{(l)}\) corresponding to its neighbours, where the weights of the neighbours are equal and smaller if the \(i\)th node has many neighbours. Unfortunately, the assignment of equal weights to neighbouring nodes makes GCN convolutions ineffective for embedding relationship data in scene graphs for VQA, as some relationships are more important than others. For example, given a scene graph containing a man and a woman standing next to each other and a small cloud in the background, the relationship between the man and the woman is more important in a VQA context than the relationship between the man and the cloud or the woman and the cloud, as the people are the most salient aspects of the image.
 
 \subsubsection{Graph Attention Networks (GAT)}
 % Graph Attention Networks
-{\color{red} TODO expand, including important features}
-Originally proposed for inductive and transductive node-classification tasks, the Graph Attention network (GAT)
+Originally proposed for inductive and transductive node-classification tasks, the Graph Attention network (GAT) addresses the issues of the GCN propagation rule by allowing nodes in the neighbourhood of the propagation target to be assigned different learned weights.
+
+Adopting similar notation as the GCN propagation rule, the GAT propagation rule is defined as:
+
+\begin{equation}
+    H^{(l + 1)}_i = f\left(\alpha_{ii}W^{(l)}H^{(l)}_i + \sum_{j \in \mathcal{N}(i)}\alpha_{ij}W^{(l)}H^{(l)}_j\right)
+    \label{equation:gat_propagation_rule}
+\end{equation}
+
+where \(\alpha_{ij}\) is the attention coefficient for nodes \(i\) and \(j\), calculated using some attention function \(a\) and normalised over the neighbourhood \(\mathcal{N}(i)\) of \(i\) as follows:
+
+\begin{equation}
+    \alpha_{ij} = \frac{\exp{(a(W^{(l)}H^{(l)}_i, W^{(l)}H^{(l)}_j)})}{\sum_{k \in \mathcal{N}(i) \cup \{i\}} \exp{(a(W^{(l)}H^{(l)}_i, W^{(l)}H^{(l)}_k)})}
+    \label{equation:gat_attention_computation}
+\end{equation}
+
+Any attention function can be used for \(a\), however the authors use a modified additive attention mechanism \(a(W^{(l)}H^{(l)}_i, W^{(l)}H^{(l)}_j) = \text{LeakyReLU}(w^\top[W^{(l)}H^{(l)}_i \cat W^{(l)}H^{(l)}_j])\), distinguished by a learnable weight vector \(w\). Moreover, separate GAT convolutions can be computed concurrently, each acting as a single head in a multi-head attention mechanism \cite{vaswani2017attention}, then combined either by concatenation or mean aggregation. In general, a GAT layer with multiple heads helps stabilise training and allows each attention head to focus on different types of relationships between nodes as needed, making them highly effective for visual reasoning tasks.
 
 \subsubsection{Aligned Dual Channel Graph Convolutional Networks (DC-GCN)}
 % Aligned Dual Channel Graph Convolutional Networks for Visual Question Answering
 
-Current graph-based VQA methods focus only on capturing relationships between objects in images, and process textual information using traditional RNN-based approaches, indicating a need to close the semantic gap between question and image domains. \citeauthor{huang2020aligned} propose graphical representations of question data allow for multi-modal reasoning when reconciled with image objects. The authors of this paper have three main aims:
+Noting that many current graph-based VQA methods focus only on capturing relationships between objects in images, and process textual information using traditional RNN-based approaches, \citeauthor{huang2020aligned} propose the use of GATs for processing both image features and question words. The DC-GCN model comprises three main components: an image GAT, a question GAT and an attention-based alignment module.
 
-\begin{enumerate}
-    \item To reconcile the objects and their relationships in images with words and their relationships in questions as a way of reasoning on multimodal data.
-    \item To develop a method for generating meaningful graphical representations of question data for use in VQA tasks.
-    \item To prove that graph-based methods perform on-par or better than existing SOTA VQA approaches.
-\end{enumerate}
+The image GAT operates over a generated scene graph, with each node represented by a 2048-dimensional Faster-RCNN \cite{ren2016faster} object feature and edges determined by a bounding box intersection-over-union threshold. The question GAT operates over a separate graph, with each node represented by a 300-dimensional GloVe vector \cite{pennington2014glove} and edges determined using the dependency tree output of a Stanford dependency parser \cite{de2014universal}.
 
-The methodology behind the model can be summarised as follows:
+The attention-based alignment module aims to reconcile the image GAT and question GAT features, determining which image features are relevant to the question. The first part of this process is a scaled dot product self-attention computation \cite{vaswani2017attention} on question GAT features, used to highlight the important question words \(\tilde{H}_q\). Secondly, a scaled dot product attention computation on image GAT features using question self-attention results as a query extracts important visual features \(\tilde{H}_v\). Finally, the attended question and image features are concatenated and passed through a single linear layer to yield an answer distribution.
 
-\begin{itemize}
-    \item I-GCN
-    \begin{itemize}
-        \item Between 10 and 100 object proposals per image, each \(\in \R^{2048}\)
-        \item Graphs edges are determined by bounding box intersection-over-union and a linear embedding of object vectors at the edge's endpoints.
-    \end{itemize}
-    \item Q-GCN
-    \begin{itemize}
-        \item Questions words represented with 300-dim GloVe embeddings \cite{pennington2014glove}, then encoded using an LSTM.
-        \item Graph edge existence is determined using a Stanford dependency parser, and nodes store question word embeddings.
-    \end{itemize}
-    \item Attention alignment
-    \begin{itemize}
-        \item Self-attention on question words
-        \item Attention on visual features using question attention results as a query.
-        \item Linear multimodal fusion between attention outputs \(\tilde{H}_v\) and \(\tilde{H}_q\), with BCE loss computed over the candidate answer vocabulary:
-        \[H_r = W_v^\top \tilde{H}_v + W_q^\top \tilde{H}_q\]
-        \[softmax(W_e H_r + b_e)\]    
-    \end{itemize}
-\end{itemize}
-Whilst one of the first methods to leverage graph strcutures for question embeddings, the scene graph generation method captures only naive spatial relations, compared to a model like ReGAT which models both explicit and implicit spatial and semantic relationships \cite{li2019relation}. Moreover, dependency-parsed graphs lack spatial and semantic information; they capture structural relationships between words that do not directly translate to spatial/semantic relationships in the joint question-image domain. In addition, the attention alignment module operates on two different data modes, each with their own semantic space; a more successful alignment module would first project data streams onto the same latent space before reasoning about the relationships between image and question objects.
+Whilst one of the first methods to leverage graph structures for question embeddings, the DC-GCN model has two major issues. The first is that the scene graph generation method captures only naive spatial relations, completely neglecting verbal, comparative and other relationship types and consequently limiting its ability to answer certain types of questions. Secondly, the size of the attention alignment module seems insufficient for multi-modal fusion and reasoning tasks when compared to other complex multi-modal reasoning models like Bilinear Attention Networks (BAN) \cite{kim2018bilinear} and Compositional Attention Networks \cite{hudson2018compositional}.
 
 \subsubsection{Relation-aware Graph Attention Networks (ReGAT)}
 % Relation-aware Graph Attention Networks for Visual Question Answering
 
+Instead of using separate GATs for question and image features, \citeauthor{li2019relation} use multiple GATs for different types of relations, and enrich GAT node feature inputs with question information in an effort to promote the learning of question-adaptive relationship embeddings.
+
+The ReGAT model uses three GATs in total, one for semantic relations \textit{e.g. wearing, holding}, one for spatial relations \textit{e.g. inside, to the left of}, and one for implicitly learned relations. All three GATs operate on the same 36 node embeddings, where each node corresponds to an object in the image and is represented by the concatenation of its corresponding Faster R-CNN feature vector \(v_i \in \R^{2048}\) and a common question representation \(q \in R^{1024}\), the self-attended hidden states of a bidirectional GRU \cite{cho2014learning}. Edge existence and labelling in the spatial and semantic graphs are framed as classification problems, using bounding box features and Faster R-CNN features as inputs respectively. Each unique edge label is associated with a bias term, which is used in tandem with concatenated visual and question features to compute the attention coefficients for each spatial and semantic GAT layer.\footnote{I refer the reader to the original publication \cite{li2019relation} for specifics on ReGAT attention coefficient computations.} 
+
+The implicit GAT operates on a complete graph, computing edge attentions using a combination of positional bounding box encodings and dot-product attentions between node features. Even though many of these attention coefficients are zero, the dynamic computation of attention weights for all edges undermines the computational benefit of graph attention networks on sparse graphs.
+
+Unlike DC-GCN, ReGAT uses existing VQA methods as its fusion module instead of a custom alignment module. The authors demonstrate its ability to provide additional information for VQA tasks, reporting improvements of 1.5-3\% compared to baseline performance for three popular VQA model \cite{anderson2018bottom, ben2017mutan, kim2018bilinear} on the VQAv2 validation set.
+
 \subsection{Attention Methods}
 
-% Model list 8-12
+\subsubsection{Compositional Attention Networks}
+% Compositional Attention Networks for Machine Reasoning
 
-% Base models
-% GCN
-% GAT
+Motivated by the lack of interpretable models capable of performing complex reasoning tasks, \citeauthor{hudson2018compositional} created a recurrent attention-based model capable of performing discrete reasoning steps, where each recurrent cell is responsible for performing a specific reasoning operation. Whilst originally developed for VQA tasks, the compositional attention network can be extended to any task that requires performing reasoning operations on an input, visual or otherwise. This input is known as the knowledge-base, denoted \(KB\) in \figureautorefname{ \ref{fig:mac_cell}}. In the context of VQA, the knowledge-base can be any visual signal such as a raw image, or more commonly, CNN and/or Faster R-CNN features.
 
-% Focus
-% MAC
-% Dual channel GCNs
-% ReGAT
-% Neural state machine
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{mac_cell.png}
+    \caption[A recurrent cell from a compositional attention network \cite{hudson2018compositional}]{A single recurrent cell from a compositional attention network, as illustrated by \citeauthor{hudson2018compositional}. \cite{hudson2018compositional}}
+    \label{fig:mac_cell}
+\end{figure}
 
-% Others
-% Text GCN
+At each time step \(i\), the control module determines which part of the question \(q\) to attend, represented by the control vector \(c_i\). By accounting for the previous control vector \(c_{i-1}\) in this process, the control module can determine which parts of the question are relevant based on what it considered relevant in the previous reasoning step.
 
-% Methodology
-% Graph R-CNN
+The read module is responsible for determining which parts of the knowledge-base are relevant to the current reasoning step, based on the relevant parts of the question contained in \(c_i\) and result of the previous reasoning step, stored in the memory vector \(m_{i-1}\). This retrieved information \(r_i\) is passed to the write module, which stores the result of the current reasoning step in the cell's memory vector \(m_i\). This result is determined from the result of the previous reasoning step \(m_{i-1}\) and the retrieved information \(r_i\), and may be the same as the previous reasoning step in the event that there are no more reasoning operations to perform (determined by \(c_i\)), or may be an entirely new reasoning result.
 
+\citeauthor{hudson2018compositional} substantiated their intuition behind the compositional attention network, demonstrating its effectiveness via empirical results and attention visualisations on the CLEVR dataset, achieving a new top accuracy of 98.9\% in \citeyear{hudson2018compositional}. They also showcased its reasoning capabilities on the GQA dataset, achieving an accuracy of 54.06\% and sealing its status as a solid baseline model for compositional reasoning tasks.
 
-\subsubsection*{Compositional Attention Networks for Machine Reasoning (\cite{hudson2018compositional}), ICLR 2018}
+In addition to outperforming all existing state-of-the-art models on the full CLEVR dataset, compositional attention networks also perform surprisingly well on subsets of CLEVR, with an accuracy of up to 35\% higher than other state-of-the-art models when trained on a 10\% subset of the CLEVR training data.
 
-{\color{red} TODO: Clean up, convert references to MAC to `compositional attention network'}
-
-Motivated by the lack of interpretable models capable of performing complex reasoning tasks, \citeauthor{hudson2018compositional} create a robust attention-based model (MAC Network) capable of performing explicit reasoning steps without the external supervision of structured data such as scene graphs or functional programs. They demonstrate the effectiveness of the MAC network by performing experiments using the CLEVR (\cite{johnson2017clevr}) dataset, achieving a new top accuracy of 98.9\%. Additionally, they perform extensive ablations to investigate the effects of different model components on overall performance, and demonstrate its interpretability on various question types by visualising the internal attention weights of the model in terms of the original question and image. In addition to outperforming all existing SOTA models on the full CLEVR dataset, MAC networks also perform surprisingly well on subsets of CLEVR, with an accuracy of up to 35\% higher than other SOTA models on a 10\% subset. Whist the MAC network performs outstandingly on the CLEVR dataset, subsequent studies have shown that its performance decreases on more realistic datasets such as GQA (\cite{hudson2019gqa}), where it achieved only 54.6\%. When incorporating GQA scene graphs into the knowledge base, MAC network performance improved to around 84\%; this suggests that whilst the architecture of the MAC network is strong, providing more structured data to the network allows its cells to perform logical reasoning steps more effectively. In the original paper, question words and context are extracted using a bi-LSTM, however more structured data like semantic graph representations could improve both accuracy and interpretability of the model.
+The combination of interpretability, data efficiency and wide acceptance as a GQA baseline motivate my use of the compositional attention network as the reasoning component in my own VQA model, which I describe in detail in \chapterautorefname{ \ref{chapter:methodology}}.
 
 % \subsection{Fusion Methods}
 
@@ -501,9 +505,9 @@ Motivated by the lack of interpretable models capable of performing complex reas
 
 \section{Visual Question Answering Metrics}
 
-In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should reward answers that are partially correct or share semantics with the ground-truth answer.
+In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a reference answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should reward answers that are partially correct or share semantics with the reference answer.
 
-Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of natural language generation (NLG) metrics \cite{papineni2002bleu, lin2004rouge, banerjee2005meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft, vedantam2015cider}, and are consequently applicable to open-ended VQA tasks requiring full-sentence answers. Unfortunately, none of these metrics were designed explicitly for VQA tasks, and must be considered in addition to class-based metrics to gain useful insights into model performance. 
+Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and reference answers. A variety of natural language generation (NLG) metrics \cite{papineni2002bleu, lin2004rouge, banerjee2005meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft, vedantam2015cider}, and are consequently applicable to open-ended VQA tasks requiring full-sentence answers. Unfortunately, none of these metrics were designed explicitly for VQA tasks, and must be considered in addition to class-based metrics to gain useful insights into model performance. 
 
 % Although I focus on VQA as a multi-class classification problem in this dissertation, I provide a brief overview of these metrics in \sectionautorefname{ \ref{subsection:open_ended_vqa_metrics}}, highlighting areas for further research into open-ended VQA metrics.
 
@@ -552,7 +556,7 @@ In the following subsections, I explore a variety of metrics for both class-base
             Grounding                           & - Ensures models use image data to answer questions instead of exploiting language priors. & - Only applicable to attention-based models.                                                                                                                            \\
                                                 &                                                                                            & - Requires knowledge about which image regions are relevant to each dataset sample.                                                                                     \\ \midrule
             Distribution                        & - Ensures models respond well to all question subject-type groups                          & - Cannot be compared across datasets with different distributions.                                                                                                                                                                       \\ \midrule
-            BLEU                                & - \(n\)-grams capture positional relationships between words.                              & - Requires multiple ground truth answers for good performance.                                                                                                          \\
+            BLEU                                & - \(n\)-grams capture positional relationships between words.                              & - Requires multiple reference answers for good performance.                                                                                                          \\
                                                 & - Penalises answers that are too short or too long.                                        & - Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty, an issue for VQA.                                        \\
                                                 &                                                                                            & - A zero score for any \(n\)-gram component gives a zero BLEU score.                                                                                                    \\\bottomrule
     \end{tabularx}
@@ -592,7 +596,7 @@ Whilst WUP similarity can capture similarities between a target and predicted co
     \label{equation:wups}
 \end{equation}
 
-To apply this metric to VQA tasks, we let \(A\) and \(B\) be a collection of sets of predicted and ground-truth answers respectively, each of size \(N\). Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
+To apply this metric to VQA tasks, we let \(A\) and \(B\) be a collection of sets of predicted and reference answers respectively, each of size \(N\). Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
 
 \begin{enumerate}
     \item \(WUPS(A, B) \in [0, 1]\), with \(WUPS(A, B) = 1\) when \(A = B\).
@@ -758,12 +762,6 @@ The grounding metric for any \((q_i, r_i)\) pair in a dataset is defined as the 
         \(s_g \leftarrow \frac{s_g}{n}\)\\
         \Return \(s_g\)
     }
-% # compare attention map to gold regions
-% scores = []
-% for region in regions:
-%     for cell, attention in cells:
-%         scores.append(attention * intersectionRate(cell, region))
-% return sum(scores)
 \end{algorithm}
 
 Unfortunately, any VQA model that does not use attention-based mechanisms to attend to regions or objects in an image cannot be evaluated using the grounding metric. This limitation is becoming more important, as more recent models have adopted graph-based representations of visual inputs instead of spatial or object-based image features. For this reason, I do not report grounding metric results for my model in \chapterautorefname{ \ref{chap:results}}.
@@ -825,7 +823,7 @@ Analysing the design decisions of the BLEU metric, we see that it handles a vari
 
 Unfortunately, there are numerous disadvantages to using the BLEU metric for open-ended VQA evaluation, some of which have been addressed by one or more of ROUGE, METEOR and CIDEr.
 Firstly, VQA datasets rarely contain multiple open-ended answers. For example, the GQA dataset \cite{hudson2019gqa} comes with a single open-ended answer per question. This means that a candidate answer that is correct but differs in phrasing to the reference answer may achieve a low BLEU score. This occurs because BLEU was originally designed for large corpora with multiple reference translations sourced from different people to promote answer variety. Even the more recent CIDEr metric is consensus based, requiring multiple image captions to evaluate the quality of a candidate description. To effectively utilise metrics like BLEU and CIDEr for open-ended VQA tasks, it is essential to have multiple candidate answers for each question in the dataset.
-Secondly, the BLEU metric does not account for synonyms or morphological variations of words. If the ground truth answer refers to a \textit{carton} but the predicted answer uses the word \textit{box}, or \textit{cartons}, we observe a decrease in \(n\)-gram precision despite the semantic or morphological similarities between words used by the candidate and reference answers. This issue is addressed in the METEOR and CIDEr metrics, making them more robust to candidate answer phrasing variations.
+Secondly, the BLEU metric does not account for synonyms or morphological variations of words. If the reference answer refers to a \textit{carton} but the predicted answer uses the word \textit{box}, or \textit{cartons}, we observe a decrease in \(n\)-gram precision despite the semantic or morphological similarities between words used by the candidate and reference answers. This issue is addressed in the METEOR and CIDEr metrics, making them more robust to candidate answer phrasing variations.
 Moreover, we see that open-ended VQA answers often have a large overlap with their corresponding question. For example, given the question \textit{What colour is the apple?} and a reference answer \textit{The apple is red.}, a candidate answer \textit{The apple is.} would achieve a modified unigram, bigram and trigram precision of 1 despite drawing all of its words from the question and not providing a concrete answer. This emphasises the importance of using regular multi-class VQA metrics like accuracy, validity and plausibility in tandem with NLG metrics, as a high BLEU, ROUGE, METEOR or CIDEr score may not necessarily correspond to a correctly answered question. This makes it difficult to compare the performance of VQA models since there is no one-size-fits-all metric for open-ended VQA evaluation.
 
 
