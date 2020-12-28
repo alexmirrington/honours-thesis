@@ -4,7 +4,7 @@
 \section{Architecture Overview}
 \label{section:architecture_overview}
 
-In this section, I propose a new model for single-concept visual question answering tasks, treating the task as a multi-class classification problem. The proposed model comprises six main components, as shown in \figureautorefname{ \ref{fig:model_overview}} and outlined briefly below. In the following subsections, I explain the motivations behind each architecture component, along with detailed descriptions of their composition. I refer the reader to the \nomref{frontmatter:nomenclature} in the front matter for descriptions of common nomenclature used in this chapter.
+In this section, I propose a new model for single-concept visual question answering tasks, treating the task as a multi-class classification problem. The proposed model comprises four main components, as shown in \figureautorefname{ \ref{fig:model_overview}} and outlined briefly below. In the following subsections, I explain the motivations behind each architecture component, along with detailed descriptions of their composition. I refer the reader to the \nomref{frontmatter:nomenclature} in the front matter for descriptions of common nomenclature used in this chapter.
 
 
 \begin{figure}[htbp]
@@ -14,15 +14,11 @@ In this section, I propose a new model for single-concept visual question answer
     \label{fig:model_overview}
 \end{figure}
 
-\textbf{Question embedding:} In classic NLP fashion, the question embedding component is responsible for the preprocessing and vectorisation of raw question data for use by the rest of the model.
+\textbf{Question embedding and processing module:} In classic NLP fashion, the question embedding component is responsible for the preprocessing and vectorisation of raw question data for use by the rest of the model. The question processing module has two main roles: the first is to learn a sequence of word embeddings that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the entire question.
 
-\textbf{Question module:} The question module has two main roles: the first is to learn a sequence of word embeddings that capture the relevant features of each question word in the context of the question as a whole. Secondly, the question module learns a question-level embedding that contains information about the question as a whole.
+\textbf{Scene graph embedding and processing module:} The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, I use ground-truth scene graphs from the GQA dataset to evaluate the effectiveness of various scene graph modules under perfect-sight conditions. This component can be readily extended to utilise the output of existing scene graph generation models \cite{yang2018graph, li2019relation}, yielding a true end-to-end VQA model. The scene graph processing module then learns a dense knowledge-base that captures the interactions between scene graph object, relation and attribute embeddings. The reasoning module draws information from this knowledge-base when answering questions.
 
-\textbf{Scene graph embedding:} The scene graph embedding model is responsible for the preprocessing and vectorisation of scene graph data. In this dissertation, I use ground-truth scene graphs from the GQA dataset to evaluate the effectiveness of various scene graph modules under perfect-sight conditions. This component can be readily extended to utilise the output of existing scene graph generation models \cite{yang2018graph, li2019relation}, yielding a true end-to-end VQA model.
-
-\textbf{Scene graph module:} The primary goal of the scene graph module is to learn a dense representation of scene graph features that can be used as a knowledge-base for the reasoning module to draw information from when answering questions.
-
-\textbf{Reasoning module:} Given the output features of the scene graph and question modules, the reasoning module is in charge of determining which visual features are relevant to the question and vice-versa. The reasoning capabilities of many existing VQA models could be leveraged here; I justify my reasoning module of choice and describe its implementation in detail in \sectionautorefname{ \ref{section:reasoning_module}}.
+\textbf{Reasoning module:} Given the output features of the scene graph and question processing modules, the reasoning module is in charge of determining which visual features are relevant to the question and vice-versa. The reasoning capabilities of many existing VQA models could be leveraged here; I justify my reasoning module of choice and describe its implementation in detail in \sectionautorefname{ \ref{section:reasoning_module}}.
 
 \textbf{Output module:} The output module is the simplest part of the architecture, and is responsible for transforming the output of the reasoning module into a concrete answer to the input question. I delve into the design decisions behind the output module and how it might be modified for other VQA tasks in \sectionautorefname{ \ref{section:output_module}}.
 
