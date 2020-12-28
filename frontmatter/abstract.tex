@@ -1,6 +1,13 @@
 \phantomsection\addcontentsline{toc}{chapter}{Abstract}
 \chapter*{\centering{\Large Abstract}}
 
+{\color{red}
+Motivation of using gold-standard scene graph, pulled from literature review:
+
+\begin{quote}
+    \textit{``Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with Relation-aware Graph Attention networks (ReGAT) \cite{li2019relation} achieving state-of-the-art results on the VQAv2 and VQA-CPv2 datasets in \citeyear{li2019relation}, and aligned Dual-Channel GCN (DC-GCN) \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQAv2 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using gold-standard scene graph information. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information.''}
+\end{quote}
+
 Contributions:
 
 \begin{itemize}
@@ -8,3 +15,4 @@ Contributions:
     \item Representation of relationships as nodes to enable the use of node-based graph convolutions, with a guarante worst-case time complexity.
     \item Outperform human baseline, outperform ensemble methods by 14\% and over 26\% above single-model methods. Although this is on a split of the GQA validation set, it shows the promise of VQA on graph structures.
 \end{itemize}
+}
