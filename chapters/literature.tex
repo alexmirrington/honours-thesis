@@ -8,461 +8,6 @@
 \end{itemize}}
 
 
-\section{Visual Question Answering Metrics}
-
-In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should reward answers that are partially correct or share semantics with the ground-truth answer.
-
-Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of natural language generation (NLG) metrics \cite{papineni2002bleu, lin2004rouge, banerjee2005meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft, vedantam2015cider}, and are consequently applicable to open-ended VQA tasks requiring full-sentence answers. Unfortunately, none of these metrics were designed explicitly for VQA tasks, and must be considered in addition to class-based metrics to gain useful insights into model performance. 
-
-% Although I focus on VQA as a multi-class classification problem in this dissertation, I provide a brief overview of these metrics in \sectionautorefname{ \ref{subsection:open_ended_vqa_metrics}}, highlighting areas for further research into open-ended VQA metrics.
-
-In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in \tableautorefname{ \ref{tab:vqa_metrics_suitability}}, focusing on how they reward partially correct answers.
-
-
-\begin{table}[htbp]
-    \centering
-    \begin{tabularx}{\linewidth}{@{}lCCCl@{}}
-        \toprule
-        \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                           & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
-        \multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Multi-label} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
-        Accuracy                                             & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
-        WUPS                                                 & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
-        Consensus Accuracy                                   & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
-        Consistency                                          & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
-        Validity                                             & \checkmark                      &                                 &                                & VQA                                                       \\
-        Plausibility                                         & \checkmark                      &                                 &                                & VQA                                                       \\
-        Grounding                                            & \checkmark                      & \checkmark                      & \checkmark                     & VQA                                                       \\
-        Distribution                                         & \checkmark                      &                                 &                                & VQA                                                       \\
-        BLEU \cite{papineni2002bleu}                                                &                                 &                                 & \checkmark                     & Machine translation                                       \\
-        ROUGE \cite{lin2004rouge}                                                &                                 &                                 & \checkmark                     & Text summarisation                                        \\
-        METEOR \cite{banerjee2005meteor}                                              &                                 &                                 & \checkmark                     & Machine translation                                       \\
-        CIDEr \cite{vedantam2015cider}                                               &                                 &                                 & \checkmark                     & Image captioning                                          \\ \bottomrule
-    \end{tabularx}
-    \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
-    \label{tab:vqa_metrics_suitability}
-\end{table}
-
-\begin{table}[htbp]
-    \begin{footnotesize}
-      \begin{tabularx}{\linewidth}{@{}lLL@{}}
-        \toprule
-            \multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                                                    & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                                                              \\ \midrule
-            Accuracy                            & - Simple and interpretable.                                                                & - Penalises slightly incorrect answers harshly.                                                                                                                         \\
-                                                & - Suitable for problems with a small answer set cardinality.                               & - Requires an exact set of answers for multi-label tasks.                                                                                                               \\ \midrule
-            WUPS                                & - Rewards incorrect but semantically similar answers.                                      & - Rewards answers that share a concept class \textit{e.g.} \textit{`colour'} with the true answer but have opposite meanings e.g. \textit{`white'} vs \textit{`black'}. \\ \midrule
-            Consensus Accuracy                  & - Simple and interpretable.                                                                & - Multiple correct reference answers may be contradictory.                                                                                                              \\
-                                                & - Aligns with human answers.                                                               & - Not all questions have 3 matching reference answers                                                                                                                   \\
-                                                &                                                                                            & - Reference answers are expensive to collect.                                                                                                                           \\ \midrule
-            Consistency                         & - Ensures models avoid contradictory answers to related questions.                         & - Requires a set of entailed questions for each question.                                                                                                               \\
-                                                &                                                                                            &                                                                                                                     \\ \midrule
-            Validity                            & - Measures a model's ability to respond to various question types.                         & - Requires a set of valid answers for each question type.                                                                                                               \\ \midrule
-            Plausibility                        & - Ensures models avoid nonsensical answers.                                                & - Requires scene graphs for all dataset samples.                                                                                                                        \\
-                                                &                                                                                            & - Can be imprecise for sparsely occurring objects.                                                                                                                      \\ \midrule
-            Grounding                           & - Ensures models use image data to answer questions instead of exploiting language priors. & - Only applicable to attention-based models.                                                                                                                            \\
-                                                &                                                                                            & - Requires knowledge about which image regions are relevant to each dataset sample.                                                                                     \\ \midrule
-            Distribution                        & - Ensures models respond well to all question subject-type groups                          & - Cannot be compared across datasets with different distributions.                                                                                                                                                                       \\ \midrule
-            BLEU                                & - \(n\)-grams capture positional relationships between words.                              & - Requires multiple ground truth answers for good performance.                                                                                                          \\
-                                                & - Penalises answers that are too short or too long.                                        & - Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty, an issue for VQA.                                        \\
-                                                &                                                                                            & - A zero score for any \(n\)-gram component gives a zero BLEU score.                                                                                                    \\\bottomrule
-    \end{tabularx}
-    \end{footnotesize}
-    \caption[Advantages and disadvantages of metrics for various VQA tasks]{A comparison of metrics and their advantages and disadvantages for various VQA tasks.}
-    \label{tab:vqa_metrics_comparison}
-\end{table}
-
-\subsection{Semantic Similarity Measures}
-
-\subsubsection{Wu-Palmer Similarity}
-
-Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the now-labelled Wu-Palmer (WUP) similarity is used to measure the semantic similarity of two concepts based on their positions in a taxonomy tree such as WordNet \cite{miller1995wordnet}. Formally, given two concepts \(A\) and \(B\) in a taxonomy tree \(T\), we define the Wu-Palmer similarity of \(A\) and \(B\) as
-
-\begin{equation}
-    WUP(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}
-    \label{equation:wup}
-\end{equation}
-
-where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in \figureautorefname{ \ref{fig:wups_tree}}.
-
-\begin{figure}[H]
-    \centering
-    \begin{forest}
-      [ROOT [C, edge=dashed, edge label={node[midway,auto]{\(N_C\)}} [A, edge=dashed, edge label={node[midway,left]{\(N_A\)}}] [B, edge=dashed, edge label={node[midway,right]{\(N_B\)}}]]]
-    \end{forest}
-    \caption[A taxonomy tree describing the relationship between two concepts.]{Given two concepts \(A\) and \(B\), \(C\) denotes the ``least common superconcept'' of A and B. (Figure adapted from \cite{wu1994verbs})}
-    \label{fig:wups_tree}
-\end{figure}
-
-Given this definition, it naturally follows that two equal concepts occupy the same position in the taxonomy tree and thus have a similarity of 1, whilst two concepts whose lowest common ancestor is the root of the tree have a similarity of 0.
-
-Whilst WUP similarity can capture similarities between a target and predicted concept, \citeauthor{malinowski2014multiworld} extend WUP similarity to sets of concepts, proposing the WUP set score for evaluation of multi-label classification tasks:
-
-\begin{equation}
-    \textsc{WUPS}(A, B) = \frac{1}{N} \sum_{i=1}^N \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
-    \label{equation:wups}
-\end{equation}
-
-To apply this metric to VQA tasks, we let \(A\) and \(B\) be a collection of sets of predicted and ground-truth answers respectively, each of size \(N\). Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
-
-\begin{enumerate}
-    \item \(WUPS(A, B) \in [0, 1]\), with \(WUPS(A, B) = 1\) when \(A = B\).
-    \item Naive models which overestimate the number of target answers will be penalised according to how dissimilar the additional provided answers are to their closest target answer.
-    \item Models which underestimate the number of target answers \textit{i.e.} \(|A_i| < |B_i|\) will be penalised, with a harsher penalty if the concepts in the target set are dissimilar.
-\end{enumerate}
-
-The authors note that WUP yields large values for related but not interchangeable concepts, noting that \(WUP(\text{carton}, \text{box}) = 0.94\) where \(WUP(\text{stove}, \text{fire extinguisher}) = 0.82\). To encourage precise answers and avoid accepting related but inaccurate answers, the authors down-weight \(WUP(a, b)\) by a ratio \(r = 0.1\) whenever it is less than some threshold \(t = 0.9\).
-
-While this down-weighting alleviates this issue for questions that query objects in an image, answers to questions about object attributes and colours are often poorly evaluated; \citeauthor{kafle2017visual} note that even after down-weighting \(WUP\) scores, \(WUPS(\text{white}, \text{black}) = 0.91\). Whilst the metric correctly rewards the answerer for correctly identifying that the answer to the question is a colour, a score of 0.91 seems too high, highlighting the non-linearity of the metric that makes it more difficult to interpret at a glance unlike other common metrics like accuracy.
-
-By nature, the metric also operates on single WordNet concepts, which often coincide with single words. To evaluate full-sentence or even multi-word answers with WUPS, we must treat sentences as a set of distinct words, disregarding essential syntactic and contextual information. This makes WUPS a poor candidate for open-ended VQA evaluation when compared to other NLG metrics such as BLEU, ROUGE, METEOR and CIDEr, as briefly discussed in \subsectionautorefname{ \ref{subsection:open_ended_vqa_metrics}} and summarised in \tableautorefname{ \ref{tab:vqa_metrics_comparison}}.
-
-%In addition to this issue, the down-weighting approach introduces two new parameters which increase the complexity and subjectivity of the metric. 
-
-
-% \[
-% \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\} =  \begin{cases}
-%     1, &\text{if } A_i = B_i \\
-%     \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b) < 1, &\text{if } A_i \subset B_i \\
-%     \prod_{a \in A_i} \max_{b \in B_i} WUP(a, b) < 1, &\text{if } A_i \supset B_i
-% \end{cases}
-% \]
-
-\subsection{Consensus Measures}
-\label{subsection:consensus_measures}
-
-\subsubsection{VQA Consensus Accuracy}
-Introduced by \citeauthor{antol2015vqa} in \citeyear{antol2015vqa}, the VQA consensus accuracy metric is the most common metric used to benchmark VQA models, due to the widespread adoption of the VQA dataset and its variants. To reward partially correct answers, VQA consensus accuracy compares a candidate answer to multiple reference answers, provided by humans via crowdsourcing platforms like Amazon Mechanical Turk (AMT) in the case of the VQA dataset. The VQA consensus accuracy metric is defined as
-
-\begin{equation}
-    \textsc{Accuracy} = \min \left( \frac{n}{3}, 1 \right)
-    \label{equation:vqa_consensus_accuracy}
-\end{equation}
-
-where \(n\) is the number of answers in the set of reference answers that match a given candidate answer, \textit{i.e.} an answer is considered entirely correct if it matches 3 or more of the 10 reference answers for the corresponding question and image.
-
-At a surface level, the metric is interpretable and can reward multiple correct and/or partially correct answers effectively, however, the latter can become a disadvantage depending on the quality of the reference answers. In their analysis of the VQAv1 dataset, \citeauthor{kafle2017visual} point out that 16.7\% of questions have less than 3 matching answers in their group of 10 reference answers, capping the performance of a perfect VQA model. A large contributor to this statistic is the presence of multi-word answers in the dataset; 89.32\% of answers in the VQAv1 dataset are single-word answers, leaving ample room for disagreement amongst reference answers.
-
-Moreover, supporting multiple correct answers is unfavourable if the correct answers are contradictory. Again, \citeauthor{kafle2017visual} identify that 13\% of VQA v1 yes/no questions contain both `yes' and `no' 3 or more times in their group of 10 reference answers, making both options entirely correct.
-
-
-% \begin{itemize}
-%     \item ``Inter-human agreement is only 83.3\%. It is impossible for an algorithm to achieve 100\% accuracy.''\cite{kafle2017visual} % no consensus answer problem
-%     \item even when counting only those answers in the VQAv2 training set that appear more than 8 times, there are still 3129 unique reference answers. After this selection,  \cite{teney2018tips}.
-% \end{itemize}
-
-\subsubsection{DAQUAR Consensus Measures}
-
-Motivated by the relatively poor human baseline performance (Accuracy: 50.20\%, WUPS@0.9:  50.82\%) on the DAQUAR dataset, \citeauthor{malinowski2015ask} extended the dataset by collecting an average of 5 reference answers for each image-question pair and developing two consensus metrics based on their previous WUPS measure:
-
-\begin{equation}
-    \textsc{WUPS}_{\text{mean}}(A, B) =     \frac{1}{NK} \sum_{i=1}^N \sum_{i=1}^K \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
-    \label{equation:wups_mean_consensus}
-\end{equation}
-
-
-\begin{equation}
-    \textsc{WUPS}_{\text{min}}(A, B) =     \frac{1}{N} \sum_{i=1}^N \max_{k=1}^K \left( \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\} \right)
-    \label{equation:wups_min_consensus}
-\end{equation}
-
-where \(N\), \(A\) and \(B\) are as defined in \equationautorefname{ \ref{equation:wups}}, and \(K\) is the number of reference answers for the \(i\)-th dataset sample.
-
-The mean consensus metric rewards candidate answers that coincide with more frequent reference answers, whilst the minimum consensus metric rewards candidate answers according to their similarity to the closest reference answer.
-
-\subsection{Metrics for Visual Reasoning}
-\label{subsec:visual_reasoning_metrics}
-As discussed earlier, the standard accuracy metric penalises partially correct answers as harshly as incorrect answers. When using accuracy alone, it is impossible to distinguish between a model that provides reasonable but incorrect answers and one that provides nonsensical answers. Moreover, the standard accuracy metric gives no insights into how a VQA model arrived at its answer to a given question and image.
-
-To combat these issues, \citeauthor{hudson2019gqa} developed five new metrics in tandem with their GQA dataset \cite{hudson2019gqa} to evaluate the internal reasoning processes of VQA models: Consistency, Validity, Plausibility, Grounding and Distribution.
-
-\subsubsection{Consistency}
-
-The consistency metric is motivated by the following scenario:
-
-Say we have two questions \(q_0\) and \(q_1\) that ask about properties of the same image, \textit{e.g.} \(q_0 = \)\textit{`What colour is the apple?'} and  \(q_1 = \) \textit{`Is the apple red?'}
-
-Since both questions are asking about the same apple, a consistent model is one that does not contradict itself in answering the two questions \textit{e.g.} \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`yes'} are consistent answers, where \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`no'} are not.
-
-To calculate consistency, each question-answer pair \(q, a\) in the GQA dataset is annotated with a set of entailed questions \(E_q\). For the example above, \(q_1\) is an entailed question of \(q_0\), since knowing the answer to \(q_0\) infers the answer to \(q_1\). Given a the set of questions \(Q\) that a model answered correctly and a set entailed questions for each \(q \in Q\) denoted \(\mathcal{E} = \{E_q \mid q \in Q\}\), the consistency metric is calculated according to \algorithmcfname{ \ref{algorithm:consistency}}.
-
-\begin{algorithm}[htbp]
-    \caption[Consistency metric algorithm]{Consistency metric algorithm}
-    \label{algorithm:consistency}
-    \Function{\(Q, \mathcal{E}\)}{
-        \(s_c \leftarrow 0\)\\
-        \ForEach{\(\{q_i \in Q \mid E_{q_i} \neq \emptyset\}\)}{
-            \(s_{q_i} \leftarrow 0\)\\
-            \ForEach{
-                \(q_e \in E_{q_i}\)
-            }{
-                \lIf{
-                    \(q_e \in Q\)
-                }{
-                    \(s_{q_i} \leftarrow s_{q_i} + 1\)
-                }
-            }
-            \(s_c \leftarrow s_c + \frac{s_{q_i}}{|E_{q_i}|}\)
-        }
-        \Return \(\frac{s_c}{|\{q_i \in Q \mid E_{q_i} \neq \emptyset\}|}\)
-    }
-\end{algorithm}
-
-% On 4000 random questions of the GQA dataset, \citeauthor{hudson2019gqa} report a human consistency of 98.4, and accuracy of 89.3, indicating that humans are mostly consistent but not always accurate in their responses.
-
-Unfortunately, the consistency metric does not account for inaccurately answered questions. There is certainly an argument to be made that including incorrect answers in the consistency calculation would skew the consistency metric in favour of more accurate models. Moreover, including these incorrect answers could give large consistency scores for poorer models that exploit statistical priors in the dataset's answer distribution.
-Nonetheless, knowing consistency amongst incorrectly answered questions gives information about the model's overall reasoning skills and tendency to exploit statistical biases in certain question types. Hence, for error analysis purposes, it would be more suitable to compute consistency over incorrectly answered questions instead of computing consistency over all questions.
-
-% Multi-question learning?
-
-\subsubsection{Validity}
-
-The validity metric is the most lenient of the GQA metrics, and simply captures whether a candidate answer corresponds with the type of answer the question demands. For example, valid answers for questions starting with \textit{What colour} are colours like \textit{red} or \textit{blue}, where answers like \textit{yes} or \textit{three} would be invalid.
-
-To calculate validity, the GQA evaluation script \cite{hudson2019evaluation_script} contains a set of valid answers \(V_q\) for every question in the dataset. For each question \(q \in Q\) and its corresponding candidate answer \(\hat{a}_q\), the validity metric is simply:
-
-\begin{equation}
-    \textsc{Validity} = \frac{1}{|Q|}\sum_{q \in Q} \begin{cases}
-        1, &\text{if } \hat{a}_q \in V_q\\
-        0, &\text{otherwise }\\
-    \end{cases}
-    \label{equation:validity}
-\end{equation}
-
-\subsubsection{Plausibility}
-
-Where the validity metric aims to measure whether answers to questions are non-degenerate, plausibility measures whether the candidate answer is rational by checking for co-occurrence of the answer and the question's subject in the scene graphs for the rest of the dataset.
-
-In practice, plausibility is computed in the same way as validity, using a pre-computed set of plausible answers \(P_q\)  for each question in place of the set of valid answers \(V_q\) used in \equationautorefname{ \ref{equation:validity}}.
-
-The method used to compute \(P_q\) for each question depends on the question's type; for the GQA dataset, the scene graph contains attributes, objects and relations, meaning that plausibility needs to be computed differently depending on whether the question's answer is an object, relation or attribute. Moreover, plausibility also needs to be computed for other types of questions whose answers are not in the scene graph, such as binary and counting type questions.
-
-For the sake of brevity, I will focus on two different question types to give an intuition about how sets of plausible answers are determined.
-
-For questions that ask about an attribute of an object \(o\), an attribute is considered plausible if it co-occurs with \(o\) at least once in the scene graphs for other images in the dataset. For example, \textit{red} would be a plausible answer to the question \textit{What colour is the apple?} if the dataset contains at least one image of a red apple, where \textit{blue} would be implausible.
-
-For questions that ask about a target object \(t\) given a subject \(s\) and relation \(r\) \textit{e.g. What is the man holding?}, \(t\) is considered plausible if there exists a relation \(s, r, t\) in the scene graph for any image in the dataset. 
-
-\subsubsection{Grounding}
-
-The grounding measure is unlike other metrics in that it does not compare the quality of answers given by a VQA model. Instead, it focuses on model interpretability, ensuring models use relevant visual information to formulate answers. For example, consider a model that can answer the majority of questions about the colour of an apple correctly based purely on the fact that the most common answer to such questions is red; such a model does not utilise any visual information in its reasoning process. Conversely, a model that answers the same proportion of questions correctly by identifying the location and colour of apples in an image is a visually \textit{grounded} model, and exhibits the type of behaviour that we strive for as a research community.
-
-At its core, the grounding metric takes as input a set of sets of bounding boxes \(\hat{\mathcal{B}} = \{\hat{B}_{(q_i, r_i)} \mid ((q_i, r_i), a_i) \in S\}\) for each question-image pair \((q_i, r_i)\) in a VQA dataset \(S = \{((q_i, r_i), a_i)\}_{i=1}^n\). Each bounding box in \(\hat{B}_{(q_i, r_i)}\) corresponds to a region in the image \(r_i\) that the the model attended to when answering the associated question \(q_i\). Moreover, each bounding box \(\hat{b} \in \hat{B}_{(q_i, r_i)}\) has an associated attention value \(\alpha_{\hat{b}}\), indicating the importance assigned to that image region by the model during the question-answering process. These predicted bounding boxes and attention values are compared to a set of sets of reference bounding boxes \(\mathcal{B} = \{B_{(q_i, r_i)} \mid ((q_i, r_i), a_i) \in S\}\), where each box in \(B_{(q_i, r_i)}\) indicates the visual regions in \(r_i\) that are essential for answering question \(q_i\).
-
-The grounding metric for any \((q_i, r_i)\) pair in a dataset is defined as the total precision-based overlap between each set of predicted and reference regions \(\hat{B}_{(q_i, r_i)}\) and \(B_{(q_i, r_i)}\) respectively. For an entire dataset \(S\), per-sample grounding scores are averaged to give the final grounding metric, as outlined in \algorithmautorefname{ \ref{algorithm:grounding}}.
-
-\begin{algorithm}[htbp]
-    \caption[Grounding metric algorithm]{Grounding metric algorithm}
-    \label{algorithm:grounding}
-    \Function{\(S, \hat{\mathcal{B}}, \mathcal{B}\)}{
-        \(s_g \leftarrow 0\)\\
-        \ForEach{\(((q_i, r_i), a_i) \in S\)}{
-            \(B \leftarrow B_{(q_i, r_i)} \in \mathcal{B}\)\\
-            \(\hat{B} \leftarrow \hat{B}_{(q_i, r_i)} \in \hat{\mathcal{B}}\)\\
-            \ForEach{\(b \in B\)}{
-                \ForEach{\(\hat{b} \in \hat{B}\)}{
-                    \(\alpha_{\hat{b}} \leftarrow \text{Attention coefficient for } \hat{b}\)\\
-                    \(s_g \leftarrow s_g + \alpha_{\hat{b}} \times \frac{\text{IntersectionArea}(\hat{b}, b)}{\text{Area}(\hat{b})}\)
-                }   
-            }
-        }
-        \(s_g \leftarrow \frac{s_g}{n}\)\\
-        \Return \(s_g\)
-    }
-% # compare attention map to gold regions
-% scores = []
-% for region in regions:
-%     for cell, attention in cells:
-%         scores.append(attention * intersectionRate(cell, region))
-% return sum(scores)
-\end{algorithm}
-
-Unfortunately, any VQA model that does not use attention-based mechanisms to attend to regions or objects in an image cannot be evaluated using the grounding metric. This limitation is becoming more important, as more recent models have adopted graph-based representations of visual inputs instead of spatial or object-based image features. For this reason, I do not report grounding metric results for my model in \chapterautorefname{ \ref{chap:results}}.
-
-\subsubsection{Distribution}
-
-Given the importance of dataset balancing and the influence of language priors on model performance as discussed in \sectionautorefname{ \ref{section:vqa_datasets}}, the distribution metric compares the distributions of reference and candidate answer sets. This provides a way of measuring whether a VQA model exploits statistical priors and focuses on more common answers or whether it can predict less-frequent answers based on its knowledge of the question and image.
-
-The similarity score of the candidate and reference distributions for each question type is computed using the Pearson Chi-squared statistic \cite{pearson1900x}, and the distribution metric is a weighted average of these scores, with the weights being the number of questions of that type. I refer the reader to \cite{hudson2019gqa} for detailed analysis of question type distributions in the GQA dataset.
-
-\subsection{Metrics for Open-ended VQA}
-\label{subsection:open_ended_vqa_metrics}
-
-Given the challenge of multi-class and multi-label VQA tasks, there has been little research into open-ended VQA task, even though some datasets contain full-sentence answers for each question. In addition, research into open-ended VQA has been stunted by the lack of a widely accepted metric for the task; metrics such as BLEU, ROUGE, METEOR and CIDEr were originally developed for other tasks as shown in \tableautorefname{ \ref{tab:vqa_metrics_suitability}}, and thus have various disadvantages when used in VQA contexts.
-
-Since I focus on VQA as a multi-class classification problem in this dissertation, I keep this section brief, delving into the characteristics of BLEU to exemplify the types of issues that open-ended VQA evaluation poses. I choose to elaborate on BLEU instead of metrics with more robust characteristics like ROUGE, METEOR and CIDEr since BLEU was used for evaluation of early open-ended VQA datasets such as Visual Madlibs \cite{yu2015visual}. Moreover, since BLEU suffers from multiple weaknesses \cite{banerjee2005meteor} in the context of machine translation, it serves as a good example to illustrate common points of consideration for more advanced metrics. For the keen reader, I outline some of the key shortcomings of the BLEU metric that metrics like ROUGE, METEOR and CIDEr address at the end of this subsection.
-
-\subsubsection{BLEU}
-
-Originally developed for automatic evaluation of machine translation systems, the Bi-Lingual Evaluation Understudy (BLEU) metric was created in an effort to reduce dependence on manual evaluation methods and thus promote more rapid prototyping of ideas. The three keys to its success in the machine translation field are its efficiency, language independence and correlation with human evaluation results.
-
-In the context of machine translation, the core component of the BLEU metric compares groups of \(n\) adjacent words (\(n\)-grams) in a candidate translation to \(n\)-grams in a group of reference translations using a modified precision measure. This comparison is best described with an example:
-
-\begin{table}[htbp]
-    \centering
-    \begin{tabular}{r|l}
-        Candidate & \textbf{the} \textbf{the} the the the the the \\
-        Reference 1 & \textbf{the} cat is on \textbf{the} mat \\
-        Reference 2 & there is a cat on the mat \\
-    \end{tabular}
-    \caption[An illustration of BLEU's modified \(n\)-gram precision measure \cite{papineni2002bleu}]{An example given by \cite{papineni2002bleu} of a poor candidate translation that performs well \((7/7)\) on the standard unigram precision measure, but poorly \((2/7)\) on the modified unigram precision measure used by BLEU.}
-    \label{tab:bleu_ngraph_precision}
-\end{table}
-
-As illustrated in \tableautorefname{ \ref{tab:bleu_ngraph_precision}}, the standard \(n\)-gram precision measure simply counts how many \(n\)-grams in the candidate translation appear in any of the reference translations, allowing poor translations that repeat common \(n\)-grams to perform well. To combat this, the BLEU metric uses a modified \(n\)-gram precision measure, where it calculates a clipped number of \(n\)-gram matches between the candidate and reference translations: in the example in \tableautorefname{ \ref{tab:bleu_ngraph_precision}}, the unclipped candidate count of the unigram \textit{the} is 7, but the clipped count is 2, since the maximum number of occurrences of the unigram \textit{the} in any reference translation is 2.
-
-\cite{papineni2002bleu} extend their modified \(n\)-gram precision measure to multiple sentences, however I omit this section for the sake of clarity since open-ended VQA answers are almost always phrased as single sentences.
-
-Whilst these modified \(n\)-gram precisions are useful for gaining an idea of whether a candidate translation is good or bad, the BLEU metric accounts for the fact that different\(n\)-gram precisions capture different aspects of a translation. For example, unigram precision is useful for measuring whether a candidate translation uses the same words as a reference translation, but cannot account for the \textit{fluency} of a translation like bigram or trigram precisions can. To address this, the BLEU metric combines multiple modified \(n\)-gram precision scores according to \equationautorefname{ \ref{equation:bleu_metric}}.
-
-\begin{equation}
-    \textsc{BLEU} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
-    \label{equation:bleu_metric}
-\end{equation}
-
-In \equationautorefname{ \ref{equation:bleu_metric}}, we see that the BLEU metric is defined as some brevity penalty \(P_B\) multiplied by the geometric mean of individual \(n\)-gram precisions \(p_n\). This brevity penalty is essential for ensuring candidate translations are not too short; a candidate translation can achieve a modified precision score of 1 if it contains a single \(n\)-gram and that \(n\)-gram is in one of the reference answers. The brevity penalty achieves this by comparing the length of the candidate translation \(c\) to the length of the reference translation closest in length to \(c\), denoted \(r\), taking a value \(< 1\) whenever \(c < r\). Moreover, the penalty decays exponentially towards zero as \(c \rightarrow 0\), as seen in \equationautorefname{ \ref{equation:bleu_brevity_penalty}}.
-
-\begin{equation}
-    P_B = \begin{cases}
-    1, &\text{if } c > r\\
-    e^{\frac{1-r}{c}}, &\text{if } c \leq r\\
-    \end{cases}
-    \label{equation:bleu_brevity_penalty}
-\end{equation}
-
-Naturally, the BLEU metric can be used for any natural language evaluation task where we need to compare a candidate sentence to a reference sentence. This includes open-ended VQA evaluation, where we compare sentence-based candidate answers to one or more reference answers.
-
-Analysing the design decisions of the BLEU metric, we see that it handles a variety of issues that apply to open-ended VQA evaluation. Firstly, it encourages responses of appropriate length; the brevity penalty ensures that candidate responses are not too short, and the modified \(n\)-gram precision measure inherently penalises responses that include superfluous \(n\)-grams not found in reference responses. This ensures that candidate responses not only get the question correct, but provide an answer in the context of a sentence. Secondly, by including \(n\)-gram precision measures for multiple values of \(n\), it ensures candidate answers are correct and fluent in their vocabulary usage.
-
-Unfortunately, there are numerous disadvantages to using the BLEU metric for open-ended VQA evaluation, some of which have been addressed by one or more of ROUGE, METEOR and CIDEr.
-Firstly, VQA datasets rarely contain multiple open-ended answers. For example, the GQA dataset \cite{hudson2019gqa} comes with a single open-ended answer per question. This means that a candidate answer that is correct but differs in phrasing to the reference answer may achieve a low BLEU score. This occurs because BLEU was originally designed for large corpora with multiple reference translations sourced from different people to promote answer variety. Even the more recent CIDEr metric is consensus based, requiring multiple image captions to evaluate the quality of a candidate description. To effectively utilise metrics like BLEU and CIDEr for open-ended VQA tasks, it is essential to have multiple candidate answers for each question in the dataset.
-Secondly, the BLEU metric does not account for synonyms or morphological variations of words. If the ground truth answer refers to a \textit{carton} but the predicted answer uses the word \textit{box}, or \textit{cartons}, we observe a decrease in \(n\)-gram precision despite the semantic or morphological similarities between words used by the candidate and reference answers. This issue is addressed in the METEOR and CIDEr metrics, making them more robust to candidate answer phrasing variations.
-Moreover, we see that open-ended VQA answers often have a large overlap with their corresponding question. For example, given the question \textit{What colour is the apple?} and a reference answer \textit{The apple is red.}, a candidate answer \textit{The apple is.} would achieve a modified unigram, bigram and trigram precision of 1 despite drawing all of its words from the question and not providing a concrete answer. This emphasises the importance of using regular multi-class VQA metrics like accuracy, validity and plausibility in tandem with NLG metrics, as a high BLEU, ROUGE, METEOR or CIDEr score may not necessarily correspond to a correctly answered question. This makes it difficult to compare the performance of VQA models since there is no one-size-fits-all metric for open-ended VQA evaluation.
-
-
-% For some \(n \geq 1\), the BLEU metric defines the modified \(n\)-gram precision as \(p_n = \frac{\sum{c \in C} \sum g_n \in c }{\sum{c' \in C} \sum g_n' \in c}\), where \(C\) is a set of candidate answers
-
-% \textbf{Motivations:}
-
-% \begin{itemize}
-%     \item Machine translation
-%     \item Human evaluation can take months
-%     \item Bi-Lingual Evaluation Understudy (BLEU) is:
-%     \begin{itemize}
-%         \item ``Quick''
-%         \item ``Inexpensive''
-%         \item ``Language independent''
-%         \item Accurate (``Correlates highly with human evaluation'')
-%     \end{itemize}
-%     \item 
-%     \item Derived from word-error-rate metric used in speech recognition, modified to allow for subtle word reorderings and substitutions.
-% \end{itemize}
-
-
-% \textbf{General Caveats:}
-
-% \begin{itemize}
-%     \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
-%     \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
-%     \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
-% \end{itemize}
-
-
-% \textbf{Application to VQA:}
-
-% Brevity penalty in the context of VQA:
-
-% {\color{red} TODO: Check image captioning paper and see if this is the adopted approach. Also check DAQUAR and COCO-QA papers.} Assume a candidate answer may contain multiple sentences and a ground truth answer may contain multiple sentences. In the most common case, the number of sentences in both the candidate and ground truth answers is 1. For cases with multiple sentences we can treat multiple sentences as a single sentence when computing \(n\)-grams, as in \cite{papineni2002bleu}. For a candidate answer of length \(c\) and a reference answer length of \(r\) (for each candidate sentence, the reference length is the corresponding ground-truth sentence with the closest length. \(r\) is the sum of these reference lengths across all sentences in the corpus, though the corpus is small for VQA applications.) The brevity penalty \(P_B\) is thus:
-
-% \begin{equation}
-%     P_B = \begin{cases}
-%     1, &\text{if } c > r\\
-%     e^{\frac{1-r}{c}}, &\text{if } c \leq r\\
-%     \end{cases}
-%     \label{equation:bleu_brevity_penalty}
-% \end{equation}
-
-% \begin{itemize}
-%     \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
-%     \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
-%     \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
-% \end{itemize}
-
-
-% \subsubsection{ROUGE}
-
-% \textbf{Motivations:}
-
-% \begin{itemize}
-%     \item Recall based rather than precision-based like BLEU. For text summarisation we generally prefer a candidate summary that covers a consensus of ground-truth answers.
-%     \item Different variations:
-%     \begin{itemize}
-%         \item \textsc{Rouge-N}: ``\(n\)-gram recall between a candidate summary and set of reference summaries''
-%     \end{itemize}
-% \end{itemize}
-
-% \textbf{General Caveats:}
-
-% \begin{itemize}
-%     \item 
-% \end{itemize}
-
-% \textbf{Application to VQA:}
-
-% Assume the following notation:
-
-% \(S\) is a set of ground-truth summaries (answers in the context of VQA) for a given dataset sample.
-
-% \(c\) is a candidate summary, \textit{e.g.} one produced by a model.
-
-% \(g_n\) is an \(n\) gram contained within a single summary \(s \in S\). In practice, each summary may contain multiple sentences, in which case \(n\)-grams are not computed across sentence boundaries, but for open-ended VQA answers, we can assume the answer is short and can be expressed as a single sentence.
-
-% \begin{equation*}
-%     \textsc{ROUGE -N} = {\arg \max}_{s\in S} \frac{
-%         \sum_{g_n \in s} \min \left(\text{Count}_s(g_n), \text{Count}_c(g_n) \right)
-%     }{
-%         \sum_{g_n \in s} \text{Count}_s(g_n)
-%     }
-% \end{equation*}
-
-% For VQA with a single one-sentence reference answer and one-sentence candidate answer, \textsc{Rouge-N} is simply \(n\)-gram recall.
-
-% \subsubsection{METEOR}
-
-% \textbf{Motivations:}
-
-% \begin{itemize}
-%     \item 
-% \end{itemize}
-
-% \textbf{General Caveats:}
-
-% \begin{itemize}
-%     \item 
-% \end{itemize}
-
-% \textbf{Application to VQA:}
-% \begin{itemize}
-%     \item 
-% \end{itemize}
-
-% \subsubsection{CIDEr}
-
-% \textbf{Motivations:}
-
-% \begin{itemize}
-%     \item 
-% \end{itemize}
-
-% \textbf{General Caveats:}
-
-% \begin{itemize}
-%     \item 
-% \end{itemize}
-
-% \textbf{Application to VQA:}
-% \begin{itemize}
-%     \item 
-% \end{itemize}
-
 
 \section{Visual Question Answering Datasets}
 \label{section:vqa_datasets}
@@ -930,94 +475,481 @@ Whilst one of the first methods to leverage graph strcutures for question embedd
 
 Motivated by the lack of interpretable models capable of performing complex reasoning tasks, \citeauthor{hudson2018compositional} create a robust attention-based model (MAC Network) capable of performing explicit reasoning steps without the external supervision of structured data such as scene graphs or functional programs. They demonstrate the effectiveness of the MAC network by performing experiments using the CLEVR (\cite{johnson2017clevr}) dataset, achieving a new top accuracy of 98.9\%. Additionally, they perform extensive ablations to investigate the effects of different model components on overall performance, and demonstrate its interpretability on various question types by visualising the internal attention weights of the model in terms of the original question and image. In addition to outperforming all existing SOTA models on the full CLEVR dataset, MAC networks also perform surprisingly well on subsets of CLEVR, with an accuracy of up to 35\% higher than other SOTA models on a 10\% subset. Whist the MAC network performs outstandingly on the CLEVR dataset, subsequent studies have shown that its performance decreases on more realistic datasets such as GQA (\cite{hudson2019gqa}), where it achieved only 54.6\%. When incorporating GQA scene graphs into the knowledge base, MAC network performance improved to around 84\%; this suggests that whilst the architecture of the MAC network is strong, providing more structured data to the network allows its cells to perform logical reasoning steps more effectively. In the original paper, question words and context are extracted using a bi-LSTM, however more structured data like semantic graph representations could improve both accuracy and interpretability of the model.
 
-\subsection{Fusion Methods}
+% \subsection{Fusion Methods}
 
-\subsubsection*{BLOCK: Bilinear Superdiagonal Fusion for Visual Question Answering and Visual Relationship Detection (\cite{ben2019block})}
+% \subsubsection*{BLOCK: Bilinear Superdiagonal Fusion for Visual Question Answering and Visual Relationship Detection (\cite{ben2019block})}
 
-The authors of this paper focus on the deceptively simple task of fusing multimodal data, specifically visual and textual data for VQA and VRD tasks. They present a block-superdiagonal decomposition for three-dimensional tensors, and demonstrate its effectiveness in constraining the complexity of full bilinear models. Furthermore, they link their work to the famous Tucker \cite{tucker1966some} and Candecomp/PARAFAC (CP) \cite{harshman1970foundations} decompositions, showing that the block decomposition combines both concepts, leveraging the number and size of blocks in the decomposition to find a balance between model complexity and depth of feature combinations. The decomposition is applied to both VQA and VRD tasks, compared against two baseline and six state-of-the-art fusion techniques, outperforming all existing models, despite having fewer trainable parameters than many other models. Given the focus of the paper, the authors unfortunately do not make an effort to investigate the interpretability of the model, leaving room for further experiments using more structured, interpretable input data than the image features and question vectors presented in the paper.
+% The authors of this paper focus on the deceptively simple task of fusing multimodal data, specifically visual and textual data for VQA and VRD tasks. They present a block-superdiagonal decomposition for three-dimensional tensors, and demonstrate its effectiveness in constraining the complexity of full bilinear models. Furthermore, they link their work to the famous Tucker \cite{tucker1966some} and Candecomp/PARAFAC (CP) \cite{harshman1970foundations} decompositions, showing that the block decomposition combines both concepts, leveraging the number and size of blocks in the decomposition to find a balance between model complexity and depth of feature combinations. The decomposition is applied to both VQA and VRD tasks, compared against two baseline and six state-of-the-art fusion techniques, outperforming all existing models, despite having fewer trainable parameters than many other models. Given the focus of the paper, the authors unfortunately do not make an effort to investigate the interpretability of the model, leaving room for further experiments using more structured, interpretable input data than the image features and question vectors presented in the paper.
 
-\subsection{Modular Methods}
+% \subsection{Modular Methods}
 
-\subsubsection{Neural Module Networks}
+% \subsubsection{Neural Module Networks}
 
-Whilst deep neural networks have proved useful for many classification tasks due to their inherent ability to extract correlations between input and output, they are difficult to interpret and struggle to perform complex reasoning tasks. In order to increase interpretability and coerce deep learning models to perform more structured reasoning steps, \citeauthor{andreas2016neural} \cite{andreas2016neural} proposed the creation of multiple network \textit{modules}, each capable of performing a specific reasoning step, similar to each component of the functional programs found in the CLEVR and GQA datasets.
+% Whilst deep neural networks have proved useful for many classification tasks due to their inherent ability to extract correlations between input and output, they are difficult to interpret and struggle to perform complex reasoning tasks. In order to increase interpretability and coerce deep learning models to perform more structured reasoning steps, \citeauthor{andreas2016neural} \cite{andreas2016neural} proposed the creation of multiple network \textit{modules}, each capable of performing a specific reasoning step, similar to each component of the functional programs found in the CLEVR and GQA datasets.
 
-Whilst attaining a state-of-the-art result of 58.7\% in 2016 on the VQAv1 test dataset, the per-question-type statistics report only a 2.5\% and 1.4\% performance improvement over a LSTM \cite{hochreiter1997long} language-only baseline on binary and numerical questions despite the 16\% improvement on \textit{other}-type questions. This suggests that the success of the model is likely clouded by statistical biases in the dataset, evidenced by the use of a text-only model in the ensemble shown in \figureautorefname{ \ref{fig:andreas2016neural_neural_module_network}}. As discussed by \citeauthor{hudson2018compositional}, the model depends on unreliable parsers and their ``hand-crafted'' design lacks extensibility. Moreover, attention maps on raw CNN features are used as the primary form of image data input. Whilst supplementary information like scene graphs and object annotations were not available at the time of writing, these data formats would allow for additional interactions and data transfer between modules, likely improving the network's ability to perform logical reasoning processes.
+% Whilst attaining a state-of-the-art result of 58.7\% in 2016 on the VQAv1 test dataset, the per-question-type statistics report only a 2.5\% and 1.4\% performance improvement over a LSTM \cite{hochreiter1997long} language-only baseline on binary and numerical questions despite the 16\% improvement on \textit{other}-type questions. This suggests that the success of the model is likely clouded by statistical biases in the dataset, evidenced by the use of a text-only model in the ensemble shown in \figureautorefname{ \ref{fig:andreas2016neural_neural_module_network}}. As discussed by \citeauthor{hudson2018compositional}, the model depends on unreliable parsers and their ``hand-crafted'' design lacks extensibility. Moreover, attention maps on raw CNN features are used as the primary form of image data input. Whilst supplementary information like scene graphs and object annotations were not available at the time of writing, these data formats would allow for additional interactions and data transfer between modules, likely improving the network's ability to perform logical reasoning processes.
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.75\textwidth]{module_network.png}
+%     \caption[A Neural Module Network VQA Model \cite{andreas2016neural}]{\citeauthor{andreas2016neural} propose the Neural Module Network \cite{andreas2016neural}, in which reasoning operations are strung together based on parser outputs and use combinations and transformations of attention maps on image features to predict a final answer to the question.}
+%     \label{fig:andreas2016neural_neural_module_network}
+% \end{figure}
+
+% \citeauthor{andreas2016learning} \cite{andreas2016learning} improve upon their earlier work with a more robust method for generating compositional module layouts from questions, combining LSTM embeddings of the question with representations of candidate module layouts to select a module layout using a reinforcement learning approach. This model sees only a slight improvement over their previous iteration, however provides a novel framework for a variety of graph-based reasoning tasks; the scene graphs and functional programs in CLEVR and GQA are strong supervisory training data for such models, and recent scene graph generation techniques would prove useful in generalising models to images that have not been previously annotated.
+
+
+\section{Visual Question Answering Metrics}
+
+In their seminal VQA paper, \citeauthor{malinowski2014multiworld} \cite{malinowski2014multiworld} note that traditional accuracy measures fail to capture partial correctness of answers; given a ground-truth answer `carton', the traditional accuracy metric would give zero weight to the answer `box', despite the semantic similarity between the ground-truth and predicted answers. In general, larger answer vocabularies typically lead to blurrier semantic boundaries between answer classes when compared to datasets with a smaller answer vocabulary like CIFAR \cite{krizhevsky2009learning}. Since datasets that frame the VQA problem as a classification task typically have a large answer vocabulary containing objects, numbers, colours and other concepts, it follows that an effective VQA metric should reward answers that are partially correct or share semantics with the ground-truth answer.
+
+Metric design becomes even more important when considering full-sentence answers instead of single-word answers; evaluation of full-sentence answers requires metrics that are robust under semantic and syntactic variations between predicted and ground truth answers. A variety of natural language generation (NLG) metrics \cite{papineni2002bleu, lin2004rouge, banerjee2005meteor, vedantam2015cider} have been applied to image captioning tasks \cite{chen2015microsoft, vedantam2015cider}, and are consequently applicable to open-ended VQA tasks requiring full-sentence answers. Unfortunately, none of these metrics were designed explicitly for VQA tasks, and must be considered in addition to class-based metrics to gain useful insights into model performance. 
+
+% Although I focus on VQA as a multi-class classification problem in this dissertation, I provide a brief overview of these metrics in \sectionautorefname{ \ref{subsection:open_ended_vqa_metrics}}, highlighting areas for further research into open-ended VQA metrics.
+
+In the following subsections, I explore a variety of metrics for both class-based and free-form VQA tasks as outlined in \tableautorefname{ \ref{tab:vqa_metrics_suitability}}, focusing on how they reward partially correct answers.
+
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabularx}{\linewidth}{@{}lCCCl@{}}
+        \toprule
+        \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Metric}}} & \multicolumn{3}{c}{\textbf{Suitability}}                                                           & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Common Uses}}} \\ \cmidrule(lr){2-4}
+        \multicolumn{1}{c}{}                                 & \multicolumn{1}{c}{Multi-class} & \multicolumn{1}{c}{Multi-label} & \multicolumn{1}{c}{Open-ended} & \multicolumn{1}{c}{}                                      \\ \midrule
+        Accuracy                                             & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
+        WUPS                                                 & \checkmark                      & \checkmark                      &                                & Multiple                                                  \\
+        Consensus Accuracy                                   & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
+        Consistency                                          & \checkmark                      & \checkmark                      &                                & VQA                                                       \\
+        Validity                                             & \checkmark                      &                                 &                                & VQA                                                       \\
+        Plausibility                                         & \checkmark                      &                                 &                                & VQA                                                       \\
+        Grounding                                            & \checkmark                      & \checkmark                      & \checkmark                     & VQA                                                       \\
+        Distribution                                         & \checkmark                      &                                 &                                & VQA                                                       \\
+        BLEU \cite{papineni2002bleu}                                                &                                 &                                 & \checkmark                     & Machine translation                                       \\
+        ROUGE \cite{lin2004rouge}                                                &                                 &                                 & \checkmark                     & Text summarisation                                        \\
+        METEOR \cite{banerjee2005meteor}                                              &                                 &                                 & \checkmark                     & Machine translation                                       \\
+        CIDEr \cite{vedantam2015cider}                                               &                                 &                                 & \checkmark                     & Image captioning                                          \\ \bottomrule
+    \end{tabularx}
+    \caption[Suitability of metrics for various VQA tasks]{A comparison of metrics and their suitability for various VQA tasks.}
+    \label{tab:vqa_metrics_suitability}
+\end{table}
+
+\begin{table}[htbp]
+    \begin{footnotesize}
+      \begin{tabularx}{\linewidth}{@{}lLL@{}}
+        \toprule
+            \multicolumn{1}{c}{\textbf{Metric}} & \multicolumn{1}{c}{\textbf{Advantages}}                                                    & \multicolumn{1}{c}{\textbf{Disadvantages}}                                                                                                                              \\ \midrule
+            Accuracy                            & - Simple and interpretable.                                                                & - Penalises slightly incorrect answers harshly.                                                                                                                         \\
+                                                & - Suitable for problems with a small answer set cardinality.                               & - Requires an exact set of answers for multi-label tasks.                                                                                                               \\ \midrule
+            WUPS                                & - Rewards incorrect but semantically similar answers.                                      & - Rewards answers that share a concept class \textit{e.g.} \textit{`colour'} with the true answer but have opposite meanings e.g. \textit{`white'} vs \textit{`black'}. \\ \midrule
+            Consensus Accuracy                  & - Simple and interpretable.                                                                & - Multiple correct reference answers may be contradictory.                                                                                                              \\
+                                                & - Aligns with human answers.                                                               & - Not all questions have 3 matching reference answers                                                                                                                   \\
+                                                &                                                                                            & - Reference answers are expensive to collect.                                                                                                                           \\ \midrule
+            Consistency                         & - Ensures models avoid contradictory answers to related questions.                         & - Requires a set of entailed questions for each question.                                                                                                               \\
+                                                &                                                                                            &                                                                                                                     \\ \midrule
+            Validity                            & - Measures a model's ability to respond to various question types.                         & - Requires a set of valid answers for each question type.                                                                                                               \\ \midrule
+            Plausibility                        & - Ensures models avoid nonsensical answers.                                                & - Requires scene graphs for all dataset samples.                                                                                                                        \\
+                                                &                                                                                            & - Can be imprecise for sparsely occurring objects.                                                                                                                      \\ \midrule
+            Grounding                           & - Ensures models use image data to answer questions instead of exploiting language priors. & - Only applicable to attention-based models.                                                                                                                            \\
+                                                &                                                                                            & - Requires knowledge about which image regions are relevant to each dataset sample.                                                                                     \\ \midrule
+            Distribution                        & - Ensures models respond well to all question subject-type groups                          & - Cannot be compared across datasets with different distributions.                                                                                                                                                                       \\ \midrule
+            BLEU                                & - \(n\)-grams capture positional relationships between words.                              & - Requires multiple ground truth answers for good performance.                                                                                                          \\
+                                                & - Penalises answers that are too short or too long.                                        & - Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty, an issue for VQA.                                        \\
+                                                &                                                                                            & - A zero score for any \(n\)-gram component gives a zero BLEU score.                                                                                                    \\\bottomrule
+    \end{tabularx}
+    \end{footnotesize}
+    \caption[Advantages and disadvantages of metrics for various VQA tasks]{A comparison of metrics and their advantages and disadvantages for various VQA tasks.}
+    \label{tab:vqa_metrics_comparison}
+\end{table}
+
+\subsection{Semantic Similarity Measures}
+
+\subsubsection{Wu-Palmer Similarity}
+
+Originally coined the ``conceptual similarity measure'' \cite{wu1994verbs}, the now-labelled Wu-Palmer (WUP) similarity is used to measure the semantic similarity of two concepts based on their positions in a taxonomy tree such as WordNet \cite{miller1995wordnet}. Formally, given two concepts \(A\) and \(B\) in a taxonomy tree \(T\), we define the Wu-Palmer similarity of \(A\) and \(B\) as
+
+\begin{equation}
+    WUP(A, B) = \frac{2 N_C}{N_A + N_B + 2 N_C}
+    \label{equation:wup}
+\end{equation}
+
+where \(N_A\) and \(N_B\) are the number of edges from \(A\) and \(B\) to their lowest common ancestor \(C\) respectively, and \(N_C\) is the depth of \(C\) in \(T\), as illustrated in \figureautorefname{ \ref{fig:wups_tree}}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{module_network.png}
-    \caption[A Neural Module Network VQA Model \cite{andreas2016neural}]{\citeauthor{andreas2016neural} propose the Neural Module Network \cite{andreas2016neural}, in which reasoning operations are strung together based on parser outputs and use combinations and transformations of attention maps on image features to predict a final answer to the question.}
-    \label{fig:andreas2016neural_neural_module_network}
+    \begin{forest}
+      [ROOT [C, edge=dashed, edge label={node[midway,auto]{\(N_C\)}} [A, edge=dashed, edge label={node[midway,left]{\(N_A\)}}] [B, edge=dashed, edge label={node[midway,right]{\(N_B\)}}]]]
+    \end{forest}
+    \caption[A taxonomy tree describing the relationship between two concepts.]{Given two concepts \(A\) and \(B\), \(C\) denotes the ``least common superconcept'' of A and B. (Figure adapted from \cite{wu1994verbs})}
+    \label{fig:wups_tree}
 \end{figure}
 
-\citeauthor{andreas2016learning} \cite{andreas2016learning} improve upon their earlier work with a more robust method for generating compositional module layouts from questions, combining LSTM embeddings of the question with representations of candidate module layouts to select a module layout using a reinforcement learning approach. This model sees only a slight improvement over their previous iteration, however provides a novel framework for a variety of graph-based reasoning tasks; the scene graphs and functional programs in CLEVR and GQA are strong supervisory training data for such models, and recent scene graph generation techniques would prove useful in generalising models to images that have not been previously annotated.
+Given this definition, it naturally follows that two equal concepts occupy the same position in the taxonomy tree and thus have a similarity of 1, whilst two concepts whose lowest common ancestor is the root of the tree have a similarity of 0.
 
-\section{Model Performance Summary}
+Whilst WUP similarity can capture similarities between a target and predicted concept, \citeauthor{malinowski2014multiworld} extend WUP similarity to sets of concepts, proposing the WUP set score for evaluation of multi-label classification tasks:
 
-\subsection{VQAv2.0}
+\begin{equation}
+    \textsc{WUPS}(A, B) = \frac{1}{N} \sum_{i=1}^N \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
+    \label{equation:wups}
+\end{equation}
+
+To apply this metric to VQA tasks, we let \(A\) and \(B\) be a collection of sets of predicted and ground-truth answers respectively, each of size \(N\). Noting that \(WUP(A_i, B_i) \in [0, 1]\) for each \(A_i \in A\) and \(B_i \in B\), the following useful properties of the metric become evident:
+
+\begin{enumerate}
+    \item \(WUPS(A, B) \in [0, 1]\), with \(WUPS(A, B) = 1\) when \(A = B\).
+    \item Naive models which overestimate the number of target answers will be penalised according to how dissimilar the additional provided answers are to their closest target answer.
+    \item Models which underestimate the number of target answers \textit{i.e.} \(|A_i| < |B_i|\) will be penalised, with a harsher penalty if the concepts in the target set are dissimilar.
+\end{enumerate}
+
+The authors note that WUP yields large values for related but not interchangeable concepts, noting that \(WUP(\text{carton}, \text{box}) = 0.94\) where \(WUP(\text{stove}, \text{fire extinguisher}) = 0.82\). To encourage precise answers and avoid accepting related but inaccurate answers, the authors down-weight \(WUP(a, b)\) by a ratio \(r = 0.1\) whenever it is less than some threshold \(t = 0.9\).
+
+While this down-weighting alleviates this issue for questions that query objects in an image, answers to questions about object attributes and colours are often poorly evaluated; \citeauthor{kafle2017visual} note that even after down-weighting \(WUP\) scores, \(WUPS(\text{white}, \text{black}) = 0.91\). Whilst the metric correctly rewards the answerer for correctly identifying that the answer to the question is a colour, a score of 0.91 seems too high, highlighting the non-linearity of the metric that makes it more difficult to interpret at a glance unlike other common metrics like accuracy.
+
+By nature, the metric also operates on single WordNet concepts, which often coincide with single words. To evaluate full-sentence or even multi-word answers with WUPS, we must treat sentences as a set of distinct words, disregarding essential syntactic and contextual information. This makes WUPS a poor candidate for open-ended VQA evaluation when compared to other NLG metrics such as BLEU, ROUGE, METEOR and CIDEr, as briefly discussed in \subsectionautorefname{ \ref{subsection:open_ended_vqa_metrics}} and summarised in \tableautorefname{ \ref{tab:vqa_metrics_comparison}}.
+
+%In addition to this issue, the down-weighting approach introduces two new parameters which increase the complexity and subjectivity of the metric. 
+
+
+% \[
+% \min \{\prod_{a \in A_i} \max_{b \in B_i} WUP(a, b), \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b)\} =  \begin{cases}
+%     1, &\text{if } A_i = B_i \\
+%     \prod_{b \in B_i} \max_{a \in A_i} WUP(a, b) < 1, &\text{if } A_i \subset B_i \\
+%     \prod_{a \in A_i} \max_{b \in B_i} WUP(a, b) < 1, &\text{if } A_i \supset B_i
+% \end{cases}
+% \]
+
+\subsection{Consensus Measures}
+\label{subsection:consensus_measures}
+
+\subsubsection{VQA Consensus Accuracy}
+Introduced by \citeauthor{antol2015vqa} in \citeyear{antol2015vqa}, the VQA consensus accuracy metric is the most common metric used to benchmark VQA models, due to the widespread adoption of the VQA dataset and its variants. To reward partially correct answers, VQA consensus accuracy compares a candidate answer to multiple reference answers, provided by humans via crowdsourcing platforms like Amazon Mechanical Turk (AMT) in the case of the VQA dataset. The VQA consensus accuracy metric is defined as
+
+\begin{equation}
+    \textsc{Accuracy} = \min \left( \frac{n}{3}, 1 \right)
+    \label{equation:vqa_consensus_accuracy}
+\end{equation}
+
+where \(n\) is the number of answers in the set of reference answers that match a given candidate answer, \textit{i.e.} an answer is considered entirely correct if it matches 3 or more of the 10 reference answers for the corresponding question and image.
+
+At a surface level, the metric is interpretable and can reward multiple correct and/or partially correct answers effectively, however, the latter can become a disadvantage depending on the quality of the reference answers. In their analysis of the VQAv1 dataset, \citeauthor{kafle2017visual} point out that 16.7\% of questions have less than 3 matching answers in their group of 10 reference answers, capping the performance of a perfect VQA model. A large contributor to this statistic is the presence of multi-word answers in the dataset; 89.32\% of answers in the VQAv1 dataset are single-word answers, leaving ample room for disagreement amongst reference answers.
+
+Moreover, supporting multiple correct answers is unfavourable if the correct answers are contradictory. Again, \citeauthor{kafle2017visual} identify that 13\% of VQA v1 yes/no questions contain both `yes' and `no' 3 or more times in their group of 10 reference answers, making both options entirely correct.
+
+
+% \begin{itemize}
+%     \item ``Inter-human agreement is only 83.3\%. It is impossible for an algorithm to achieve 100\% accuracy.''\cite{kafle2017visual} % no consensus answer problem
+%     \item even when counting only those answers in the VQAv2 training set that appear more than 8 times, there are still 3129 unique reference answers. After this selection,  \cite{teney2018tips}.
+% \end{itemize}
+
+\subsubsection{DAQUAR Consensus Measures}
+
+Motivated by the relatively poor human baseline performance (Accuracy: 50.20\%, WUPS@0.9:  50.82\%) on the DAQUAR dataset, \citeauthor{malinowski2015ask} extended the dataset by collecting an average of 5 reference answers for each image-question pair and developing two consensus metrics based on their previous WUPS measure:
+
+\begin{equation}
+    \textsc{WUPS}_{\text{mean}}(A, B) =     \frac{1}{NK} \sum_{i=1}^N \sum_{i=1}^K \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\}
+    \label{equation:wups_mean_consensus}
+\end{equation}
+
+
+\begin{equation}
+    \textsc{WUPS}_{\text{min}}(A, B) =     \frac{1}{N} \sum_{i=1}^N \max_{k=1}^K \left( \min \{\prod_{a \in A_i} \max_{b \in B_i} \textsc{WUP}(a, b), \prod_{b \in B_i} \max_{a \in A_i} \textsc{WUP}(a, b)\} \right)
+    \label{equation:wups_min_consensus}
+\end{equation}
+
+where \(N\), \(A\) and \(B\) are as defined in \equationautorefname{ \ref{equation:wups}}, and \(K\) is the number of reference answers for the \(i\)-th dataset sample.
+
+The mean consensus metric rewards candidate answers that coincide with more frequent reference answers, whilst the minimum consensus metric rewards candidate answers according to their similarity to the closest reference answer.
+
+\subsection{Metrics for Visual Reasoning}
+\label{subsec:visual_reasoning_metrics}
+As discussed earlier, the standard accuracy metric penalises partially correct answers as harshly as incorrect answers. When using accuracy alone, it is impossible to distinguish between a model that provides reasonable but incorrect answers and one that provides nonsensical answers. Moreover, the standard accuracy metric gives no insights into how a VQA model arrived at its answer to a given question and image.
+
+To combat these issues, \citeauthor{hudson2019gqa} developed five new metrics in tandem with their GQA dataset \cite{hudson2019gqa} to evaluate the internal reasoning processes of VQA models: Consistency, Validity, Plausibility, Grounding and Distribution.
+
+\subsubsection{Consistency}
+
+The consistency metric is motivated by the following scenario:
+
+Say we have two questions \(q_0\) and \(q_1\) that ask about properties of the same image, \textit{e.g.} \(q_0 = \)\textit{`What colour is the apple?'} and  \(q_1 = \) \textit{`Is the apple red?'}
+
+Since both questions are asking about the same apple, a consistent model is one that does not contradict itself in answering the two questions \textit{e.g.} \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`yes'} are consistent answers, where \(a_0 =\) \textit{`red'} and \(a_1 =\) \textit{`no'} are not.
+
+To calculate consistency, each question-answer pair \(q, a\) in the GQA dataset is annotated with a set of entailed questions \(E_q\). For the example above, \(q_1\) is an entailed question of \(q_0\), since knowing the answer to \(q_0\) infers the answer to \(q_1\). Given a the set of questions \(Q\) that a model answered correctly and a set entailed questions for each \(q \in Q\) denoted \(\mathcal{E} = \{E_q \mid q \in Q\}\), the consistency metric is calculated according to \algorithmcfname{ \ref{algorithm:consistency}}.
+
+\begin{algorithm}[htbp]
+    \caption[Consistency metric algorithm]{Consistency metric algorithm}
+    \label{algorithm:consistency}
+    \Function{\(Q, \mathcal{E}\)}{
+        \(s_c \leftarrow 0\)\\
+        \ForEach{\(\{q_i \in Q \mid E_{q_i} \neq \emptyset\}\)}{
+            \(s_{q_i} \leftarrow 0\)\\
+            \ForEach{
+                \(q_e \in E_{q_i}\)
+            }{
+                \lIf{
+                    \(q_e \in Q\)
+                }{
+                    \(s_{q_i} \leftarrow s_{q_i} + 1\)
+                }
+            }
+            \(s_c \leftarrow s_c + \frac{s_{q_i}}{|E_{q_i}|}\)
+        }
+        \Return \(\frac{s_c}{|\{q_i \in Q \mid E_{q_i} \neq \emptyset\}|}\)
+    }
+\end{algorithm}
+
+% On 4000 random questions of the GQA dataset, \citeauthor{hudson2019gqa} report a human consistency of 98.4, and accuracy of 89.3, indicating that humans are mostly consistent but not always accurate in their responses.
+
+Unfortunately, the consistency metric does not account for inaccurately answered questions. There is certainly an argument to be made that including incorrect answers in the consistency calculation would skew the consistency metric in favour of more accurate models. Moreover, including these incorrect answers could give large consistency scores for poorer models that exploit statistical priors in the dataset's answer distribution.
+Nonetheless, knowing consistency amongst incorrectly answered questions gives information about the model's overall reasoning skills and tendency to exploit statistical biases in certain question types. Hence, for error analysis purposes, it would be more suitable to compute consistency over incorrectly answered questions instead of computing consistency over all questions.
+
+% Multi-question learning?
+
+\subsubsection{Validity}
+
+The validity metric is the most lenient of the GQA metrics, and simply captures whether a candidate answer corresponds with the type of answer the question demands. For example, valid answers for questions starting with \textit{What colour} are colours like \textit{red} or \textit{blue}, where answers like \textit{yes} or \textit{three} would be invalid.
+
+To calculate validity, the GQA evaluation script \cite{hudson2019evaluation_script} contains a set of valid answers \(V_q\) for every question in the dataset. For each question \(q \in Q\) and its corresponding candidate answer \(\hat{a}_q\), the validity metric is simply:
+
+\begin{equation}
+    \textsc{Validity} = \frac{1}{|Q|}\sum_{q \in Q} \begin{cases}
+        1, &\text{if } \hat{a}_q \in V_q\\
+        0, &\text{otherwise }\\
+    \end{cases}
+    \label{equation:validity}
+\end{equation}
+
+\subsubsection{Plausibility}
+
+Where the validity metric aims to measure whether answers to questions are non-degenerate, plausibility measures whether the candidate answer is rational by checking for co-occurrence of the answer and the question's subject in the scene graphs for the rest of the dataset.
+
+In practice, plausibility is computed in the same way as validity, using a pre-computed set of plausible answers \(P_q\)  for each question in place of the set of valid answers \(V_q\) used in \equationautorefname{ \ref{equation:validity}}.
+
+The method used to compute \(P_q\) for each question depends on the question's type; for the GQA dataset, the scene graph contains attributes, objects and relations, meaning that plausibility needs to be computed differently depending on whether the question's answer is an object, relation or attribute. Moreover, plausibility also needs to be computed for other types of questions whose answers are not in the scene graph, such as binary and counting type questions.
+
+For the sake of brevity, I will focus on two different question types to give an intuition about how sets of plausible answers are determined.
+
+For questions that ask about an attribute of an object \(o\), an attribute is considered plausible if it co-occurs with \(o\) at least once in the scene graphs for other images in the dataset. For example, \textit{red} would be a plausible answer to the question \textit{What colour is the apple?} if the dataset contains at least one image of a red apple, where \textit{blue} would be implausible.
+
+For questions that ask about a target object \(t\) given a subject \(s\) and relation \(r\) \textit{e.g. What is the man holding?}, \(t\) is considered plausible if there exists a relation \(s, r, t\) in the scene graph for any image in the dataset. 
+
+\subsubsection{Grounding}
+
+The grounding measure is unlike other metrics in that it does not compare the quality of answers given by a VQA model. Instead, it focuses on model interpretability, ensuring models use relevant visual information to formulate answers. For example, consider a model that can answer the majority of questions about the colour of an apple correctly based purely on the fact that the most common answer to such questions is red; such a model does not utilise any visual information in its reasoning process. Conversely, a model that answers the same proportion of questions correctly by identifying the location and colour of apples in an image is a visually \textit{grounded} model, and exhibits the type of behaviour that we strive for as a research community.
+
+At its core, the grounding metric takes as input a set of sets of bounding boxes \(\hat{\mathcal{B}} = \{\hat{B}_{(q_i, r_i)} \mid ((q_i, r_i), a_i) \in S\}\) for each question-image pair \((q_i, r_i)\) in a VQA dataset \(S = \{((q_i, r_i), a_i)\}_{i=1}^n\). Each bounding box in \(\hat{B}_{(q_i, r_i)}\) corresponds to a region in the image \(r_i\) that the the model attended to when answering the associated question \(q_i\). Moreover, each bounding box \(\hat{b} \in \hat{B}_{(q_i, r_i)}\) has an associated attention value \(\alpha_{\hat{b}}\), indicating the importance assigned to that image region by the model during the question-answering process. These predicted bounding boxes and attention values are compared to a set of sets of reference bounding boxes \(\mathcal{B} = \{B_{(q_i, r_i)} \mid ((q_i, r_i), a_i) \in S\}\), where each box in \(B_{(q_i, r_i)}\) indicates the visual regions in \(r_i\) that are essential for answering question \(q_i\).
+
+The grounding metric for any \((q_i, r_i)\) pair in a dataset is defined as the total precision-based overlap between each set of predicted and reference regions \(\hat{B}_{(q_i, r_i)}\) and \(B_{(q_i, r_i)}\) respectively. For an entire dataset \(S\), per-sample grounding scores are averaged to give the final grounding metric, as outlined in \algorithmautorefname{ \ref{algorithm:grounding}}.
+
+\begin{algorithm}[htbp]
+    \caption[Grounding metric algorithm]{Grounding metric algorithm}
+    \label{algorithm:grounding}
+    \Function{\(S, \hat{\mathcal{B}}, \mathcal{B}\)}{
+        \(s_g \leftarrow 0\)\\
+        \ForEach{\(((q_i, r_i), a_i) \in S\)}{
+            \(B \leftarrow B_{(q_i, r_i)} \in \mathcal{B}\)\\
+            \(\hat{B} \leftarrow \hat{B}_{(q_i, r_i)} \in \hat{\mathcal{B}}\)\\
+            \ForEach{\(b \in B\)}{
+                \ForEach{\(\hat{b} \in \hat{B}\)}{
+                    \(\alpha_{\hat{b}} \leftarrow \text{Attention coefficient for } \hat{b}\)\\
+                    \(s_g \leftarrow s_g + \alpha_{\hat{b}} \times \frac{\text{IntersectionArea}(\hat{b}, b)}{\text{Area}(\hat{b})}\)
+                }   
+            }
+        }
+        \(s_g \leftarrow \frac{s_g}{n}\)\\
+        \Return \(s_g\)
+    }
+% # compare attention map to gold regions
+% scores = []
+% for region in regions:
+%     for cell, attention in cells:
+%         scores.append(attention * intersectionRate(cell, region))
+% return sum(scores)
+\end{algorithm}
+
+Unfortunately, any VQA model that does not use attention-based mechanisms to attend to regions or objects in an image cannot be evaluated using the grounding metric. This limitation is becoming more important, as more recent models have adopted graph-based representations of visual inputs instead of spatial or object-based image features. For this reason, I do not report grounding metric results for my model in \chapterautorefname{ \ref{chap:results}}.
+
+\subsubsection{Distribution}
+
+Given the importance of dataset balancing and the influence of language priors on model performance as discussed in \sectionautorefname{ \ref{section:vqa_datasets}}, the distribution metric compares the distributions of reference and candidate answer sets. This provides a way of measuring whether a VQA model exploits statistical priors and focuses on more common answers or whether it can predict less-frequent answers based on its knowledge of the question and image.
+
+The similarity score of the candidate and reference distributions for each question type is computed using the Pearson Chi-squared statistic \cite{pearson1900x}, and the distribution metric is a weighted average of these scores, with the weights being the number of questions of that type. I refer the reader to \cite{hudson2019gqa} for detailed analysis of question type distributions in the GQA dataset.
+
+\subsection{Metrics for Open-ended VQA}
+\label{subsection:open_ended_vqa_metrics}
+
+Given the challenge of multi-class and multi-label VQA tasks, there has been little research into open-ended VQA task, even though some datasets contain full-sentence answers for each question. In addition, research into open-ended VQA has been stunted by the lack of a widely accepted metric for the task; metrics such as BLEU, ROUGE, METEOR and CIDEr were originally developed for other tasks as shown in \tableautorefname{ \ref{tab:vqa_metrics_suitability}}, and thus have various disadvantages when used in VQA contexts.
+
+Since I focus on VQA as a multi-class classification problem in this dissertation, I keep this section brief, delving into the characteristics of BLEU to exemplify the types of issues that open-ended VQA evaluation poses. I choose to elaborate on BLEU instead of metrics with more robust characteristics like ROUGE, METEOR and CIDEr since BLEU was used for evaluation of early open-ended VQA datasets such as Visual Madlibs \cite{yu2015visual}. Moreover, since BLEU suffers from multiple weaknesses \cite{banerjee2005meteor} in the context of machine translation, it serves as a good example to illustrate common points of consideration for more advanced metrics. For the keen reader, I outline some of the key shortcomings of the BLEU metric that metrics like ROUGE, METEOR and CIDEr address at the end of this subsection.
+
+\subsubsection{BLEU}
+
+Originally developed for automatic evaluation of machine translation systems, the Bi-Lingual Evaluation Understudy (BLEU) metric was created in an effort to reduce dependence on manual evaluation methods and thus promote more rapid prototyping of ideas. The three keys to its success in the machine translation field are its efficiency, language independence and correlation with human evaluation results.
+
+In the context of machine translation, the core component of the BLEU metric compares groups of \(n\) adjacent words (\(n\)-grams) in a candidate translation to \(n\)-grams in a group of reference translations using a modified precision measure. This comparison is best described with an example:
 
 \begin{table}[htbp]
     \centering
-    \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C C C C C C @{}}
-        \hline
-        \multirow{2}{*}{\textbf{Model}} & \multicolumn{4}{c}{Test-dev} & \multicolumn{4}{c}{Test-std} \\
-        \cline{2-5}\cline{6-9}
-        & All & Yes/No & Num. & Other & All & Yes/No & Num. & Other \\
-        \hline
-        % Fusion
-        BLOCK \cite{ben2019block} & 67.58 & 83.6 & 47.33 & 58.51 & 67.92 & 83.98 & 46.77 & 58.79 \\
-        \hline
-        % Attention
-        % Graph
-    \end{tabularx}
-    \caption{A comparison of various models for different question types on the VQA v2.0 dataset.}
+    \begin{tabular}{r|l}
+        Candidate & \textbf{the} \textbf{the} the the the the the \\
+        Reference 1 & \textbf{the} cat is on \textbf{the} mat \\
+        Reference 2 & there is a cat on the mat \\
+    \end{tabular}
+    \caption[An illustration of BLEU's modified \(n\)-gram precision measure \cite{papineni2002bleu}]{An example given by \cite{papineni2002bleu} of a poor candidate translation that performs well \((7/7)\) on the standard unigram precision measure, but poorly \((2/7)\) on the modified unigram precision measure used by BLEU.}
+    \label{tab:bleu_ngraph_precision}
 \end{table}
 
-\subsection{CLEVR}
+As illustrated in \tableautorefname{ \ref{tab:bleu_ngraph_precision}}, the standard \(n\)-gram precision measure simply counts how many \(n\)-grams in the candidate translation appear in any of the reference translations, allowing poor translations that repeat common \(n\)-grams to perform well. To combat this, the BLEU metric uses a modified \(n\)-gram precision measure, where it calculates a clipped number of \(n\)-gram matches between the candidate and reference translations: in the example in \tableautorefname{ \ref{tab:bleu_ngraph_precision}}, the unclipped candidate count of the unigram \textit{the} is 7, but the clipped count is 2, since the maximum number of occurrences of the unigram \textit{the} in any reference translation is 2.
 
-% \begin{table}[htbp]
-%     \centering
-%     \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C C C @{}}
-%         \hline
-%         \multirow{2}{*}{\textbf{Model}} & \multicolumn{4}{c}{Test-dev} & Test-std \\
-%         \cline{2-5}\cline{6-6}
-%         & Y/N & Number & Other & All & All \\
-%         \hline
-%         MAC \cite{hudson2018compositional} & & & & & \\
-%         \hline
-%     \end{tabularx}
-%     \caption{A comparison of various models on the VQA dataset the accuracy metric.}
-% \end{table}
+\cite{papineni2002bleu} extend their modified \(n\)-gram precision measure to multiple sentences, however I omit this section for the sake of clarity since open-ended VQA answers are almost always phrased as single sentences.
 
-\subsection{GQA}
+Whilst these modified \(n\)-gram precisions are useful for gaining an idea of whether a candidate translation is good or bad, the BLEU metric accounts for the fact that different\(n\)-gram precisions capture different aspects of a translation. For example, unigram precision is useful for measuring whether a candidate translation uses the same words as a reference translation, but cannot account for the \textit{fluency} of a translation like bigram or trigram precisions can. To address this, the BLEU metric combines multiple modified \(n\)-gram precision scores according to \equationautorefname{ \ref{equation:bleu_metric}}.
 
-\begin{table}[htbp]
-    \centering
-    \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C @{}}
-        \hline
-        \multirow{2}{*}{\textbf{Model}} & \multicolumn{3}{c}{Test} \\
-        \cline{2-4}
-        & Binary & Open & All \\
-        \hline
-        % Fusion
-        BLOCK \cite{ben2019block} & - & - & - \\
-        \hline
-    \end{tabularx}
-    \caption{A comparison of various models for different question types on the GQA test set using the accuracy metric.}
-\end{table}
+\begin{equation}
+    \textsc{BLEU} = P_B \cdot \exp \left(\frac{1}{N} \sum_{n=1}^N \log p_n\right)
+    \label{equation:bleu_metric}
+\end{equation}
 
-\begin{table}[htbp]
-    \begin{tabularx}{\linewidth}{@{\extracolsep{4pt}} l C C C C C C @{}}
-        \hline
-        \multirow{2}{*}{\textbf{Model}} & \multicolumn{6}{c}{Test} \\
-        \cline{2-7}
-        & Distribution & Grounding & Validity & Plausibility & Consistency & Accuracy \\
-        \hline
-        % Fusion
-        BLOCK \cite{ben2019block} & - & - & - & - & - & - \\
-        \hline
-    \end{tabularx}
-    \caption{A comparison of various models on the GQA test set for multiple metrics.}
-\end{table}
+In \equationautorefname{ \ref{equation:bleu_metric}}, we see that the BLEU metric is defined as some brevity penalty \(P_B\) multiplied by the geometric mean of individual \(n\)-gram precisions \(p_n\). This brevity penalty is essential for ensuring candidate translations are not too short; a candidate translation can achieve a modified precision score of 1 if it contains a single \(n\)-gram and that \(n\)-gram is in one of the reference answers. The brevity penalty achieves this by comparing the length of the candidate translation \(c\) to the length of the reference translation closest in length to \(c\), denoted \(r\), taking a value \(< 1\) whenever \(c < r\). Moreover, the penalty decays exponentially towards zero as \(c \rightarrow 0\), as seen in \equationautorefname{ \ref{equation:bleu_brevity_penalty}}.
 
+\begin{equation}
+    P_B = \begin{cases}
+    1, &\text{if } c > r\\
+    e^{\frac{1-r}{c}}, &\text{if } c \leq r\\
+    \end{cases}
+    \label{equation:bleu_brevity_penalty}
+\end{equation}
+
+Naturally, the BLEU metric can be used for any natural language evaluation task where we need to compare a candidate sentence to a reference sentence. This includes open-ended VQA evaluation, where we compare sentence-based candidate answers to one or more reference answers.
+
+Analysing the design decisions of the BLEU metric, we see that it handles a variety of issues that apply to open-ended VQA evaluation. Firstly, it encourages responses of appropriate length; the brevity penalty ensures that candidate responses are not too short, and the modified \(n\)-gram precision measure inherently penalises responses that include superfluous \(n\)-grams not found in reference responses. This ensures that candidate responses not only get the question correct, but provide an answer in the context of a sentence. Secondly, by including \(n\)-gram precision measures for multiple values of \(n\), it ensures candidate answers are correct and fluent in their vocabulary usage.
+
+Unfortunately, there are numerous disadvantages to using the BLEU metric for open-ended VQA evaluation, some of which have been addressed by one or more of ROUGE, METEOR and CIDEr.
+Firstly, VQA datasets rarely contain multiple open-ended answers. For example, the GQA dataset \cite{hudson2019gqa} comes with a single open-ended answer per question. This means that a candidate answer that is correct but differs in phrasing to the reference answer may achieve a low BLEU score. This occurs because BLEU was originally designed for large corpora with multiple reference translations sourced from different people to promote answer variety. Even the more recent CIDEr metric is consensus based, requiring multiple image captions to evaluate the quality of a candidate description. To effectively utilise metrics like BLEU and CIDEr for open-ended VQA tasks, it is essential to have multiple candidate answers for each question in the dataset.
+Secondly, the BLEU metric does not account for synonyms or morphological variations of words. If the ground truth answer refers to a \textit{carton} but the predicted answer uses the word \textit{box}, or \textit{cartons}, we observe a decrease in \(n\)-gram precision despite the semantic or morphological similarities between words used by the candidate and reference answers. This issue is addressed in the METEOR and CIDEr metrics, making them more robust to candidate answer phrasing variations.
+Moreover, we see that open-ended VQA answers often have a large overlap with their corresponding question. For example, given the question \textit{What colour is the apple?} and a reference answer \textit{The apple is red.}, a candidate answer \textit{The apple is.} would achieve a modified unigram, bigram and trigram precision of 1 despite drawing all of its words from the question and not providing a concrete answer. This emphasises the importance of using regular multi-class VQA metrics like accuracy, validity and plausibility in tandem with NLG metrics, as a high BLEU, ROUGE, METEOR or CIDEr score may not necessarily correspond to a correctly answered question. This makes it difficult to compare the performance of VQA models since there is no one-size-fits-all metric for open-ended VQA evaluation.
+
+
+% For some \(n \geq 1\), the BLEU metric defines the modified \(n\)-gram precision as \(p_n = \frac{\sum{c \in C} \sum g_n \in c }{\sum{c' \in C} \sum g_n' \in c}\), where \(C\) is a set of candidate answers
+
+% \textbf{Motivations:}
+
+% \begin{itemize}
+%     \item Machine translation
+%     \item Human evaluation can take months
+%     \item Bi-Lingual Evaluation Understudy (BLEU) is:
+%     \begin{itemize}
+%         \item ``Quick''
+%         \item ``Inexpensive''
+%         \item ``Language independent''
+%         \item Accurate (``Correlates highly with human evaluation'')
+%     \end{itemize}
+%     \item 
+%     \item Derived from word-error-rate metric used in speech recognition, modified to allow for subtle word reorderings and substitutions.
+% \end{itemize}
+
+
+% \textbf{General Caveats:}
+
+% \begin{itemize}
+%     \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
+%     \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
+%     \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
+% \end{itemize}
+
+
+% \textbf{Application to VQA:}
+
+% Brevity penalty in the context of VQA:
+
+% {\color{red} TODO: Check image captioning paper and see if this is the adopted approach. Also check DAQUAR and COCO-QA papers.} Assume a candidate answer may contain multiple sentences and a ground truth answer may contain multiple sentences. In the most common case, the number of sentences in both the candidate and ground truth answers is 1. For cases with multiple sentences we can treat multiple sentences as a single sentence when computing \(n\)-grams, as in \cite{papineni2002bleu}. For a candidate answer of length \(c\) and a reference answer length of \(r\) (for each candidate sentence, the reference length is the corresponding ground-truth sentence with the closest length. \(r\) is the sum of these reference lengths across all sentences in the corpus, though the corpus is small for VQA applications.) The brevity penalty \(P_B\) is thus:
+
+% \begin{equation}
+%     P_B = \begin{cases}
+%     1, &\text{if } c > r\\
+%     e^{\frac{1-r}{c}}, &\text{if } c \leq r\\
+%     \end{cases}
+%     \label{equation:bleu_brevity_penalty}
+% \end{equation}
+
+% \begin{itemize}
+%     \item Relies on multiple ground truth sentences with different flavours/styles (translations for NMT, answers for VQA or image captioning). BLEU does better on a large corpus than for individual sentences.
+%     \item Performs better for entire corpora compared to individual sentences due to the corpus-level brevity penalty.
+%     \item Brevity penalty is required to avoid short answers like \textit{of the}, where there is only one \(2\)-gram which is likely to occur in ground truth answers but contains no useful contextual information.
+% \end{itemize}
+
+
+% \subsubsection{ROUGE}
+
+% \textbf{Motivations:}
+
+% \begin{itemize}
+%     \item Recall based rather than precision-based like BLEU. For text summarisation we generally prefer a candidate summary that covers a consensus of ground-truth answers.
+%     \item Different variations:
+%     \begin{itemize}
+%         \item \textsc{Rouge-N}: ``\(n\)-gram recall between a candidate summary and set of reference summaries''
+%     \end{itemize}
+% \end{itemize}
+
+% \textbf{General Caveats:}
+
+% \begin{itemize}
+%     \item 
+% \end{itemize}
+
+% \textbf{Application to VQA:}
+
+% Assume the following notation:
+
+% \(S\) is a set of ground-truth summaries (answers in the context of VQA) for a given dataset sample.
+
+% \(c\) is a candidate summary, \textit{e.g.} one produced by a model.
+
+% \(g_n\) is an \(n\) gram contained within a single summary \(s \in S\). In practice, each summary may contain multiple sentences, in which case \(n\)-grams are not computed across sentence boundaries, but for open-ended VQA answers, we can assume the answer is short and can be expressed as a single sentence.
+
+% \begin{equation*}
+%     \textsc{ROUGE -N} = {\arg \max}_{s\in S} \frac{
+%         \sum_{g_n \in s} \min \left(\text{Count}_s(g_n), \text{Count}_c(g_n) \right)
+%     }{
+%         \sum_{g_n \in s} \text{Count}_s(g_n)
+%     }
+% \end{equation*}
+
+% For VQA with a single one-sentence reference answer and one-sentence candidate answer, \textsc{Rouge-N} is simply \(n\)-gram recall.
+
+% \subsubsection{METEOR}
+
+% \textbf{Motivations:}
+
+% \begin{itemize}
+%     \item 
+% \end{itemize}
+
+% \textbf{General Caveats:}
+
+% \begin{itemize}
+%     \item 
+% \end{itemize}
+
+% \textbf{Application to VQA:}
+% \begin{itemize}
+%     \item 
+% \end{itemize}
+
+% \subsubsection{CIDEr}
+
+% \textbf{Motivations:}
+
+% \begin{itemize}
+%     \item 
+% \end{itemize}
+
+% \textbf{General Caveats:}
+
+% \begin{itemize}
+%     \item 
+% \end{itemize}
+
+% \textbf{Application to VQA:}
+% \begin{itemize}
+%     \item 
+% \end{itemize}
