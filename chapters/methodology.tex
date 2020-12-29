@@ -20,7 +20,7 @@ In this section, I propose a new model for single-concept visual question answer
 
 \textbf{Reasoning module:} Given the output features of the scene graph and question processing modules, the reasoning module is in charge of determining which visual features are relevant to the question and vice-versa. The reasoning capabilities of many existing VQA models could be leveraged here; I justify my reasoning module of choice and describe its implementation in detail in \sectionautorefname{ \ref{section:reasoning_module}}.
 
-\textbf{Output module:} The output module is the simplest part of the architecture, and is responsible for transforming the output of the reasoning module into a concrete answer to the input question. I delve into the design decisions behind the output module and how it might be modified for other VQA tasks in \sectionautorefname{ \ref{section:output_module}}.
+\textbf{Output module:} The output module is the simplest part of the architecture, and is responsible for transforming the output of the reasoning module into a concrete answer to the input question.
 
 \section{Question Embedding and Module}
 \label{section:question_embedding_and_module}
@@ -265,11 +265,17 @@ The official source code for the compositional attention network \cite{github-ma
 \section{Output Module}
 \label{section:output_module}
 
+Responsible for determining a final answer to the question, the output module takes the final memory state of the compositional attention network \(m_{-1}\) and the batch of question representations provided by the question processing module, \(\mathcal{Q}_{Q_{[i:i+k]}}\). The inclusion of the question in the output module is common practice amongst many VQA methods \cite{hudson2018compositional, li2019relation, huang2020aligned}, as it allows the output module to incorporate question information into the final answer. Inclusion of question information also serves as a fallback for any questions that ask about information not present in the visual signal, allowing the model to derive an answer based purely on information present in the question.
+
+My output module implementation is the same as the one implemented in the official compositional attention network source code. Since \citeauthor{hudson2018compositional}'s description of the compositional attention network's output module is somewhat sparse in their original paper, I provide a more detailed description of the output module in \figureautorefname{ \ref{fig:output_module}}.
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{output_module.png}
-    \caption{An overview of the output module, as implemented in the official compositional attention network source code.}
+    \caption[Output module architecture]{\textbf{Output module architecture}. An overview of the output module, as implemented in the official compositional attention network source code.}
     \label{fig:output_module}
 \end{figure}
 
-\citeauthor{hudson2018compositional}'s description of the original compositional attention network output module is somewhat sparse, so I provide a more detailed description of the ouput module used in the official source code in \figureautorefname{ \ref{fig:output_module}}. Notable inclusions over the output module presented in the original publication are the two dropout layers \(D_0\) and \(D_1\), as well as an additional question projection parameterised by \(W_p\) and \(b_p\) prior to the first dropout layer.
+Notable inclusions over the output module presented in the original publication are the two dropout layers \(D_0\) and \(D_1\), as well as an additional question projection parameterised by \(W_p\) and \(b_p\) prior to the first dropout layer. 
+
+Whilst it is common practice to use a binary cross-entropy (BCE) loss for VQA tasks \cite{teney2018tips} on datasets like VQAv2 \cite{goyal2017making} that contain multiple potentially different reference answers for each question, I use a regular multi-class cross-entropy loss since the GQA dataset only contains a single reference answer for each question. This approach is both simple to implement and provides a probability distribution over the answer vocabulary of the dataset.
