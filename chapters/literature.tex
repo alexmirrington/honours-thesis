@@ -394,6 +394,7 @@ Consequently, the majority of the VQA methods that I cover in this literature re
 % BAN: TODO
 
 \subsection{Graph Methods}
+\label{subsection:graph_methods_for_vqa}
 
 Originally proposed for node classification tasks, both the Graph Convolutional Network (GCN) \cite{kipf2016semi} and Graph Attention network (GAT) \cite{velivckovic2017graph} have gained the attention of computer vision researchers in the last three years, particularly for image-to-scene-graph \cite{yang2018graph} and text-to-scene-graph \cite{han2020victr} generation, and, more recently, visual question answering \cite{li2019relation, huang2020aligned}.
 Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with Relation-aware Graph Attention networks (ReGAT) \cite{li2019relation} achieving state-of-the-art results on the VQAv2 and VQA-CPv2 datasets in \citeyear{li2019relation}, and aligned Dual-Channel GCN (DC-GCN) \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQAv2 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using scene graph information provided in datasets like GQA and CLEVR. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information. In the remainder of this subsection, I outline how GCN and GAT architectures can be leveraged for VQA tasks, before giving a brief overview and analysis of the DC-GCN and ReGAT VQA architectures. I refer the reader to the \nomref{} for graph-specific nomenclature used in this subsection.
@@ -456,6 +457,7 @@ The implicit GAT operates on a complete graph, computing edge attentions using a
 Unlike DC-GCN, ReGAT uses existing VQA methods as its fusion module instead of a custom alignment module. The authors demonstrate its ability to provide additional information for VQA tasks, reporting improvements of 1.5-3\% compared to baseline performance for three popular VQA model \cite{anderson2018bottom, ben2017mutan, kim2018bilinear} on the VQAv2 validation set.
 
 \subsection{Attention Methods}
+\label{subsection:attention_methods_for_vqa}
 
 \subsubsection{Compositional Attention Networks}
 % Compositional Attention Networks for Machine Reasoning
