@@ -37,7 +37,7 @@ At runtime, each question token is converted to a \(d_{H_q} = 300\) dimensional 
 
 \subsubsection{Question Processing Module}
 
-Given a batch of question features \(H_{Q_{[i:i+k]}}\) from the question embedding component, the question module is responsible for learning a holistic representation of each question in the batch, as well as capturing the syntactic and contextual dependencies between words in each question. More formally, the question module learns a  \(d_{K_q}\) dimensional vector for each of the \(k\) questions in the batch, denoted \(\mathcal{Q}_{Q_{[i:i+k]}} \in \R^{k \times d_{K_q}}\), as well as a knowledge base of contextual question words \(K_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{K_q}}\).
+Given a batch of question features \(H_{Q_{[i:i+k]}}\) from the question embedding component, the question module is responsible for learning a holistic representation of each question in the batch, as well as capturing the syntactic and contextual dependencies between words in each question. More formally, the question module learns a \(d_{K_q}\) dimensional vector for each of the \(k\) questions in the batch, denoted \(\mathcal{Q}_{Q_{[i:i+k]}} \in \R^{k \times d_{K_q}}\), as well as a knowledge base of contextual question words \(K_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{K_q}}\).
 
 A variety of architectures have been used to obtain these representations in VQA contexts, the most common being recurrent models like LSTMs \cite{hochreiter1997long} or GRUs \cite{cho2014learning}, used by \cite{perez2017film, hudson2018compositional, lu2016hierarchical, yu2019deep} and \cite{anderson2018bottom, teney2018tips, li2019relation, liu2019densely, gao2019dynamic, kim2018bilinear} respectively. More recently, others have explored graph-based question processing architectures like GCNs and GATs for text classification \cite{yao2019graph, liu2020tensor} and now VQA \cite{huang2020aligned}. After trying a variety of question modules, my initial experiments showed more promising results with a traditional bidirectional LSTM, depicted in \figureautorefname{ \ref{fig:question_module_bilstm}}. I compare and analyse the performance of various question modules in \subsectionautorefname{ \ref{subsec:question_module_ablations}}.
 
@@ -240,18 +240,27 @@ Under these assumptions, we have that a GAT layer on \(\mathcal{G}_r\) has compl
 \section{Reasoning Module}
 \label{section:reasoning_module}
 
-Given the goal of the question module is to learn a dense contextual and syntactic representation of the question, and the goal of the scene graph module is to capture dependency information between objects, attributes and relations in the scene, we still need to combine and reason about this extracted information. All VQA models have to handle this multi-modal fusion and reasoning in some capacity: some adopt fusion-only approaches, whilst others learn self-attention or bidirectional attention weights between question and image modalities, and others leverage the strengths of both methods. For my model, I leverage the reasoning capabilities of the Compositional Attention Network \cite{hudson2018compositional}, a recurrent model that decomposes complex question-answering problems into discrete reasoning steps, each of which is performed by a single cell in the network. The Compositional Attention Network achieved state-of-the-art results on the CLEVR dataset in \citeyear{hudson2018compositional}, achieving {\color{red} TODO: complete}
+\subsection{Motivation}
 
-In order to leverage the computational benefits of sparse tensor operations implemented in PyG \cite{fey2019fast}, I used a PyTorch \cite{paszke2019pytorch} re-implementation of the MAC network, which has been trained to 98.6\% on the CLEVR dataset \cite{eyzaguirre2020differentiable}, just 0.3\% shy of the official result reported by 
-\citeauthor{hudson2018compositional}. Notably, this re-implementation accounts for minor details that were omitted from the original MAC network paper but enabled by default in the official MAC network repository {\color{red} citation required}.
+Given the goal of the question module is to learn a dense contextual and syntactic representation of the question, and the goal of the scene graph module is to capture dependency information between objects, attributes and relations in the scene, we still need to combine and reason about this extracted information. All VQA models have to handle this multi-modal fusion and reasoning in some capacity: some adopt fusion-only approaches, whilst others learn self-attention or bidirectional attention weights between question and image modalities, and others leverage the strengths of both methods. As discussed in \subsectionautorefname{ \ref{subsection:graph_methods_for_vqa}}, the authors of Relation-Aware Graph Attention Networks (ReGAT) use existing VQA models \cite{anderson2018bottom, ben2017mutan, kim2018bilinear} for the multi-modal fusion and reasoning component of their model. I adopt a similar approach for my model, leveraging the reasoning capabilities of the Compositional Attention Network \cite{hudson2018compositional}, a recurrent model that decomposes complex question-answering problems into discrete reasoning steps, each of which is performed by a single cell in the network. I refer the reader to \subsectionautorefname{ \ref{subsection:attention_methods_for_vqa}} for details on the internal structure of compositional attention networks.
 
-{\color{red}Partly chose compositional attention network since it is data-efficient, consequently reasonable quick to train and is well-established as a baseline model on the GQA dataset. Moreover, the compositional attention network is readily extended to any task that requires performing reasoning steps on an input signal, making it a prime candidate for replacing traditional CNN or Faster-RCNN features with scene graph embeddings.}
+I chose the compositional attention network as my core reasoning module for three primary reasons. It is data-efficient and thus consequently reasonably quick to train, and is well-established as a baseline model on the GQA dataset. Moreover, the compositional attention network is readily extended to any task that requires performing reasoning steps on an input signal, making it a prime candidate for replacing traditional CNN or Faster-RCNN \cite{ren2016faster} features with scene graph embeddings. Moreover, I postulate that choosing an input signal that is semantically similar to the question signal will allow the compositional attention network to focus more on reasoning computations than multi-modal fusion operations. In addition, better semantic alignment between the control, retrieved information and memory vectors in the network may allow for more effective reasoning computations. It is this reasoning that motivates my choice to use GloVe vectors \cite{pennington2014glove} as the initial embeddings for both scene graph and question vocabulary, as well as my decision to use the compositional attention network as my reasoning module instead of fusion based VQA methods like Bilinear Attention Networks (BAN) \cite{kim2018bilinear}.
 
-Inputs:
+\subsection{Technical Details}
 
-A knowledge-base of contextual scene graph features \(K_{R_{[i:i+k]}} \in \R^{k \times m \times d_{K_r}}\), where \(m = \max_{\mathcal{G}_r \in \mathcal{G}_{R_{[i:i+k]}}} |\mathcal{V}_r|\) is the number of nodes in the largest graph in the batch.
-A holistic question embedding \(\mathcal{Q}_{Q_{[i:i+k]}} \in \R^{k \times d_{K_q}}\)
-A knowledge base of contextual question words \(K_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{K_q}}\), where \(l\) is the length of the longest question in the batch.
+The reasoning module takes three inputs, each of which replace one of the compositional attention network's inputs:
+
+\begin{enumerate}
+    \item A holistic representation of a batch of questions \(\mathcal{Q}_{Q_{[i:i+k]}} \in \R^{k \times d_{K_q}}\), from the question processing module.
+    \item A knowledge base of contextual question words \(K_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{K_q}}\), from the question processing module.
+    \item A knowledge-base of contextual visual features \(K_{R_{[i:i+k]}} \in \R^{k \times m \times d_{K_r}}\), the output of the scene graph processing module.
+\end{enumerate}
+
+Adopting notation from the original paper, I note that the question knowledge-base \(K_q \in \R^{l_q \times d_{K_q}}\) and holistic question representation \(\mathcal{Q}_q\) serve as direct replacements for the compositional attention network's contextual word \(cw_1, ..., cw_s\) and question representation \(q\) inputs respectively.
+
+Where the compositional attention network as implemented for the GQA dataset takes a knowledge-base of \(o\) \(d_{K_o}\)-dimensional Faster-RCNN object features \(K_o \in \R^{o \times d_{K_o}}\) for each image, I provide it with a knowledge-base of contextual scene graph features \(K_r \in \R^{m_r \times d_{K_r}}\). As a result, the compositional attention network is able to attend to contextual embeddings of scene graph objects, relations and attributes instead of region-based image features.
+
+The official source code for the compositional attention network \cite{github-mac-official} was implemented in TensorFlow \cite{tensorflow2015-whitepaper}, and is thus incompatible with the PyG. In order to leverage the computational benefits of sparse tensor operations implemented in PyG, I use a PyTorch re-implementation \cite{github-mac-reimplementation} of the compositional attention network, which has been trained to 98.6\% on the CLEVR dataset \cite{eyzaguirre2020differentiable}, just 0.3\% shy of the official result reported by \citeauthor{hudson2018compositional}. Notably, this re-implementation accounts for minor discrepancies between the model reported in the original compositional attention networks paper and the model implemented in the official source code.
 
 \section{Output Module}
 \label{section:output_module}
@@ -259,18 +268,8 @@ A knowledge base of contextual question words \(K_{Q_{[i:i+k]}} \in \R^{k \times
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{output_module.png}
-    \caption{An overview of the output module, as implemented in the original paper.}
+    \caption{An overview of the output module, as implemented in the official compositional attention network source code.}
     \label{fig:output_module}
 \end{figure}
 
-\begin{itemize}
-  \item Initial tests showed little performance difference between conditioning the current control state on previous control states. % #TODOInvestigate interpretability effects
-\end{itemize}
-
-% \subsection{Bottom-up}
-% \label{subsection:bottom_up}
-%  ReLU proved to yield higher results over gated tanh when paired with GAT/GCN embeddings. In the original paper, CNN/R-CNN features are extracted in the preprocessing step, meaning there is no need for gradient propagation to the knowledge base embedding. Preliminary tests showed a need for learnable embeddings in graph convolutional models, and thus a need for end-to-end propagation of gradients.}
-
-
-
-
+\citeauthor{hudson2018compositional}'s description of the original compositional attention network output module is somewhat sparse, so I provide a more detailed description of the ouput module used in the official source code in \figureautorefname{ \ref{fig:output_module}}. Notable inclusions over the output module presented in the original publication are the two dropout layers \(D_0\) and \(D_1\), as well as an additional question projection parameterised by \(W_p\) and \(b_p\) prior to the first dropout layer.
