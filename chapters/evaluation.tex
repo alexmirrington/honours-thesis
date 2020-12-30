@@ -1,0 +1,184 @@
+\chapter{Evaluation}
+\label{chapter:evaluation}
+
+In this chapter, I introduce the setup I used for evaluating my visual question answering (VQA) model architecture. I describe important details about the GQA dataset \cite{hudson2019gqa}, analysing its composition and highlighting important points to consider when evaluating model performance. To aid the evaluation of my VQA model architecture in \chapterautorefname{ \ref{chapter:results}} and \chapterautorefname{ \ref{chapter:discussion}}, I introduce a variety of baseline and state-of-the-art VQA models, summarising their performance on the GQA dataset for a variety of metrics. Finally, I provide a detailed description of the hyperparameters of each of the components in my VQA architecture to aid the reproduction of my results.
+
+\section{Datasets}
+
+Whilst there are plenty of available datasets for visual question answering, I focus on just one for performance evaluation in this dissertation. I use the GQA dataset to evaluate the effectiveness of my VQA model architecture for three primary reasons. Firstly, it the only dataset that supports additional visual reasoning metrics such as validity, plausibility and distribution, as detailed in \subsectionautorefname{ \ref{subsec:visual_reasoning_metrics}}. Secondly, the GQA dataset is large in sample and vocabulary size and contains a balanced subset which deters models from exploiting statistical priors in question types and answer distributions, as described in \subsectionautorefname{ \ref{subsec:lanauge_priors_in_vqa_datasets}}. This makes it a suitable benchmark for evaluating the reasoning capabilities of VQA models when combined with the compositional nature of its questions. Finally, the GQA dataset contains scene graph annotations for its training and validation sets. Whilst other datasets contain scene graph annotations, these scene graphs are either too limited in their object, attribute and relationship vocabulary (\textit{e.g.} CLEVR \cite{johnson2017clevr} with 3 unique objects, 5 unique relations and 12 unique attributes), or their object, attribute and relationship vocabulary is extremely large (\textit{e.g.} Visual Genome (VG) \cite{krishna2017visual} with 75,729 unique objects, 40,480 unique relationships and 40,513 unique attributes). Instead of manually normalising the vocabulary of VG scene graphs and using VG to evaluate my model architecture, it is wiser to leverage GQA scene graphs, which are derived from VG scene graphs and comprise an already normalised vocabulary of 
+1740 unique objects, 620 unique attributes and 330 unique relations.
+
+In total, the GQA dataset comprises 22M question-image pairs, with 113M unique images. These question-image pairs are distributed across the training, validation, testing, development testing (test-dev) and challenge splits, ensuring that all question-image pairs with the same image are included in the same split. In total, the full training set contains around 77.1\% of all question-image pairs, the validation set contains 10.8\%, the test set 7.2\%, test-dev set 0.9\% and challenge set 3.8\%. The balanced portion of the GQA is much smaller, as many questions were omitted to smooth question type and answer distributions as detailed in \subsectionautorefname{ \ref{subsec:lanauge_priors_in_vqa_datasets}}. As a result, the balanced training, validation, test, test-dev and challenge sets contain 943,000, 132,062, 95,336, 12,578 and 50,726 question-image pairs respectively. Most importantly, the GQA dataset contains publicly-available scene graph annotations for the full train and validation sets, but not for the test, test-dev or challenge sets. Consequently, for all results and ablations, I train models on the balanced training set, I use the first half of the balanced validation set for hyperparameter optimisation, and use the second half of the balanced validation set as a test set.
+
+The full GQA dataset has a total vocabulary size of 3,097 words, and an answer vocabulary of 1,878. The scene graphs (including those not available to the public) span a total of 1740 unique objects, 620 unique attributes and 330 unique relations. On average, the scene graph for each image contains 16-17 different objects, possibly with the same label. Additionally, each object is is related to an average of 3 other objects, and is associated with an average of 0.5 attributes. In reality, we typically see multiple attributes for more salient objects in the image, and none for less prominent objects.
+
+
+{\color{red} TODO: More info on GQA dataset statistics, particularly on semantic and structural type distributions. Most of this can be pulled from the GQA website or original paper.}
+
+% All Questions:
+% 14305356 train, 2011853 val, 1340048 test, 172174 testdev, 713449 challenge
+
+% Balanced Questions:
+% 943000 train, 132062 val, 95336 test, 12578 testdev, 50726 challenge
+
+% Image splits:
+% 74942 train, 10696 val
+
+
+\section{Baselines}
+
+\textbf{LXMERT \cite{tan2019lxmert}}
+
+
+\textbf{BAN \cite{kim2018bilinear}}
+
+\textbf{Compositional Attention Networks (MAC) \cite{hudson2018compositional}}
+
+\textbf{Graph Relation Networks (GRN) \cite{guo2019bilinear}}
+
+% \begin{table}[htbp]
+%     \begin{footnotesize}
+%         \begin{tabularx}{\linewidth}{@{}lCccCcCC@{}}
+%             \toprule
+%             \multirow{2}{*}{\textbf{Model}} & \multicolumn{7}{c}{GQA Test-standard} \\
+%             \cmidrule{2-8}
+%             & Accuracy & Binary & Open & Consistency & Validity & Plausibility & Distribution \\
+%             \midrule
+%             Human \cite{hudson2019gqa} & 89.30 & 91.20 & 87.40 & 98.40 & 98.90 & 97.20 & - \\
+%             \midrule
+%             Global Prior \cite{hudson2019gqa} & 28.90& 42.94 & 16.62 & 51.69 & 88.86 & 74.81 & 93.08\\
+%             Local Prior \cite{hudson2019gqa} & 31.24 & 47.90 & 16.66 & 54.04 & 84.33 & 84.31 & 13.98\\
+%             LSTM \cite{hudson2019gqa} & 41.07 & 61.90 & 22.69 & 68.68 & 96.39 & 87.30 & 17.93\\
+%             CNN \cite{hudson2019gqa} & 17.82 & 36.05 & 1.74 & 62.40 & 35.78 & 34.84 & 19.99\\
+%             LSTM + CNN \cite{hudson2019gqa} & 46.55 & 63.26 & 31.80 & 74.57 & 96.02 & 84.25 & 7.46\\
+%             \midrule
+%             Bottom-Up \cite{anderson2018bottom} & 49.74 & 66.64 & 34.83 & 78.71 & 96.18 & 84.57 & 5.98\\
+%             MAC \cite{hudson2018compositional} & 54.06 & 71.23 & 38.91 & 81.59 & 96.16 & 84.48 & 5.34\\
+%             BAN \cite{kim2018bilinear} & 57.10 & 76.00 & 40.41 & 91.70 & 96.16 & 85.58 & 10.52\\
+%             LXMERT \cite{tan2019lxmert} & 60.33 & 77.16 & 45.47 & 89.59 & 96.35 & 84.53 & 5.69\\ % val 59.80%, 60.00% test-dev
+%             TRRNet \cite{yangtrrnet} & 60.74 & 77.83 & 45.65 & 90.95 & 96.40 & 85.15 & -\\
+%             GRN \cite{guo2019bilinear} & 61.22 & 78.69 & 45.81 & 90.31 & 96.36 & 85.43 & 6.77\\
+%             NSM \cite{hudson2019learning} & 63.17 & 78.94 & 49.25 & 93.25 & 96.41 & 84.28 & 3.71\\
+%             TRRNet\(^*\) \cite{yangtrrnet} & 63.20 & 77.91 & 50.22 & 89.84 & 96.47 & 85.15 & 5.25 \\
+%             \midrule
+%             LXMERT\(^\dagger\) \cite{tan2019lxmert} & 62.71 & 79.79 & 47.64 & 93.1 & 96.36 & 85.21 & 6.42\\
+%             NSM\(^\dagger\)	& 67.55 & 80.45 & 56.16 & 93.83 & 96.53 & 84.16 & 2.78\\
+%             HAN\(^{\dagger*}\)\cite{kim2020hypergraph} & 73.33 & 79.68 & 67.73 & 77.02 & 96.36 & 83.70 & 2.46\\
+%             TRRNet\(^{\dagger*}\) \cite{yangtrrnet} & 74.03 & 82.12 & 66.89 & 89.00 & 96.76 & 83.58 & 1.29\\
+%             \bottomrule
+%         \end{tabularx}
+%         \caption[Baseline and state-of-the-art VQA model performance on the GQA test-standard set]{A comparison of various models on the GQA test set for multiple metrics, including top models from the GQA challenge leaderboard \cite{gqachallenge} for which results have been formally published. Models marked with a \(^*\) use scene graph and/or functional program annotations during training, and those marked with a \(^\dagger\) are ensemble models.}
+%     \end{footnotesize}
+% \end{table}
+
+Where possible, I source GQA validation set scores for a variety of GQA models. In general, we see improvements of up to 
+
+
+
+73.65 MAC + object, attribute, relation identities.
+
+% \cite{guo2019bilinear}
+% BAN-4 × 1 44.8M 61.95
+% BAN-4 × 2 79.4M 62.60
+% BAN-4 × 3 115.8M 61.98
+% Inter × 1 32.9M 61.88
+% Inter × 1 + Intra × 1 51.8M 63.50
+% Inter × 1 + Intra × 2 70.7M 63.80
+% Inter × 1 + Intra × 3 89.6M 63.60
+% (Inter + Intra) × 2 96.9M 64.07
+% (Inter + Intra) × 3 142.1M 64.22
+
+
+\section{Implementation Details}
+
+Since my model architecture uses only the train and validation sets, I build a question vocabulary of 2,912 case-sensitive words, and a scene graph vocabulary of \(|S_o| = 1703\) unique objects, \(|S_a| = 617\) unique attributes and \(|S_r| = 310\) unique relations using the combined train and validation questions and scene graph annotations respectively. Moreover, the output module of my architecture predicts an answer from one of 1,842 possible answers in the combined balanced train and validation sets, slightly less than the 1,878 answers in the full GQA set.
+
+Rigorous initial tests were performed - reported and non-reported results represent 159 days of GPU computation time.
+
+\begin{verbatim}
+  "model": {
+    "name": "vqa",
+    "reasoning": {
+      "name": "mac",
+      "length": 4,
+      "hidden_dim": 512
+    },
+    "question": {
+      "embedding": {
+        "init": "glove",
+        "dim": 300,
+        "trainable": false,
+        "average_mwt": true
+      },
+      "module": {
+        "name": "lstm",
+        "hidden_dim": 256,
+        "bidirectional": true
+      }
+    },
+    "scene_graph": {
+      "embedding": {
+        "init": "glove",
+        "dim": 300,
+        "trainable": true,
+        "average_mwt": true
+      },
+      "graph": {
+        "directed": true,
+        "object_skip_edges": true,
+        "aggregation": null
+      },
+      "module": {
+        "name": "gcn",
+        "conv": "gat",
+        "layers": 3,
+        "dim": 256,
+        "pooling": null,
+        "heads": 4,
+        "concat": true
+      }
+    }
+  },
+  "training": {
+    "epochs": 32,
+    "log_step": 1024,
+    "dataloader": {
+      "batch_size": 16,
+      "workers": 1
+    },
+    "optimiser": {
+      "name": "adam",
+      "learning_rate": 4.761103570438788e-05,
+      "momentum": null,
+      "weight_decay": 0,
+      "grad_clip": 8,
+      "schedule": false
+    },
+    "data": {
+      "features": [
+        {
+          "name": "questions",
+          "artifact": "gqa-preprocessed:v11"
+        },
+        {
+          "name": "scene_graphs",
+          "artifact": "gqa-preprocessed:v11"
+        }
+      ],
+      "train": {
+        "split": "train",
+        "version": "balanced"
+      },
+      "val": {
+        "split": "val",
+        "version": "balanced",
+        "subset": [0.0, 0.5]
+      },
+      "test": {
+        "split": "val",
+        "version": "balanced",
+        "subset": [0.5, 1.0]
+      }
+    }
+  }
+\end{verbatim}
