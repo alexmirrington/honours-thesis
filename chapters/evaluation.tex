@@ -8,13 +8,6 @@ In this chapter, I introduce the setup I used for evaluating my visual question 
 Whilst there are plenty of available datasets for visual question answering, I focus on just one for performance evaluation in this dissertation. I use the GQA dataset to evaluate the effectiveness of my VQA model architecture for three primary reasons. Firstly, it the only dataset that supports additional visual reasoning metrics such as validity, plausibility and distribution, as detailed in \subsectionautorefname{ \ref{subsec:visual_reasoning_metrics}}. Secondly, the GQA dataset is large in sample and vocabulary size and contains a balanced subset which deters models from exploiting statistical priors in question types and answer distributions, as described in \subsectionautorefname{ \ref{subsec:lanauge_priors_in_vqa_datasets}}. This makes it a suitable benchmark for evaluating the reasoning capabilities of VQA models when combined with the compositional nature of its questions. Finally, the GQA dataset contains scene graph annotations for its training and validation sets. Whilst other datasets contain scene graph annotations, these scene graphs are either too limited in their object, attribute and relationship vocabulary (\textit{e.g.} CLEVR \cite{johnson2017clevr} with 3 unique objects, 5 unique relations and 12 unique attributes), or their object, attribute and relationship vocabulary is extremely large (\textit{e.g.} Visual Genome (VG) \cite{krishna2017visual} with 75,729 unique objects, 40,480 unique relationships and 40,513 unique attributes). Instead of manually normalising the vocabulary of VG scene graphs and using VG to evaluate my model architecture, it is wiser to leverage GQA scene graphs, which are derived from VG scene graphs and comprise an already normalised vocabulary of 
 1740 unique objects, 620 unique attributes and 330 unique relations.
 
-In total, the GQA dataset comprises 22M question-image pairs, with 113M unique images. These question-image pairs are distributed across the training, validation, testing, development testing (test-dev) and challenge splits, ensuring that all question-image pairs with the same image are included in the same split. In total, the full training set contains around 77.1\% of all question-image pairs, the validation set contains 10.8\%, the test set 7.2\%, test-dev set 0.9\% and challenge set 3.8\%. The balanced portion of the GQA is much smaller, as many questions were omitted to smooth question type and answer distributions as detailed in \subsectionautorefname{ \ref{subsec:lanauge_priors_in_vqa_datasets}}. As a result, the balanced training, validation, test, test-dev and challenge sets contain 943,000, 132,062, 95,336, 12,578 and 50,726 question-image pairs respectively. Most importantly, the GQA dataset contains publicly-available scene graph annotations for the full train and validation sets, but not for the test, test-dev or challenge sets. Consequently, for all results and ablations, I train models on the balanced training set, I use the first half of the balanced validation set for hyperparameter optimisation, and use the second half of the balanced validation set as a test set.
-
-The full GQA dataset has a total vocabulary size of 3,097 words, and an answer vocabulary of 1,878. The scene graphs (including those not available to the public) span a total of 1740 unique objects, 620 unique attributes and 330 unique relations. On average, the scene graph for each image contains 16-17 different objects, possibly with the same label. Additionally, each object is is related to an average of 3 other objects, and is associated with an average of 0.5 attributes. In reality, we typically see multiple attributes for more salient objects in the image, and none for less prominent objects.
-
-
-{\color{red} TODO: More info on GQA dataset statistics, particularly on semantic and structural type distributions. Most of this can be pulled from the GQA website or original paper.}
-
 % All Questions:
 % 14305356 train, 2011853 val, 1340048 test, 172174 testdev, 713449 challenge
 
@@ -24,6 +17,119 @@ The full GQA dataset has a total vocabulary size of 3,097 words, and an answer v
 % Image splits:
 % 74942 train, 10696 val
 
+
+In total, the GQA dataset comprises 22M question-image pairs, with 113M unique images. These question-image pairs are distributed across the training, validation, testing, development testing (test-dev) and challenge splits, ensuring that all question-image pairs with the same image are included in the same split. In total, the full training set contains around 77.1\% of all question-image pairs, the validation set contains 10.8\%, the test set 7.2\%, test-dev set 0.9\% and challenge set 3.8\%. The balanced portion of the GQA is much smaller, as many questions were omitted to smooth question type and answer distributions as detailed in \subsectionautorefname{ \ref{subsec:lanauge_priors_in_vqa_datasets}}. As a result, the balanced training, validation, test, test-dev and challenge sets contain 943,000, 132,062, 95,336, 12,578 and 50,726 question-image pairs respectively. Most importantly, the GQA dataset contains publicly-available scene graph annotations for the full train and validation sets, but not for the test, test-dev or challenge sets. Consequently, for all results and ablations, I train models on the balanced training set, I use the first half of the balanced validation set for hyperparameter optimisation, and use the second half of the balanced validation set as a test set.
+
+The full GQA dataset has a total vocabulary size of 3,097 words, and an answer vocabulary of 1,878. The scene graphs (including those not available to the public) span a total of 1740 unique objects, 620 unique attributes and 330 unique relations. On average, the scene graph for each image contains 16-17 different objects, possibly with the same label. Additionally, each object is is related to an average of 3 other objects, and is associated with an average of 0.5 attributes. In reality, we typically see multiple attributes for more salient objects in the image, and none for less prominent objects.
+
+Moreover, more salient objects tend to be more common in GQA scene graphs overall, since the original VG scene graphs were annotated by humans, whose eyes are naturally drawn towards more salient objects in images. As illustrated in \figureautorefname{ \ref{fig:gqa_scene_graph_object_relation_attribute_distribution}}, large objects like \textit{window, man, tree, building, etc.} tend to be more common than less salient objects or parts of objects like \textit{ear} and \textit{eye}.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.33\textwidth}
+        \includegraphics[width=\textwidth]{gqa_top_objects.png}
+        \label{fig:gqa_top_objects}
+        \caption{Top 25 GQA objects.}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{gqa_top_attributes.png}
+        \label{fig:gqa_top_attributes}
+        \caption{Top 25 GQA attributes.}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.33\textwidth}
+        \includegraphics[width=\textwidth]{gqa_top_relations.png}
+        \label{fig:gqa_top_relations}
+        \caption{Top 25 GQA relations, excluding left and right.}
+    \end{subfigure}
+    \caption[An overview of GQA object, attribute and relation distributions.]{An overview of the objects, attributes and relations present in the GQA scene graphs, sorted by frequency. Figures are sourced from the GQA dataset website \cite{hudson2019gqa_website}.}
+    \label{fig:gqa_scene_graph_object_relation_attribute_distribution}
+\end{figure}
+
+The majority of the most common attributes found in GQA scene graphs are colours. Some size-related attributes such as \textit{large, small, tall} and \textit{long} appear frequently as well, in addition to material-related attributes like \textit{wood} and \textit{glass}.
+
+The most common scene graph relations in the GQA dataset are \textit{to the left of} and \textit{to the right of}, and have been excluded from the list of top relations to avoid dwarfing other relation types. Spatial relations like \textit{on, near, in, in front of, behind, next to, etc.} are the most common, but semantic relations containing verbs like \textit{holding, sitting, standing, carrying, riding} also comprise a large percentage of total relation types.
+
+Despite the large variation in object, attribute and relation frequencies between different types displayed in \figureautorefname{ \ref{fig:gqa_scene_graph_object_relation_attribute_distribution}}, it is essential to note that the GQA dataset's balancing process accounts for both the question type and the subject of the question as described in \sectionautorefname{ \ref{section:vqa_datasets}}. For example, in the full GQA dataset, it might be reasonable to assume that questions about the material of a \textit{table} will have the answer \textit{wood} more often than less common materials like \textit{metal} or \textit{glass}. To create the balanced GQA subset, a subset of all questions about the material of a \textit{table} are chosen so that less common materials are more common in the answer distribution. As a result, even though attributes like \textit{metal} or \textit{glass} are less common than \textit{wood} in GQA scene graphs as a whole, the questions that ask about these attributes are more balanced in their answer distributions. This encourages VQA models to learn to identify and reason about less common scene graph objects, attributes and relations, and is one of the primary reasons why I choose to train my VQA model on the balanced portion of the GQA dataset instead of the full, unbalanced dataset.
+
+To aid the evaluation of a VQA model's reasoning capabilities on different types of questions, every question in the GQA dataset is labelled as either \textit{open} or \textit{binary}, and is annotated with a semantic and a structural type. There are five structural types (query, compare, choose, logical and verify), and five semantic types (global, object, attribute, relation and category). I provide some example questions with various structural and semantic type combinations in \tableautorefname{ \ref{table:gqa_question_samples}}.
+
+\begin{table}[htbp]
+    \centering
+    \begin{footnotesize}
+    \begin{tabularx}{\linewidth}{cccL}
+        \toprule
+        \textbf{Type} & \textbf{Structural} & \textbf{Semantic} & \textbf{Example Question}\\
+        \midrule
+        % queryGlobal
+        Open & Query & Global & How is the weather in the image?\\
+        % % chooseGlobal
+        % Open & Query & Global & Is it sunny or cloudy?\\
+        % queryAttr
+        Open & Query & Attribute & What color is the apple?\\
+        % queryRel
+        Open & Query & Relation & What is the small girl wearing?\\
+        % queryObject
+        Open & Query & Category & What kind of fruit is on the table?\\
+        % chooseAttr
+        Open & Choose & Attribute & Is the apple green or red?\\
+        % chooseRel
+        Open & Choose & Relation & Is the cat to the left or to the right of the flower?\\
+        % chooseObjRel
+        Open & Choose & Relation & What is the boy eating, an apple or a slice of pizza?\\
+        % chooseObject
+        Open & Choose & Category & What kind of fruit is it, an apple or a banana?\\
+        % common
+        Open & Compare & Object & What is common to the shirt and the flower?\\
+        % verifyGlobal
+        Binary & Verify & Global & Is it cloudy today?\\
+        % exist
+        Binary & Verify & Object & Is there an apple in the picture?\\
+        % verifyAttr
+        Binary & Verify & Attribute & Is the apple red?\\
+        % % existRel
+        % Binary & Verify & Relation & Is there an apple on the black table?\\
+        % verifyRel
+        Binary & Verify & Relation & Is she wearing a blue dress?\\
+        % logicOr
+        Binary & Logical & Object & Do you see either an apple or a banana there?\\
+        % verifyAttrs
+        Binary & Logical & Attribute & Is the apple red and shiny?\\
+        % logicAnd
+        Binary & Logical & Object, Attribute & Do you see both green apples and bananas there?\\
+        % % compare
+        % Binary & Compare & Object & Who is taller, the boy or the girl?\\
+        % twoSame
+        Binary & Compare & Object & Does the shirt and the flower have the same color?\\
+        % % twoDiff
+        % Verify & Compare & Object & Are the table and the chair made of different materials?\\
+        % % allSame
+        % Verify & Compare & Object & Are all the people there the same gender?\\
+        % % allDiff
+        % Verify & Compare & Object & Are the animals in the image of different types?\\
+        \bottomrule
+    \end{tabularx}
+    \caption{A selection of questions from the GQA dataset and their corresponding semantic and structural types, adapted from the GQA supplementary material \cite{hudson2019gqa_preprint}.}
+    \label{table:gqa_question_samples}
+    \end{footnotesize}
+\end{table}
+
+As seen in \tableautorefname{ \ref{table:gqa_question_samples}}, binary question types can always be answered with either \textit{yes} or \textit{no}, where \textit{open} question types require answering with one of the 1,878 concepts in the GQA answer vocabulary. Naturally, I would expect that most models would perform better on binary questions than open questions.
+
+Inspecting structural types, we see that the \textit{query} and \textit{choose} structural types only apply to \textit{open} questions, as they require answering with an object, relation or attribute from the image, rather than with \textit{yes} or \textit{no}. The \textit{compare} structural type is applicable to both binary and open questions, depending on question phrasing; open comparisons usually require reasoning about what is the same or different between two objects, where binary comparisons only require identifying if a certain property is the same or different. Finally, the \textit{verify} and \textit{logical} structural types apply to binary questions, as they aim to determine whether a specific combination of object, relationships and/or attributes exists.
+
+The semantic type of a question is related to its subject; questions belonging to the \textit{global} semantic type ask about properties of the image as a whole instead of individual objects, attributes and relations. Conversely, questions belonging to the \textit{object}, \textit{attribute} or \textit{relation} semantic type naturally query about object, attributes and/or relations in the scene. Interestingly, the \textit{category} semantic type is only applicable to \textit{open}-type questions, as they require the a VQA model to identify that an object is part of a certain category, \textit{e.g.} that an \textit{apple} is a type of fruit. Converting the question \textit{What kind of fruit is on the table?} to a binary question would result in a question like \textit{Is the apple on the table a kind of fruit?}, which doesn't require a visual signal to answer effectively.
+
+I delve into the semantic and structural question type distributions for the portion of the GQA dataset used for result collection in \sectionautorefname{ \ref{sec:ablation_studies}}, as it is important to consider when comparing model performance on different types of questions.
+
+From the dataset analysis above, there are a few hypotheses that we can make about how my model might perform for various question types:
+
+\begin{enumerate}
+    \item Given that binary questions are generally easier to answer than open questions, we should see a higher accuracy on binary questions than open-type questions for my model architecture and variations thereof.
+    \item Since my model architecture only uses object, attribute and relation scene graph information as its visual signal, we should see lower performance on questions belonging to the \textit{global} semantic when compared to questions belonging to the \textit{object}, \textit{attribute} or \textit{relation} semantic types.
+    \item My model should perform well on questions belonging to the \textit{verify} or \textit{logical} structural types, as they mostly require reasoning over a localised neighbourhood of object, relations and attributes, and are only applicable to binary question types.
+\end{enumerate}
+
+I will discuss these hypotheses in detail in \sectionautorefname{ \ref{sec:ablation_studies}}.
 
 \section{Baselines}
 

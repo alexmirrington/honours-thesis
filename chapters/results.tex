@@ -47,7 +47,21 @@ For all ablation studies in this chapter, I train models on the balanced GQA tra
     \label{fig:test_reasoning_step_and_question_length_distribution}
 \end{figure}
 
-
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{gqa_semantic_types.png}
+        \label{fig:test_semantic_types}
+        \caption{GQA semantic type distribution.}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{gqa_structural_types.png}
+        \label{fig:test_structural_types}
+        \caption{GQA structural type distribution.}
+    \end{subfigure}
+    \caption{Distribution of structural and semantic question types across the second half of the balanced GQA validation set.}
+    \label{fig:test_structural_and_semantic_distribution}
+\end{figure}
 
 \subsection{Question Module Ablations}
 \label{subsec:question_module_ablations}
