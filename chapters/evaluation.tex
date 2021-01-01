@@ -149,6 +149,8 @@ To show the effectiveness of the joint representation \(f\), the authors collect
 
 % \textbf{Modular Co-Attention Networks (MCAN)} \cite{yu2019deep}:
 
+\textbf{Compositional Attention Networks (MAC)} \cite{hudson2018compositional}: As introduced in \subsectionautorefname{ \ref{subsection:attention_methods_for_vqa}}, the compositional attention network is a widely accepted VQA baseline for the GQA dataset. Its recurrent cell design promotes decomposing a question into discrete reasoning steps, where two values are passed from cell to cell: The first is a control vector, responsible for determining which part of the question to attend to for a given reasoning step. The second is a memory vector, which contains the intermediate result of the current reasoning process. As originally implemented for the GQA dataset, the compositional attention network relies on a BiLSTM-encoded question representation and a knowledge-base of Faster R-CNN \cite{ren2016faster} object features as its visual signal, however its knowledge-base is easily replaced with scene graph features as discussed in \sectionautorefname{ \ref{section:performance_evaluation}}.
+
 \textbf{Mutual and Self Attention (MSA)} \cite{farazi2020attention}: The three primary inputs to the MSA model are a question representation \(q\), a visual representation \(v\) and a collection of semantic relationships \(r\). From these inputs, the MSA module computes eight attention distributions which it fuses together, four from \(q\) and \(r\), and four from \(q\) and \(v\). Taking \(q\) and \(r\) as an example, the MSA module computes the following:
 
 \begin{itemize}
@@ -158,9 +160,8 @@ To show the effectiveness of the joint representation \(f\), the authors collect
     \item The attention distribution over \(r\), guided by a linear transformation of \(\psi_{r, q}\), where \(\psi_{r, q}\) is a multi-head attention distribution over \(r\), guided by \(q\). This emphasises relationship features that are deemed important to answering the question.
 \end{itemize}
 
-The authors achieve promising results with this setup using various combinations of features for \(r\) and \(v\), from Faster R-CNN and bounding box features to pre-annotated scene graph features from the GQA dataset.
-
-\textbf{Compositional Attention Networks (MAC)} \cite{hudson2018compositional}: As introduced in \subsectionautorefname{ \ref{subsection:attention_methods_for_vqa}}, the compositional attention network is a widely accepted VQA baseline for the GQA dataset. Its recurrent cell design promotes decomposing a question into discrete reasoning steps, where two values are passed from cell to cell: The first is a control vector, responsible for determining which part of the question to attend to for a given reasoning step. The second is a memory vector, which contains the intermediate result of the current reasoning process. As originally implemented for the GQA dataset, the compositional attention network relies on a BiLSTM-encoded question representation and a knowledge-base of Faster R-CNN \cite{ren2016faster} object features as its visual signal, however its knowledge-base is easily replaced with scene graph features as discussed in \sectionautorefname{ \ref{section:performance_evaluation}}.
+The authors achieve promising results with this setup using various combinations of features for \(r\) and \(v\), with their best model representing using Faster R-CNN and bounding box features in its visual signal \(v\) and word embeddings for subject,
+object and relationship labels as the foundation of its semantic relationship signal \(r\). Moreover, the authors evaluate their model using pre-annotated scene graph features from the GQA dataset instead of generated features.
 
 % \begin{table}[htbp]
 %     \begin{footnotesize}
