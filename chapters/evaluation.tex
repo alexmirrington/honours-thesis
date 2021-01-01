@@ -133,14 +133,34 @@ I will discuss these hypotheses in detail in \sectionautorefname{ \ref{sec:ablat
 
 \section{Baselines}
 
-\textbf{LXMERT \cite{tan2019lxmert}}
+To gain a better understanding of how my well my model architecture performs on the GQA dataset, I compare it to a variety of current baseline and state-of-the-art methods in \chapterautorefname{ \ref{chapter:results}}. To understand why some models perform better than others, I introduce these baseline VQA models in this section, summarising their key components and highlighting the type of visual data that they use for the VQA task.
 
+\textbf{LXMERT} \cite{tan2019lxmert}: Motivated by the success of transformer-based models \cite{vaswani2017attention} for Natural Language Processing (NLP) tasks, \citeauthor{tan2019lxmert} built LXMERT for learning general multi-modal representations. In the context of VQA, the LXMERT model uses two self-attention transformer encoders and one cross-modality transformer encoder. The first self-attention encoder is responsible for attending to Faster R-CNN \cite{ren2016faster} and bounding box features, and the second second is a language encoder, which attends to word features. The outputs of these encoders are fed to the cross-modality encoder, which employs a bi-directional attention flow between the visual and textual encodings to align the two modalities, followed by separate self-attention layers to allow the model to attend to any newly-discovered important features after multi-modal alignment.
 
-\textbf{BAN \cite{kim2018bilinear}}
+\textbf{Bilinear Attention Networks (BAN)} \cite{kim2018bilinear}: In the context of VQA, co-attention methods capture which parts of the question are important given the visual signal as a whole, and vice versa. Bilinear attention methods capture which parts of the question are important given each feature of the visual signal and vice-versa, making them much more expressive, but computationally expensive. \citeauthor{kim2018bilinear} build upon low-rank bilinear modelling techniques \cite{wolf2007modeling, pirsiavash2009bilinear} to approximate bilinear interactions between textual and visual input signals as follows:
 
-\textbf{Compositional Attention Networks (MAC) \cite{hudson2018compositional}}
+Given a matrix of question features \(Q \in \R^{n_Q \times d_Q}\) and a matrix of visual features \(R \in \R^{n_R \times d_R}\), BAN learns a bilinear attention map \(\mathcal{A} \in \R^{d_Q \times d_R}\), where each pre-softmax entry of \(\mathcal{A}\) is defined as \(\mathcal{A}_{ij} = p^\top((U^\top Q_i) \circ (V^\top R_j))\), where \(U \in \R^{d_Q \times k}\) and \(V \in \R^{d_R \times k}\) are projection matrices that project \(Q\) and \(R\) respectively onto a common dimension and \(p \in \R^{k}\) pools the elements of \((U^\top Q_i) \circ (V^\top R_j)\) into a single value.
 
-\textbf{Graph Relation Networks (GRN) \cite{guo2019bilinear}}
+For each attention map \(\mathcal{A}\), BAN creates a joint embedding of \(Q\) and \(R\), \(f \in \R^C = \text{BAN}(Q, R; \mathcal{A}) = P^\top f'\) where \(P \in \R^{K \times C}\) is a pooling matrix that combines intermediate joint features \(f'\). Each element of \(f'\) models a bilinear combination of projected input features \(\sigma (Q^\top U')\) and \(\sigma (R^\top V')\), using \(\mathcal{A}\) as a bilinear weight matrix, \textit{i.e.} \(f'_k = \sigma (Q^\top U')^\top_k \cdot \mathcal{A} \cdot \sigma (R^\top V')_k\), where \(\sigma\) is some non-linear acrivation function.
+
+To show the effectiveness of the joint representation \(f\), the authors collect multiple bilinear attention maps \textit{(glimpses)} and combine their respective joint features using residual learning techniques \cite{kim2016multimodal}, achieving state-of-the-art results on the VQAv2 dataset in \citeyear{kim2018bilinear}. In their final model, the authors use a matrix of Faster R-CNN object features as the visual representation \(R\), and Gated Recurrent Unit (GRU) \cite{cho2014learning} outputs as the question representation \(Q\).
+
+\textbf{Graph Reasoning Networks (GRN)} \cite{guo2019bilinear}: GRNs improve on the BAN architecture by capturing relationships between BAN's default joint question-image representations and previously captured joint representations. Given a visual representation and a question representation, GRNs first compute a vector of joint question-image features, as in BAN. These multi-modal features are then projected back on to the question to yield an output representation for the layer, in an effort to determine which joint question-object representations are relevant to the original question. The authors repeat this process multiple times in an effort to promote multi-step reasoning; with each repetition, instead of using the original question representation for computing joint representations, subsequent joint features are computed using the previous layer's output.
+
+% \textbf{Modular Co-Attention Networks (MCAN)} \cite{yu2019deep}:
+
+\textbf{Mutual and Self Attention (MSA)} \cite{farazi2020attention}: The three primary inputs to the MSA model are a question representation \(q\), a visual representation \(v\) and a collection of semantic relationships \(r\). From these inputs, the MSA module computes eight attention distributions which it fuses together, four from \(q\) and \(r\), and four from \(q\) and \(v\). Taking \(q\) and \(r\) as an example, the MSA module computes the following:
+
+\begin{itemize}
+    \item The attention distribution over \(q\), guided by a fused representation of \(q\) and \(r\), called \textit{mutual attention}. This captures which part of the question are important to the combined question and relationship features.
+    \item The attention distribution over \(r\), guided by a fused representation of \(q\) and \(r\). This captures which relationship features are important to the combined question and relationship embeddings.
+    \item The attention distribution over \(q\), guided by self-attended question features \(\psi_{q, q}\). This emphasises the most important parts of the question.
+    \item The attention distribution over \(r\), guided by a linear transformation of \(\psi_{r, q}\), where \(\psi_{r, q}\) is a multi-head attention distribution over \(r\), guided by \(q\). This emphasises relationship features that are deemed important to answering the question.
+\end{itemize}
+
+The authors achieve promising results with this setup using various combinations of features for \(r\) and \(v\), from Faster R-CNN and bounding box features to pre-annotated scene graph features from the GQA dataset.
+
+\textbf{Compositional Attention Networks (MAC)} \cite{hudson2018compositional}: As introduced in \subsectionautorefname{ \ref{subsection:attention_methods_for_vqa}}, the compositional attention network is a widely accepted VQA baseline for the GQA dataset. Its recurrent cell design promotes decomposing a question into discrete reasoning steps, where two values are passed from cell to cell: The first is a control vector, responsible for determining which part of the question to attend to for a given reasoning step. The second is a memory vector, which contains the intermediate result of the current reasoning process. As originally implemented for the GQA dataset, the compositional attention network relies on a BiLSTM-encoded question representation and a knowledge-base of Faster R-CNN \cite{ren2016faster} object features as its visual signal, however its knowledge-base is easily replaced with scene graph features as discussed in \sectionautorefname{ \ref{section:performance_evaluation}}.
 
 % \begin{table}[htbp]
 %     \begin{footnotesize}
@@ -177,11 +197,11 @@ I will discuss these hypotheses in detail in \sectionautorefname{ \ref{sec:ablat
 %     \end{footnotesize}
 % \end{table}
 
-Where possible, I source GQA validation set scores for a variety of GQA models. In general, we see improvements of up to 
+% Where possible, I source GQA validation set scores for a variety of GQA models. In general, we see improvements of up to 
 
 
 
-73.65 MAC + object, attribute, relation identities.
+% 73.65 MAC + object, attribute, relation identities.
 
 % \cite{guo2019bilinear}
 % BAN-4 × 1 44.8M 61.95
@@ -197,94 +217,18 @@ Where possible, I source GQA validation set scores for a variety of GQA models. 
 
 \section{Implementation Details}
 
+In this section, I provide relevant details about the implementation of my architecture, from its vocabulary construction through to its parameter configuration and optimisation method. I refer the reader to \chapterautorefname{ \ref{chapter:methodology}} for model-specific nomenclature used in this section, and to \appendixautorefname{ \ref{appendix:resources}} for the source code used to collect all results.
+
 Since my model architecture uses only the train and validation sets, I build a question vocabulary of 2,912 case-sensitive words, and a scene graph vocabulary of \(|S_o| = 1703\) unique objects, \(|S_a| = 617\) unique attributes and \(|S_r| = 310\) unique relations using the combined train and validation questions and scene graph annotations respectively. Moreover, the output module of my architecture predicts an answer from one of 1,842 possible answers in the combined balanced train and validation sets, slightly less than the 1,878 answers in the full GQA set.
 
-Rigorous initial tests were performed - reported and non-reported results represent 159 days of GPU computation time.
+In both the question and scene graph embedding modules, I use \(d_{H_q} = d_{H_r} = 300\)-dimensional GloVe vectors \cite{pennington2014glove} to embed all words. In the event where a question token or scene graph object, attribute or relation comrises multiple words \textit{e.g. to the right of}, I represent that token as an average of the GloVe embeddings of its individual words.
 
-\begin{verbatim}
-  "model": {
-    "name": "vqa",
-    "reasoning": {
-      "name": "mac",
-      "length": 4,
-      "hidden_dim": 512
-    },
-    "question": {
-      "embedding": {
-        "init": "glove",
-        "dim": 300,
-        "trainable": false,
-        "average_mwt": true
-      },
-      "module": {
-        "name": "lstm",
-        "hidden_dim": 256,
-        "bidirectional": true
-      }
-    },
-    "scene_graph": {
-      "embedding": {
-        "init": "glove",
-        "dim": 300,
-        "trainable": true,
-        "average_mwt": true
-      },
-      "graph": {
-        "directed": true,
-        "object_skip_edges": true,
-        "aggregation": null
-      },
-      "module": {
-        "name": "gcn",
-        "conv": "gat",
-        "layers": 3,
-        "dim": 256,
-        "pooling": null,
-        "heads": 4,
-        "concat": true
-      }
-    }
-  },
-  "training": {
-    "epochs": 32,
-    "log_step": 1024,
-    "dataloader": {
-      "batch_size": 16,
-      "workers": 1
-    },
-    "optimiser": {
-      "name": "adam",
-      "learning_rate": 4.761103570438788e-05,
-      "momentum": null,
-      "weight_decay": 0,
-      "grad_clip": 8,
-      "schedule": false
-    },
-    "data": {
-      "features": [
-        {
-          "name": "questions",
-          "artifact": "gqa-preprocessed:v11"
-        },
-        {
-          "name": "scene_graphs",
-          "artifact": "gqa-preprocessed:v11"
-        }
-      ],
-      "train": {
-        "split": "train",
-        "version": "balanced"
-      },
-      "val": {
-        "split": "val",
-        "version": "balanced",
-        "subset": [0.0, 0.5]
-      },
-      "test": {
-        "split": "val",
-        "version": "balanced",
-        "subset": [0.5, 1.0]
-      }
-    }
-  }
-\end{verbatim}
+The question processing module is a single-layer bi-directional LSTM \cite{hochreiter1997long} with input dimension \(d_{H_q} = 300\). Each direction of the BiLSTM has a hidden dimension of \(\frac{d_{K_q}}{2}\), where \(d_{K_q} = 256\) is the dimension of each token in the question knowledge-base \(K_q\). To avoid processing the vectors used for padding and consequently ruining question embeddings, I use PyTorch's inbuilt \texttt{pack\_squence} function. \cite{paszke2019pytorch}
+
+The scene graph module is a three-layer graph attention network (GAT), with all attention computations as described in the original GAT publication \cite{velivckovic2017graph}. The first layer has an imput dimension of \(d_{H_r} = 300\) and an output dimension of \(d_{K_r} = 256\), and subsequent layers have input and output dimensions of \(d_{K_r} = 256\). Each layer has \(n_h = 4\) attention heads, the outputs of which are concatenated after each layer to maintain a constant layer size. No non-linear activation function is used to transform the outputs of each layer.
+
+The compositional attention network used for the reasoning module has a length of 4, and a hidden dimension of 512 as described in the original paper \cite{hudson2018compositional}. As in the original implementation, I use ELU activations over ReLU in the control, read, write units, and all dropout layer probabilities are set to 0.15.
+
+The output module is implemented according to the original implementation of the compositional attention network, again using ELU over ReLU for activation functions and dropout probabilities of 0.15. Naturally, the last linear layer of the output module has a dimension of 1,842, the same as the answer vocabulary size for the combined balanced GQA train and validation sets.
+
+For optimisation, I use a standard categorical cross-entropy loss with an Adam optimiser \cite{kingma2014adam}. The optimiser uses standard exponential decay rates of \(\beta_1 = 0.9, \beta_2 = 0.999\) and an epsilon of \(\varepsilon = 10^{-8}\). I clip all gradients with a \(\ell_2\) norm greater than 8, as used by \citeauthor{hudson2018compositional} for their compositional attention network. All models are trained for 32 epochs with a batch size of 16 at a constant learning rate of \(4.7611 \times 10^{-5}\) (\textit{5 s.f.}).

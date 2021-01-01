@@ -1,10 +1,12 @@
 \chapter{Results}
 \label{chapter:results}
 
-
+In this chapter, I evaluate the performance of my architecture on the GQA dataset using a combination of traditional accuracy measures and GQA-specific metrics. First, I compare my architecture to the collection of baseline VQA methods introduced in the previous chapter. Secondly, I present results for variations of my model, replacing or entirely removing its question and/or scene graph processing modules to justify my architecture design. Finally, I delve into the parameter configuration of my model, exploring how parameters such as learning rate, reasoning module length and scene graph module size affect the performance of my model and the methods I used to find my final parameter configuration.
 
 \section{Performance Evaluation}
 \label{section:performance_evaluation}
+
+Since I use pre-annotated scene graphs from the GQA dataset as my model's visual signal, it makes sense that my model outperforms existing baselines that don't have access to this information. The more important conclusion to draw from these results is the difference in performance that we can expect from using high-quality visual signals.
 
 \begin{table}[htbp]
     \begin{footnotesize}
@@ -19,12 +21,17 @@
             LXMERT \cite{tan2019lxmert, tan2019lxmertgithub}& 59.80 & - & - & - & - & - \\
             BAN-4 \cite{kim2018bilinear, guo2019bilinear} & 61.95 & - & - & - & - & - \\
             GRN \cite{guo2019bilinear} & 64.22 & - & - & - & - & - \\
-            MAC \cite{hudson2018compositional} & 73.64 & 81.86 & 65.94 & \textbf{95.38} & 92.46 & 2.05 \\
+            % MCAN \cite{yu2019deep, farazi2020attention} & 65.00 & 82.08 & 48.98 & 94.91 & 91.42 & 4.21\\
+            MSA\(^\dag\) \cite{farazi2020attention} & 65.93 & 82.35 & 49.27 & 94.98 & 91.57 & 4.88\\
             \midrule
-            \textbf{Our Model} & \textbf{90.30} & \textbf{91.59} & \textbf{89.10} & \textbf{95.35} & \textbf{94.48} & \textbf{0.29} \\
+            MSA\(^{\ddag}\) \cite{farazi2020attention} & 68.71 & 71.84 & 68.71 & 94.94 & 92.99 & 7.29\\
+            MAC\(^\ddag\) \cite{hudson2018compositional} & 73.64 & 81.86 & 65.94 & \textbf{95.38} & 92.46 & 2.05 \\
+            MSA\(^{\ddag\dag}\) \cite{farazi2020attention} & 81.15 & 85.06 & 77.48 & \textbf{95.34} & 94.26 & 1.08\\
+            \midrule
+            \textbf{Our Model}\(^\ddag\) & \textbf{90.30} & \textbf{91.59} & \textbf{89.10} & \textbf{95.35} & \textbf{94.48} & \textbf{0.29} \\
             \bottomrule
         \end{tabularx}
-        \caption{A comparison of the performance of various models on the GQA validation set. Human performance is based on majority vote of 5 human responses for 4000 random GQA questions. For fair comparison, I report results for MAC using raw GloVe embeddings for each object, attribute and relation in the scene graph as its visual knowledge-base instead of object features. Where two citations are provided, the first corresponds to the original paper and the second corresponds to the source of the validation set results. }
+        \caption{A comparison of the performance of various models on the GQA validation set. Human performance is based on majority vote of 5 human responses for 4000 random GQA questions. Models marked with a \(^\dag\) use Faster R-CNN \cite{ren2016faster} features and/or bounding box information at inference time, and models marked with a \(^\ddag\) have access to pre-annotated GQA scene graph objects, attributes and relations. Where two citations are provided, the first corresponds to the original paper and the second corresponds to the source of the validation set results.}
     \end{footnotesize}
 \end{table}
 
@@ -229,6 +236,8 @@ The high performance of the right-hand tails in both cases are due to the small 
 
 \section{Hyperparameter Optimisation}
 \label{sec:hyperparameter_optimisation}
+
+Rigorous initial tests were performed - reported and non-reported results represent 159 days of GPU computation time.
 
 These results represent a total of 55 days of GPU compute
 
