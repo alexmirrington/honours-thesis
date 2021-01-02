@@ -10,7 +10,7 @@ In this section, I propose a new model for single-concept visual question answer
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{model_overview.png}
-    \caption[An overview of the proposed visual-question-answering model.]{\textbf{Model Overview.} A high-level overview of the proposed visual-question-answering model. Both questions and scene graphs are embedded as tensors, then contextual features are obtained by the question and scene graph processing modules. Finally, the reasoning and output modules formulate an answer to the question.}
+    \caption[An overview of my proposed visual-question-answering model.]{A high-level overview of my proposed visual-question-answering model. Both questions and scene graphs are embedded as tensors, then contextual features are obtained by the question and scene graph processing modules. Finally, the reasoning and output modules formulate an answer to the question.}
     \label{fig:model_overview}
 \end{figure}
 
@@ -33,7 +33,7 @@ I use a neural preprocessing pipeline for each raw question string in the datase
 
 After tokenisation, each question \(q\) is represented as a sequence of tokens \((t_1, ..., t_{l_q})\), where \(l_q\) is the number of tokens in the question. For each question \(q\), each  token \(t\) is converted to an index to enable vector embedding lookups during training. A mapping of all question tokens to their respective indices is kept, with indices being shared between the training and validation sets. Reference answers are converted to indices in a similar fashion, however they are not tokenised first: multi-word answers like \textit{parking meter} or \textit{cutting board} are treated as a single concept, identically to single-word answers like \textit{bed}. This ensures  multi-word answers can be predicted just as easily as single-word answers and allows the output module to treat the question-answering task as a multi-class classification problem across the set of all candidate answers.
 
-At runtime, each question token is converted to a \(d_{H_q} = 300\) dimensional GloVe vector \cite{pennington2014glove}, then token embeddings for a given question are stacked together, yielding a matrix of question features \(H_q \in \R^{l_q \times d_{H_q}}\) where \(l_q\) is the number of tokens in the question. For a batch of questions \(Q_{[i:i+k]}\) the corresponding features \(\{H_{q_i}, ..., H_{q_{i+k-1}}\}\) are padded with zeros along the first dimension and then stacked to yield a batch of question features \(H_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{H_q}}\), where \(l = \max_{i \leq j < i+k} l_{q_j}\), the number of tokens in the longest question in the batch.\footnote{In practice, \(H_{Q_{[i:i+k]}}\) is constructed and batched similarly to \(H_{R_{[i:i+k]}}\) as described in \subsectionautorefname{ \ref{sec:scene_graph_embedding_details}} to allow the training of graph-based question modules. I avoid graph-specific notation here for clarity, reserving it for \subsectionautorefname{ \ref{subsec:question_module_ablations}}, where I discuss graph-based question module variants in depth.}
+At runtime, each question token is converted to a \(d_{H_q} = 300\) dimensional GloVe vector \cite{pennington2014glove}, then token embeddings for a given question are stacked together, yielding a matrix of question features \(H_q \in \R^{l_q \times d_{H_q}}\) where \(l_q\) is the number of tokens in the question. For a batch of questions \(Q_{[i:i+k]}\) the corresponding features \(\{H_{q_i}, ..., H_{q_{i+k-1}}\}\) are padded with zeros along the first dimension and then stacked to yield a batch of question features \(H_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{H_q}}\), where \(l = \max_{i \leq j < i+k} l_{q_j}\), the number of tokens in the longest question in the batch.\footnote{In practice, \(H_{Q_{[i:i+k]}}\) is constructed and batched similarly to \(H_{R_{[i:i+k]}}\) as described in \subsectionautorefname{ \ref{sec:scene_graph_embedding_details}} to allow the training of graph-based question modules, but I avoid graph-based notation here for simplicity.}
 
 \subsubsection{Question Processing Module}
 
@@ -64,7 +64,7 @@ A variety of architectures have been used to obtain these representations in VQA
             \label{equation:question_module_Q_q}
         \end{equation}
     \end{subfigure}
-    \caption[An overview of the question processing module architecture.]{\textbf{Question processing module architecture.} For each question \(q\), the question module takes a matrix of question embeddings \(H_q\) as an input, and produces a knowledge-base of contextual word information \(K_q\) as well as a question embedding vector \(\mathcal{Q}_q\).}
+    \caption[An overview of my model's question processing module architecture.]{An overview of my model's question processing module architecture. For each question \(q\), the question module takes a matrix of question embeddings \(H_q\) as an input, and produces a knowledge-base of contextual word information \(K_q\) as well as a question embedding vector \(\mathcal{Q}_q\).}
     \label{fig:question_module_bilstm}
 \end{figure}
 
@@ -166,7 +166,7 @@ For clarity, I represent \(\mathcal{V}_r\) and \(\mathcal{V}_e\) as unions of di
         \includegraphics[width=\textwidth]{scene_graph_construction_graph.png}
         \label{fig:scene_graph_construction_graph}
     \end{subfigure}
-    \caption[An image from the GQA dataset and its corresponding scene graph \(\mathcal{G}_r\).]{A sample from the GQA validation set and its scene graph \(\mathcal{G}_r\), constructed according to \algorithmcfname{ \ref{algorithm:scene_graph_construction}}. Object, relation and attribute nodes are coloured blue, orange and green respectively.}
+    \caption[An image from the GQA dataset and its corresponding scene graph.]{A sample from the GQA validation set and its scene graph \(\mathcal{G}_r\), constructed according to \algorithmcfname{ \ref{algorithm:scene_graph_construction}}. Object, relation and attribute nodes are coloured blue, orange and green respectively.}
     \label{fig:scene_graph_construction}
 \end{figure}
 
@@ -272,7 +272,7 @@ My output module implementation is the same as the one implemented in the offici
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{output_module.png}
-    \caption[Output module architecture]{\textbf{Output module architecture}. An overview of the output module, as implemented in the official compositional attention network source code.}
+    \caption[An overview of my model's output module.]{An overview of the output module, as implemented in the official compositional attention network source code.}
     \label{fig:output_module}
 \end{figure}
 

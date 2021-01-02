@@ -63,23 +63,59 @@ To gain a more complete understanding of how the components of my model contribu
 
 For all ablation studies in this chapter, I train models on the balanced GQA training set and split the balanced GQA validation set in half, reserving the first half for parameter optimisation and the second half for testing. Consequently, all results reported in this section are computed on the second half of the balanced GQA validation set, instead of the full validation set like in \tableautorefname{ \ref{table:performance_comparison}}, to avoid giving an unfair advantage to my best model, which was tuned using the first half of the balanced validation set.
 
-Before delving into ablation study results, it is important to understand the underlying distributions of the test set used to compute various metrics. As illustrated in \figureautorefname{ \ref{fig:test_structural_and_semantic_distribution}}, the second half of the GQA validation set has a very similar semantic and structural type distribution to the rest of the balanced GQA dataset. Examining the semantic type distribution, we see that 46.6\% of questions query about the relationships between objects, 31.8\% ask about attributes, 11.8\% about objects, 6.6\% about object categories and 3.1\% about global properties. Regarding structural types, 51.7\% of questions are open-type questions that query about scene properties in general, 20.7\% of questions require verifying some property about the scene, 12.3\% require logical reasoning operations, 12.2\% require choosing between a set of options provided in the question and 3.1\% require comparing the properties of two or more objects. 
+Before delving into ablation study results, it is important to understand the underlying distributions of the test set used to compute various metrics. As demonstrated in \tableautorefname{ \ref{tab:test_semantic_type_distribution}} and \tableautorefname{ \ref{tab:test_structural_type_distribution}}, the second half of the GQA validation set has a very similar semantic and structural type distribution to the rest of the balanced GQA dataset, as reported in \cite{hudson2019gqa_preprint}.
 
-\begin{figure}[htbp]
+ Examining the distribution of semantic question types, we see that 46.6\% of questions query about the relationships between objects, 31.8\% ask about attributes, 11.8\% about objects, 6.6\% about object categories and 3.1\% about global properties. Regarding structural types, 51.7\% of questions are open-type questions that query about scene properties in general, 20.7\% of questions require verifying some property about the scene, 12.3\% require logical reasoning operations, 12.2\% require choosing between a set of options provided in the question and 3.1\% require comparing the properties of two or more objects.
+
+% \begin{figure}[htbp]
+%     \centering
+%     \begin{subfigure}[l]{0.4\textwidth}
+%         \includegraphics[width=\textwidth]{gqa_semantic_types.png}
+%         \label{fig:test_semantic_types}
+%         \caption{GQA semantic type distribution.}
+%     \end{subfigure}
+%     \begin{subfigure}[r]{0.4\textwidth}
+%         \includegraphics[width=\textwidth]{gqa_structural_types.png}
+%         \label{fig:test_structural_types}
+%         \caption{GQA structural type distribution.}
+%     \end{subfigure}
+%     \caption[GQA structural and semantic question type distributions.]{Distribution of structural and semantic question types across the second half of the balanced GQA validation set.}
+%     \label{fig:test_structural_and_semantic_distribution}
+% \end{figure}
+
+\begin{table}[htbp]
     \centering
-    \begin{subfigure}[l]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{gqa_semantic_types.png}
-        \label{fig:test_semantic_types}
-        \caption{GQA semantic type distribution.}
-    \end{subfigure}
-    \begin{subfigure}[r]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{gqa_structural_types.png}
-        \label{fig:test_structural_types}
-        \caption{GQA structural type distribution.}
-    \end{subfigure}
-    \caption[GQA structural and semantic question type distributions.]{Distribution of structural and semantic question types across the second half of the balanced GQA validation set.}
-    \label{fig:test_structural_and_semantic_distribution}
-\end{figure}
+    \begin{tabular}{ccc}
+        \toprule
+        \textbf{Semantic Type} & \textbf{Count} & \textbf{Proportion}\\
+        \midrule
+        Relation & 30,742& 46.6\%\\
+        Attribute & 21,019 & 31.8\%\\
+        Object & 7,812 & 11.8\%\\
+        Category & 4,387 & 6.6\%\\
+        Global & 2,071 & 3.1\%\\
+        \bottomrule
+    \end{tabular}
+    \caption[GQA semantic question type distribution.]{Distribution of semantic question types across the second half of the balanced GQA validation set.}
+    \label{tab:test_semantic_type_distribution}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{ccc}
+        \toprule
+        \textbf{Structural Type} & \textbf{Count} & \textbf{Proportion}\\
+        \midrule
+        Query & 34,171 & 51.7\%\\
+        Verify & 13,688 & 20.7\%\\
+        Logical & 8,103 & 12.3\%\\
+        Choose & 8,050 & 12.2\%\\
+        Compare & 2,019 & 3.1\%\\
+        \bottomrule
+    \end{tabular}
+    \caption[GQA structural question type distribution.]{Distribution of structural question types across the second half of the balanced GQA validation set.}
+    \label{tab:test_structural_type_distribution}
+\end{table}
 
 \figureautorefname{ \ref{fig:test_reasoning_step_and_question_length_distribution}} illustrates the compositional nature of the questions in the GQA dataset, with the majority of questions requiring 2-3 discrete reasoning steps to arrive at an answer. We also see that most questions contain around 5 to 11 words, however there are still a large number of longer questions that a good VQA model needs to be able to interpret.
 
@@ -104,10 +140,11 @@ Before delving into ablation study results, it is important to understand the un
 
 In this \subsectionautorefname, I explore three alternative question processing modules, namely a convolutional neural network (CNN) inspired by work on sentence classification in the NLP field \cite{kim2014convolutional}, a graph convolutional network (GCN) that uses synactic dependencies as edges, and a graph attention network (GAT) that operates in a similar fashion to the GCN but learn individual weights for each syntactic dependency. Moreover, I investigate the effects of removing the question processing module entirely, relying purely on GloVe embeddings as a question input signal. Before delving into results, I provide a brief overview of how each of these ablations fit in to the rest of my model architecture, adopting notation from \chapterautorefname{ \ref{chapter:methodology}}.
 
+\textbf{No question processing module}: For this ablation, I remove the scene graph module entirely, so the knpwledge-base of contextual question words \(K_{Q_{[i:i+k]}}\) is simply equal to the embedding feature matrix \(H_{Q_{[i:i+k]}}\). To obtain holistic question representations \(\mathcal{Q}_{Q_{[i:i+k]}}\), I simply average the embeddings of word features across the question length dimension of \(H_{Q_{[i:i+k]}}\).
+
 \textbf{CNN}: Modeled on the architecture presented in \cite{kim2014convolutional}, the CNN question processing module takes a batch of raw question embeddings \(H_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{H_q}}\) as its input and applies multiple 2D convolutions of varying receptive fields in parallel to learn a contextual representation of each question. I use a total of four Conv2D layers, each with 128 output channels and kernel sizes of \((3 \times d_{H_q})\), \((5 \times d_{H_q})\), \((7 \times d_{H_q})\) and \((9 \times d_{H_q})\). Appropriate padding is applied for each Conv2D layer so that convolved features for each layer are always of size \(l \times 128\). The convolved features for each layer are concatenated together to yield \(K_{Q_{[i:i+k]}} \in \R^{k \times l \times 512}\), the knowledge-base of contextual words used as an input to the reasoning module. After obtaining convolved features for each question in the batch, I take the maximum value of each output channel across the question length dimension to obtain a single vector \(\mathcal{Q}_q\) of dimension 512, representing the question as a whole. When processed as a batch, this yields a matrix of question representations \(\mathcal{Q}_{Q_{[i:i+k]} } \in \R^{k \times 512}\).
 
-\textbf{GCN \& GAT}: As mentioned in the footnotes in \sectionautorefname{ \ref{section:question_embedding_and_module}}, during the question preprocessing stage I retrieve syntactic dependencies for each question using the Stanza NLP package \cite{qi2020stanza}. These syntactic dependencies form the edges of a question graph, and the node embeddings \(H_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{H_q}}\) are obtained in a similar manner to the scene graph node embedding creation process as described in \subsectionautorefname{ \ref{sec:scene_graph_embedding_details}}. This yields a question graph \(\mathcal{G}_q = (\mathcal{V}_q, \mathcal{E}_q)\), where \(|\mathcal{V}_q| = l_q\) and \(|\mathcal{E}_q| = l_q - 1\).
-
+\textbf{GCN \& GAT}: As mentioned in \sectionautorefname{ \ref{section:question_embedding_and_module}}, I retrieve syntactic dependencies for each question using the Stanza NLP package \cite{qi2020stanza} during the question preprocessing stage. These syntactic dependencies form the edges of a question graph \(\mathcal{G}_q = (\mathcal{V}_q, \mathcal{E}_q)\), and the words of the question form the nodes. The type of syntactic dependency between individual words is ignored, as GCNs and GATs perform convolutions on nodes and not edges. Moreover, I ensure that \(\mathcal{G}_q\) is undirected, allowing messages to propagate through the dependency tree in both directions. To use this graph with GCN or GAT models, we need a node embedding matrix \(H_q \in \R^{l_q \times d_{H_q}}\) for each question \(q\) in the batch. These embeddings are obtained using the same question embedding technique described in \sectionautorefname{ \ref{section:question_embedding_and_module}}, but are batched differently. Instead of creating a dense batch of question embeddings \(H_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{H_q}}\), I use the default PyTorch Geometric (PyG) \cite{fey2019fast} batching procedure, as described in \subsubsectionautorefname{ \ref{sec:scene_graph_embedding_details}}. Consequently, the output of the question embedding module is a batch of graphs \(\mathcal{G}_{Q_{[i:i+k]}}\) and associated batch of node embeddings, ready for input straight into a PyG GAT or GCN. Both the GAT and GCN question processing modules comprise 3 layers, with the first having an input size \(d_{H_q} = 300\) and the rest having input and output sizes of \(d_{K_q} = 256\). The GAT has the same head count and structure as the scene graph GAT module. For both the GAT and GCN, the final layer's output is converted to a dense batch of features and used as the question knowledge-base \(K_{Q_{[i:i+k]}} \in \R^{k \times l \times d_{K_q}}\). To obtain a batch of holistic question features, I use a global mean pooling operation on the final layer's output. These pooled features are converted to a dense batch of question embeddings \(\mathcal{Q}_{Q_{[i:i+k]}} \in \R^{k \times d_{K_q}}\). Both \(K_{Q_{[i:i+k]}}\) and\(\mathcal{Q}_{Q_{[i:i+k]}}\) are then passed to the reasoning module as usual.
 
 \begin{table}[htbp]
 \centering
@@ -119,15 +156,20 @@ In this \subsectionautorefname, I explore three alternative question processing 
                                           &                                              & \multicolumn{1}{l}{Accuracy} & \multicolumn{1}{l}{Binary} & \multicolumn{1}{l}{Open} & \multicolumn{1}{l}{Validity} & \multicolumn{1}{l}{Plausibility} & \multicolumn{1}{l}{Distribution} \\ \midrule
 None                                      & GAT                                          & 86.52                        & 85.78                      & 87.21                    & 95.10                         & 93.85                            & 0.26                             \\
 CNN                                       & GAT                                          & 87.35                        & 87.87                      & 86.86                    & 95.24                        & 94.22                            & 0.29                             \\
-GAT                                       & GAT                                          & 89.43                        & \textbf{91.88}             & 87.16                    & 95.26                        & 94.19                            & 0.27                             \\
 GCN                                       & GAT                                          & 86.02                        & 86.77                      & 85.32                    & 95.05                        & 93.92                            & 0.34                             \\
+GAT                                       & GAT                                          & 89.43                        & \textbf{91.88}             & 87.16                    & 95.26                        & 94.19                            & 0.27                             \\
+\midrule
 BiLSTM                                    & GAT                                          & \textbf{90.45}               & 91.73                      & \textbf{89.26}           & \textbf{95.34}                        & \textbf{94.48}                   & \textbf{0.19}                    \\
 \bottomrule
 \end{tabularx}
 \end{footnotesize}
+\caption[Overall question processing module ablation performance.]{An overview of the impact of different question processing modules on overall model performance.}
+\label{table:question_ablation_main}
 \end{table}
 
+As seen in \tableautorefname{ \ref{table:question_ablation_main}}, the BiLSTM question processing module outperforms all other question processing module types for total accuracy, open-type accuracy, validity, plausibility and distribution, and falls just shy (0.15\%) of the GAT question processing module on the binary accuracy metric. This is a testament to the expressive power of recurrent models for short sentences; the BiLSTM can capture relationships between all words in a given question regardless of its syntax, as it process each word in the question sequentially. In comparison, the effectiveness of the GAT and GCN question modules is highly dependent on the number of convolutional layers that they contain. Since each GAT or GCN layer can only propagate information to immediate neighbours of each node, the number of GAT or GCN layers must be equal or greater than the depth of the question's syntactic dependency tree to ensure that information can be shared between each word pair in the question. Whilst the CNN question module is capable of capturing contextual information about the question as a whole, it makes the assumption that related words occur near each other in the sentence, which is not always the case, especially for longer sentences. Since the CNN module was originally used for sentence classification \cite{kim2014convolutional}, I expect it learns useful holistic question representations \(\mathcal{Q}\), but struggles to capture relevant contextual information for individual words. This also explains why the CNN module performs slightly (0.83\%) better than the model variant with no question module at all, which simply takes the average of all embeddings for each word in the question as its holistic question representation \(\mathcal{Q}\).
 
+In addition to the success of the BiLSTM question module, we also see that the relative ranking of the question modules is similar across all metrics, with BiLSTM performing the best, followed by the GAT module, then CNN, None and finally GCN. Whlst the GCN question module outperforms the model with no question processing module on the binary accuracy metric, it struggles to answer open-type questions. This is likely because it always propagates features between syntactically-connected question words, regardless of whether these syntactical relationships are important to the question or not. As a result, the expressive power of the GloVe embeddings initially used to embed each word is lost due to unwanted propagations between question words. On the other hand, the GAT question processing module outperforms both the GCN module and the bare GloVe embedding variation across all metrics, due to its ability to learn attention weights between question words. This helps it to learn better contextual word-level embeddings, which are essential for obtaining useful control vectors in the reasoning module.
 
 \begin{table}[htbp]
 \centering
@@ -139,15 +181,17 @@ BiLSTM                                    & GAT                                 
                                           &                                              & Accuracy       & Query          & Compare        & Choose         & Logical        & Verify         \\ \midrule
 None                                      & GAT                                          & 86.52          & 87.21          & 80.44          & 78.89          & 93.77          & 85.88          \\
 CNN                                       & GAT                                          & 87.35          & 86.86          & 67.66          & 85.99          & 92.57          & 89.17          \\
-GAT                                       & GAT                                          & 89.43          & 87.16          & \textbf{93.02} & 86.92          & 96.43          & 91.93          \\
 GCN                                       & GAT                                          & 86.02          & 85.32          & 73.60          & 84.96          & 92.85          & 86.17          \\
+GAT                                       & GAT                                          & 89.43          & 87.16          & \textbf{93.02} & 86.92          & 96.43          & 91.93          \\
+\midrule
 BiLSTM                                    & GAT                                          & \textbf{90.45} & \textbf{89.26} & 69.69          & \textbf{90.87} & \textbf{97.45} & \textbf{92.10} \\ \bottomrule
 \end{tabular}
 \end{footnotesize}
+\caption[Question processing module ablation performance for questions of differing structural types.]{An overview of the impact of different question processing modules on model accuracy for questions of differing structural types.}
+\label{table:question_ablation_structural}
 \end{table}
 
-{\color{red}Things to note: High compare score whenever we use the same question and scene graph module! e.g. GAT and GAT in this case}
-
+Moving our focus to \tableautorefname{ \ref{table:question_ablation_structural}}, we see that the BiLSTM question module outperforms other question processing module types for most structural types, with the exception of \textit{compare} type questions, where the GAT question module outperforms other question types by anywhere from 12.58\% to 25.36\%. Whilst it may be tempting to attribute the large decrease in performance for most question modules on compare-type questions to the fact that it is the least common structural question type at only 3.1\% of samples, we cannot ignore that the GAT question module performs so well. Referring forward to the scene graph ablation results in \tableautorefname{ \ref{table:scene_graph_ablation_structural}}, we similarly see that one type of scene graph module outperforms the others for compare-type questions by a significant margin. Interestingly, the outlier in the scene graph ablations is a model that uses BiLSTMs for both question and scene graph processing modules. The common thread here is that when the question module and the scene graph module use the same architecture, we see a large increase in accuracy on question requiring comparative reasoning. Referring back to \tableautorefname{ \ref{table:gqa_question_samples}} in the previous chapter, we see that comparison questions can be either binary or open, and most often ask about the common properties of two objects. After inspecting the control unit attention weights for various question module types, we see that the GAT question module attends to the objects in the question and comparative words like \textit{same} or \textit{different}, where the other question modules focus on words like \textit{do} or \textit{is}, indicating they are doing no more than relying purely on question information to answer questions in these cases. Given the similar pattern we see for scene graph ablations, it is likely that the model struggles to perform well for comparison based questions unless the visual and textual signal are semantically similar, \textit{i.e.} they are processed similarly. I believe this is due to the dot-product attention interaction between the control and visual knowledge-base vectors in the reasoning module. Since dot-product attentions act as similarity measures, it makes sense that the more similar the semantic space between the textual and visual signal, the better the model is able to perform reasoning operations.
 
 \begin{table}[htbp]
 \centering
@@ -159,12 +203,23 @@ BiLSTM                                    & GAT                                 
                                           &                                              & Accuracy       & Global         & Object         & Attribute      & Relation       & Category       \\ \midrule
 None                                      & GAT                                          & 86.52          & \textbf{83.97}          & 94.75          & 87.35          & 83.67          & 89.01          \\
 CNN                                       & GAT                                          & 87.35          & 83.78          & 93.63          & 85.37          & 87.37          & 87.14          \\
-GAT                                       & GAT                                          & 89.43          & 83.82          & 97.24          & \textbf{89.74} & 87.88          & 87.62          \\
 GCN                                       & GAT                                          & 86.02          & 83.39          & 93.36          & 83.65          & 86.32          & 83.43          \\
+GAT                                       & GAT                                          & 89.43          & 83.82          & 97.24          & \textbf{89.74} & 87.88          & 87.62          \\
+\midrule
 BiLSTM                                    & GAT                                          & \textbf{90.45} & 83.92          & \textbf{97.39} & 88.39          & \textbf{90.51} & \textbf{90.65} \\ \bottomrule
 \end{tabular}
 \end{footnotesize}
+\caption[Question processing module ablation performance for questions of differing semantic types.]{An overview of the impact of different question processing modules on model accuracy for questions of differing semantic types.}
+\label{table:question_ablation_semantic}
 \end{table}
+
+Examining \tableautorefname{ \ref{table:question_ablation_semantic}}, we see that all question modules perform comparably for questions with global targets. This is primarily due to the fact that there is no global scene information included in the visual signal, so it is difficult to answer questions about global scene properties regardless of the quality of the question representation. This also explains why the global accuracy is much lower than the overall accuracy for all question module types.
+
+For questions that query about objects and/or attributes, we see that the GAT and BiLSTM question modules perform the best, as they are able to learn good contextual representations of individual question words, unlike CNN or GCN which are better at embedding the question representation as a whole. Additionally, we see a difference of around \(2.6\%\) between object-type accuracy of the BiLSTM question module and the model with no question module at all, indicating that some object-type questions require contextual question information, for example, they query about a \textit{red apple} as opposed to just an \textit{apple}.
+
+For relationship-based questions, we observe again that the BiLSTM performs the best, outperforming the GAT and CNN and GCN question modules by 2.63\%, 3.14\% and 4.19\% respectively. This is primarily due to its ability to capture sequences of words where other question modules can't. This is essential for relations in the GQA dataset, as the two most common relationships are \textit{to the left of} and \textit{to the right of}, which the question module needs to be able to capture as single concepts. Furthermore, when we don't use any question module at all, we suffer a 6.84\% performance drop when compared to the BiLSTM question module, since the raw GloVe embeddings don't contain any contextual information.
+
+Finally, for category-based questions, we see that GCN, CNN and GAT question modules all perform worse than not using a question module at all by anywhere from 1.39\% in the case of GAT through to 5.58\% in the case of the GCN question module. In general, category-type questions require associating a category with an object, \textit{e.g.} \textit{fruit} with \textit{banana}. As a result, it is essential that the category is represented adequately and not clouded by other parts of the question so the model can learn to search for related concepts in the scene graph.
 
 \begin{figure}[htbp]
     \centering
@@ -176,13 +231,22 @@ BiLSTM                                    & GAT                                 
         \includegraphics[width=\textwidth]{accuracy_vs_reasoning_steps_question_ablation.png}
         \label{fig:accuracy_vs_reasoning_steps_question_ablation}
     \end{subfigure}
-    \caption{Per-question-length and per-reasoning-step accuracy for various question processing module types.}
+    \caption{Per-question-length and per-reasoning-step accuracy for various question processing module types. The high performance of the right-hand tails in both cases are due to the small number of questions with a large number of words or reasoning steps, as illustrated in \figureautorefname{ \ref{fig:test_reasoning_step_and_question_length_distribution}}.}
+    \label{fig:accuracy_vs_question_length_and_reasoning_steps_question_ablation}
 \end{figure}
 
-The high performance of the right-hand tails in both cases are due to the small number of questions with a large number of words or reasoning steps, as illustrated in \figureautorefname{ \ref{fig:test_reasoning_step_and_question_length_distribution}}
+In \figureautorefname{ \ref{fig:accuracy_vs_question_length_and_reasoning_steps_question_ablation}}, we see that both GAT and BiLSTM question modules perform similarly as the number of reasoning steps required by the question increases, clearly outperforming alternative question modules. In addition, we see that as question length increases, question modules that use mean or max pooling to obtain a holistic representation tend to decrease in performance faster than the BiLSTM question module, which uses its concatenated forward and backward hidden layers as a question representation. When using no question module at all, performance decreases drastically as question length increases, since the mean of the question words use to represent the question becomes a less reliable embedding of the question as a whole.
 
 \subsection{Scene Graph Module Ablations}
 \label{subsec:scene_graph_module_ablations}
+
+In this subsection, I investigate two alternative scene graph processing modules, namely a BiLSTM and a graph convolutional network (GCN). In addition, I inspect how removing the scene graph processing module affects overall performance, comparing results for these different architectures across a variety of metrics. In addition, I justify my choice to omit the non-linear activation function \(f\) from my GAT scene graph processing module (refer to \equationautorefname{ \ref{equation:gat_propagation_rule}}), comparing performance both with and without a LeakyReLU activation function. Again, I provide a brief overview of how each of these ablations interact with rest of my model architecture, adopting relevant notation from \chapterautorefname{ \ref{chapter:methodology}}.
+
+\textbf{No scene graph processing module}: For this ablation, I remove the scene graph processing module entirely. After constructing a scene graph \(\mathcal{G}_{R_{[i:i+k]}}\) and associated node feature matrix \(H_{R_{[i:i+k]}}\) in the scene graph embedding module, the node feature tensor is passed directly to the reasoning module. That is, I use the node feature tensor \(H_{R_{[i:i+k]}}\) as the knowledge-base of scene graph objects, attributes and relations \(K_{R_{[i:i+k]}}\), completely disregarding any edge information on \(\mathcal{G}_{R_{[i:i+k]}}\). Investigating the effect of edge information removal is essential for understanding how much of my model performance stems from the embedding of scene graph object, attribute and relation features versus how much is due to the contextual graph information learned by GAT layers.
+
+\textbf{BiLSTM}: The BiLSTM scene graph processing module aims to capture contextual relationships between scene graph object, attribute and relation triples, without any structured graph-based information. Instead of building a matrix of node embeddings containing scene graph objects, attributes and relations, like in the regular scene graph embedding module, I create an input feature matrix \(H_r \in \R^{m \times d_{H_r}}\) for each scene graph \(r\) as follows: For each of the \(m_r\) objects in the scene graph \(r\), the \(i\)th row of \(H_r\) is the concatenation of three vectors \(u_i, v_i\) and \(w_i\), where \(u_i\) the \(i\)th object's GloVe embedding, \(v_i\) is the mean of the GloVe embeddings of the \(i\)th object's incoming and outgoing relations, and \(w_i\) is the mean of the GloVe embeddings of all attributes associated with object \(i\). In the event that an object contains no incoming or outgoing relations, or no attributes, I set \(v_i\) or \(w_i\) to a 300-dimensional zero vector respectively. All feature matrices are stached to form a single tensor \(H_{R_{[i:i+k]}} = [H_{r_i}, ..., H_{r_{i+k-1}}]\), which is in turn fed to a single-layer BiLSTM. Since each direction of the BiLSTM has a hidden size of 256, the concatenated last layer outputs of each direction form 512-dimensional vector for each of the \(m_r\) \(d_{H_r} = 900\) dimensional input vectors, denoted \(K_r\). These matrices are stacked to yield a knowledge-base of scene graph features for all graphs in the batch, denoted \(K_{R_{[i:i+k]}} \in \R^{k \times m \times d_{K_r}}\), where \(d_{K_r} = 512\) and \(m\) is the maximum number in any single scene graph in the batch. \(K_{R_{[i:i+k]}} \in \R^{k \times m \times d_{K_r}}\) is then passed to the reasoning module as usual.
+
+\textbf{GCN}: The GCN scene graph processing module is identical in terms of inputs and outputs as the GAT scene graph processing module, except it uses GCN convolution operations instead of GAT convolutions. Since GCNs have no attention heads, each GCN layer operates on all features of the input instead of a quarter of the input each in the case of GAT with four attention heads.
 
 \begin{table}[htbp]
 \centering
@@ -195,11 +259,22 @@ The high performance of the right-hand tails in both cases are due to the small 
 BiLSTM                                    & None                                         & 73.63                        & 81.84                      & 65.98                    & \textbf{95.38}               & 92.46                            & 1.09                    \\
 BiLSTM                                    & BiLSTM                                       & 83.35                        & 85.81                      & 81.06                    & 95.27                        & 93.73                            & 0.31                             \\
 BiLSTM                                    & GCN                                          & 69.44                        & 78.14                      & 61.34                    & 95.13                        & 91.95                            & 1.11                             \\
-BiLSTM                                    & GAT                                          & \textbf{90.45}               & \textbf{91.73}                      & \textbf{89.26}           & 95.34                        & \textbf{94.48}                   & \textbf{0.19}                    \\
+\midrule
+BiLSTM                                    & GAT                                          & \textbf{90.45}               & \textbf{91.73}                      & \textbf{89.26}           & \textbf{95.34}                        & \textbf{94.48}                   & \textbf{0.19}                    \\
 \bottomrule
 \end{tabularx}
 \end{footnotesize}
+\caption[Overall scene graph processing module ablation performance.]{An overview of the impact of different scene graph processing modules on overall model performance.}
+\label{table:scene_graph_ablation_main}
 \end{table}
+
+The importance of an effective scene graph processing module is clearly outlined in \tableautorefname{ \ref{table:scene_graph_ablation_main}}, where we see just how successful the GAT architecture is at capturing contextual scene graph information. The GAT scene graph processing module outperforms all other processing modules on all three accuracy measures, as well as for plausibility and distribution. We see similar comparable results for validity regardless of the scene graph module type, for the same reasons introduced in \sectionautorefname{ \ref{section:performance_evaluation}}.
+
+We see improvements almost 17\% on overall accuracy, almost 10\% on binary-type accuracy and over 23\% on open-type by processing scene graph features with a GAT prior to the reasoning module, and increase the plausibility of answers by just over 2\%. Without the GAT to process scene graph edges, the reasoning module simply receives a list of all objects, attributes and relations in the scene and is not provided with any context about which attributes and relationships are associated with which objects. Consequently, these large performance gains are solely due to GAT's ability to implicitly capture scene graph edge information and embed the interactions between object, attribute and relation nodes prior to performing reasoning operations.
+
+The BiLSTM scene graph processing module achieves the second-highest performance across all metrics, falling just over 7\% shy of the GAT processing module on the overall accuracy metric, but ourperforming both the GCN scene graph module and no scene graph module model variants. This is primarily a result of explicitly concatenating an object's relation and attribute information with the embedding of the object itself, as this allows the reasoning module to answer questions about the attributes and relationships of a particular object. Naturally, this method of expressing object, attribute and relationship data is far from optimal, but it performs surprisingly well despite its naivety.
+
+Finally, we see that the GCN scene graph processing module performs extremely poorly. Not using a scene graph processing module at all results in an almost 4.2\% overall increase in accuracy and a 0.5\% increase in answer plausibility. These results show that even though the GCN knows which node embeddings are related, it is ineffective at capturing those relationships as node features due to its inability to attend to some relationships more than others.
 
 \begin{table}[htbp]
 \centering
@@ -212,10 +287,15 @@ BiLSTM                                    & GAT                                 
 BiLSTM                                    & None                                         & 73.63          & 65.98          & 69.44          & 72.84          & 92.85          & 82.44          \\
 BiLSTM                                    & BiLSTM                                       & 83.35          & 81.06          & \textbf{92.22}          & 73.98          & 95.79          & 85.91          \\
 BiLSTM                                    & GCN                                          & 69.44          & 61.34          & 66.37          & 71.04          & 85.96          & 79.43          \\
+\midrule
 BiLSTM                                    & GAT                                          & \textbf{90.45} & \textbf{89.26} & 69.69          & \textbf{90.87} & \textbf{97.45} & \textbf{92.10} \\ \bottomrule
 \end{tabular}
 \end{footnotesize}
+\caption[Scene graph processing module ablation performance for questions of differing structural types.]{An overview of the impact of different scene graph processing modules on model accuracy for questions of differing structural types.}
+\label{table:scene_graph_ablation_structural}
 \end{table}
+
+As mentioned in the previous section,
 
 \begin{table}[htbp]
 \centering
@@ -227,11 +307,14 @@ BiLSTM                                    & GAT                                 
                                           &                                              & Accuracy       & Global         & Object         & Attribute      & Relation       & Category       \\ \midrule
 BiLSTM                                    & None                                         & 73.63          & \textbf{85.18} & 95.15          & 64.46          & 72.38          & 82.54          \\
 BiLSTM                                    & BiLSTM                                       & 83.35          & 82.86          & 95.60          & 80.88          & 81.02          & 89.92          \\
-BiLSTM                                    & GAT                                          & \textbf{90.45} & 83.92          & \textbf{97.39} & \textbf{88.39}          & \textbf{90.51} & \textbf{90.65} \\
 BiLSTM                                    & GCN                                          & 69.44          & 70.45          & 87.54          & 67.22          & 66.25          & 69.77          \\
+\midrule
+BiLSTM                                    & GAT                                          & \textbf{90.45} & 83.92          & \textbf{97.39} & \textbf{88.39}          & \textbf{90.51} & \textbf{90.65} \\
 \bottomrule
 \end{tabular}
 \end{footnotesize}
+\caption[Scene graph processing module ablation performance for questions of differing semantic types.]{An overview of the impact of different scene graph processing modules on model accuracy for questions of differing semantic types.}
+\label{table:scene_graph_ablation_semantic}
 \end{table}
 
 
@@ -245,30 +328,8 @@ BiLSTM                                    & GCN                                 
         \includegraphics[width=\textwidth]{accuracy_vs_reasoning_steps_scene_graph_ablation.png}
         \label{fig:accuracy_vs_reasoning_steps_scene_graph_ablation}
     \end{subfigure}
-    \caption{Per-question-length and per-reasoning-step accuracy for various scene graph processing module types.}
+    \caption{Per-question-length and per-reasoning-step accuracy for various scene graph processing module types. The high performance of the right-hand tails in both cases are due to the small number of questions with a large number of words or reasoning steps, as illustrated in \figureautorefname{ \ref{fig:test_reasoning_step_and_question_length_distribution}}.}
 \end{figure}
-
-The high performance of the right-hand tails in both cases are due to the small number of questions with a large number of words or reasoning steps, as illustrated in \figureautorefname{ \ref{fig:test_reasoning_step_and_question_length_distribution}}
-
-
-{\color{red}Things to note: High compare score whenever we use the same question and scene graph module! e.g. BiLSTM and BiLSTM in this case}
-
-{\color{red}TODO: GloVe only for scene graph and questions}
-
-{\color{red}TODO: Ablations on scene graph embedding for best model only:
-\begin{itemize}
-    \item Removal of skip-edges in the graph
-    \item Removal of relation data, with edges only occurring between objects where a relation would usually be (i.e. skip edges w/ no relation nodes)
-    \item If time, removal of relation and attribute data as well.
-\end{itemize}}
-
-\begin{itemize}
-    \item Includes more important initial tests, move less important ones to appendix.
-\end{itemize}
-
-\begin{itemize}
-    \item GloVe vs random normal distribution. Glove required less tuning since the vector norms already worked well.
-\end{itemize}
 
 \section{Hyperparameter Optimisation}
 \label{sec:hyperparameter_optimisation}

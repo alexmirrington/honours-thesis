@@ -323,7 +323,7 @@ The first study is motivated by the large imbalance in the answer distribution o
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{zhang2016yin_balancing_procedure.png}
-    \caption[A Technique for balancing answers to binary questions \cite{zhang2016yin}]{\citeauthor{zhang2016yin} \cite{zhang2016yin} demonstrate their answer distribution balancing technique. Given the scene on the left and the question \textit{Is the girl walking the bike}, workers were tasked with creating a scene that differs from the scene on the left but has the opposite answer to the question, as illustrated by the scene and answer on the right.}
+    \caption[A technique for balancing answers to binary questions \cite{zhang2016yin}]{\citeauthor{zhang2016yin} \cite{zhang2016yin} demonstrate their answer distribution balancing technique. Given the scene on the left and the question \textit{Is the girl walking the bike}, workers were tasked with creating a scene that differs from the scene on the left but has the opposite answer to the question, as illustrated by the scene and answer on the right.}
     \label{fig:zhang2016yin_balancing_procedure}
 \end{figure}
 
@@ -682,7 +682,7 @@ Since both questions are asking about the same apple, a consistent model is one 
 To calculate consistency, each question-answer pair \(q, a\) in the GQA dataset is annotated with a set of entailed questions \(E_q\). For the example above, \(q_1\) is an entailed question of \(q_0\), since knowing the answer to \(q_0\) infers the answer to \(q_1\). Given a the set of questions \(Q\) that a model answered correctly and a set entailed questions for each \(q \in Q\) denoted \(\mathcal{E} = \{E_q \mid q \in Q\}\), the consistency metric is calculated according to \algorithmcfname{ \ref{algorithm:consistency}}.
 
 \begin{algorithm}[htbp]
-    \caption[Consistency metric algorithm]{Consistency metric algorithm}
+    \caption[Consistency metric algorithm.]{Consistency metric algorithm}
     \label{algorithm:consistency}
     \Function{\(Q, \mathcal{E}\)}{
         \(s_c \leftarrow 0\)\\
@@ -747,7 +747,7 @@ At its core, the grounding metric takes as input a set of sets of bounding boxes
 The grounding metric for any \((q_i, r_i)\) pair in a dataset is defined as the total precision-based overlap between each set of predicted and reference regions \(\hat{B}_{(q_i, r_i)}\) and \(B_{(q_i, r_i)}\) respectively. For an entire dataset \(S\), per-sample grounding scores are averaged to give the final grounding metric, as outlined in \algorithmautorefname{ \ref{algorithm:grounding}}.
 
 \begin{algorithm}[htbp]
-    \caption[Grounding metric algorithm]{Grounding metric algorithm}
+    \caption[Grounding metric algorithm.]{Grounding metric algorithm}
     \label{algorithm:grounding}
     \Function{\(S, \hat{\mathcal{B}}, \mathcal{B}\)}{
         \(s_g \leftarrow 0\)\\
