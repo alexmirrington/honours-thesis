@@ -6,6 +6,7 @@ In this chapter, I illuminate how my model arrives at an answer for a given ques
 \section{Correctly Predicted Samples}
 
 \subsection{Logical Questions}
+\label{subsection:discussion_logical_sample}
 
 As discussed in the previous chapter, my model architecture performs particularly well for questions that involve logical reasoning, achieving a logical question-type accuracy of 97.45\%, compared to an overall accuracy of 90.45\%. In this subsection, I delve into how my model answers these logical questions effectively, using the question-image pair in \figureautorefname{ \ref{fig:positive_logical_sample}} as an example.
 
@@ -96,7 +97,7 @@ After the last GAT layer we are left with a graph containing a large variety of 
 \begin{figure}
     \centering
     \includegraphics[width=0.5\textwidth]{figures/positive_logical/positive_logical_control_attn.png}
-    \caption{Question attention weights, extracted from the control unit of the reasoning module.}
+    \caption[Question attention weights, extracted from the control unit of the reasoning module.]{Question attention weights, extracted from the control unit of the reasoning module.}
     \label{fig:positive_logical_control_attn}
 \end{figure}
 
@@ -128,6 +129,51 @@ Most importantly, the question words that the control unit attends to are also a
 
 \section{Incorrectly Predicted Samples}
 
+In this section, I provide some examples that illustrate the types of questions that my model fails to answer in an effort to understand why some questions are harder than others. For brevity, I exclude the GAT attention maps that I provided in  \subsectionautorefname{ \ref{subsection:discussion_logical_sample}}, and focus on the attention distributions learned by the control and read units of the reasoning module. In general, we can assume that the input to the reasoning module will be a contextual knowledge-base of scene graph features, that can capture up to third-order interactions between scene graph objects, attributes and relations.
+
+\subsection{Questions with Multiple Feasible Answers}
+
+There are a variety of questions in the GQA dataset that have multiple feasible answers, but only one answer is considered truly correct. Such samples are difficult even for humans to answer correctly, as in many cases, both answers are equally valid and plausible. Consider the example in \figureautorefname{ \ref{fig:negative_ambiguous_sample}}, where my model answered \textit{running} instead of \textit{playing}, despite both being perfectly acceptable answers to human eyes.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{figures/negative_ambiguous/negative_ambiguous.png}
+        \caption[A GQA sample that has multiple feasible answers.]{A GQA sample that has multiple feasible answers.\\\textbf{Q:} \textit{What is the man to the right of the tennis racket doing?} \textbf{A:} \textit{playing}}
+        \label{fig:negative_ambiguous_sample}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[r]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{figures/negative_ambiguous/negative_ambiguous_control_attn.png}
+        \caption[Question attention weights, extracted from the control unit of the reasoning module.]{Question attention weights, extracted from the control unit of the reasoning module.}
+        \label{fig:negative_ambiguous_control_attn}
+    \end{subfigure}
+\end{figure}
+
+In \figureautorefname{ \ref{fig:negative_ambiguous_control_attn}}, we see that the reasoning module attends to the same part of the question for all reasoning steps, honing in on the fact that the question is asking for a verbal attribute. Investigating the attention maps of the reasoning module's read unit for each reasoning step, we see that the model alternates between playing and running as its two answers. In the final reasoning step, we see that it attends to \textit{running} slightly more than \textit{playing}, and thus answers the question incorrectly.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/negative_ambiguous/negative_ambiguous_read_attn_0.png}
+        \caption{Reasoning step 1}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/negative_ambiguous/negative_ambiguous_read_attn_1.png}
+        \caption{Reasoning step 2}
+    \end{subfigure}
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/negative_ambiguous/negative_ambiguous_read_attn_2.png}
+        \caption{Reasoning step 3}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/negative_ambiguous/negative_ambiguous_read_attn_3.png}
+        \caption{Reasoning step 4}
+    \end{subfigure}
+    \caption[Scene graph attention weight for each reasoning step.]{Scene graph attention weight for each reasoning step.}
+    \label{fig:negative_ambiguous_read_attn}
+\end{figure}
 
 
-\subsection{Logical Questions}
+% \subsection{Comparison-based Questions}
+
