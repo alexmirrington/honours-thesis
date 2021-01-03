@@ -1,20 +1,20 @@
 \phantomsection\addcontentsline{toc}{chapter}{Abstract}
 \chapter*{\centering{\Large Abstract}}
 
-{\color{red}
-Motivation of using gold-standard scene graph, pulled from literature review:
+In recent years, the task of visual question answering (VQA) has seen rapid growth as deep learning has seen more and more use in the computer vision (CV) and natural language processing (NLP) fields. The VQA task has two primary inputs: a visual representation, such as an image, and a question grounded in that representation. The large majority of VQA research to-date has focused on VQA as an end-to-end problem, aiming to answer questions about the contents of an image. More recently, the VQA community has seen a shift towards graph-based methods, whereby an image is represented as a collection of objects, attributes and relationships, called a \textit{scene graph}. Instead of learning to answer questions about the image directly, recently proposed VQA models first convert the image to a scene graph, and then formulate an answer to the question using the scene graph as a visual representation. The primary issue with these methods is that they often use proprietary methods for generating scene graphs from images, making it extremely difficult to gauge what proportion of the VQA model's performance stems from the quality of the underlying scene graph generation process versus the reasoning capabilities of the question-answering model itself. In this dissertation, I focus solely on the latter portion of the VQA pipeline, using scene graphs from the GQA dataset \cite{hudson2019gqa} as a visual input to my VQA model instead of images. The backbone of my VQA model is the Graph Attention Network (GAT) \cite{velivckovic2017graph}, a highly capable graph representation learning model that learns contextual node embeddings from graph-structured data. Since GATs only operate on the nodes of a graph but scene graphs embed relationships between image objects as edges, I propose a novel method of representing scene graph edges as nodes that increases the expressivity of the learned node embeddings. Moreover, I prove that this graph transformation method is in the order of only \(\min\{\rho, F\}\) times slower than performing GAT convolutions on scene graphs that don't embed relationships as nodes, where \(\rho\) is the ratio between the number of scene graph objects and the number of scene graph relationships, and \(F\) is the input dimension to GAT. For the GQA dataset, we have that \(\rho \approx 3\), making this graph embedding method both efficient and expressive. I leverage the rich semantic embeddings learned by GAT for VQA by replacing the traditional visual knowledge-base of the Compositional Attention Network \cite{hudson2018compositional}, a widely-accepted baseline for VQA performance. The resultant model is highly effective, outperforming other scene-graph oriented VQA baselines by over 9\%, state-of-the-art image-based VQA models by over 14\%, and achieving a higher top-1 accuracy than humans on the GQA dataset. In the interest of reproducibility, I provide the full source code for my primary model architecture and various ablations online at \url{https://github.com/alexmirrington/gat-vqa}.
 
-\begin{quote}
-    \textit{``Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with Relation-aware Graph Attention networks (ReGAT) \cite{li2019relation} achieving state-of-the-art results on the VQAv2 and VQA-CPv2 datasets in \citeyear{li2019relation}, and aligned Dual-Channel GCN (DC-GCN) \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQAv2 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using gold-standard scene graph information. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information.''}
-\end{quote}
 
-Contributions:
+% \begin{quote}
+%     \textit{``Prior works have demonstrated the effectiveness of attention-based graph convolutions for processing scene graph information in a variety of different contexts, with Relation-aware Graph Attention networks (ReGAT) \cite{li2019relation} achieving state-of-the-art results on the VQAv2 and VQA-CPv2 datasets in \citeyear{li2019relation}, and aligned Dual-Channel GCN (DC-GCN) \cite{huang2020aligned} achieving comparable or greater performance than ReGAT on various VQAv2 subtasks in \citeyear{huang2020aligned}. However, both of these models do not evaluate the effectiveness of GATs for scene graph processing using gold-standard scene graph information. This makes it difficult to determine how much of the reported performance gain over non-scene-graph-based models can be accredited to the GAT architecture, and how much is due to the inclusion of generated scene graph information.''}
+% \end{quote}
 
-\begin{itemize}
-    \item Provide a strong visual question answering baseline on GQA scene graphs for use with future scene graph generation methods
-    \item Representation of relationships as nodes to enable the use of node-based graph convolutions, with a guarantee worst-case time complexity.
-    \item Outperform human baseline, outperform ensemble methods by 14\% and over 26\% above single-model methods.
-\end{itemize}
-}
+% Contributions:
 
-I provide the full source code for my primary model and all reported ablations online at: \url{https://github.com/alexmirrington/gat-vqa}
+% \begin{itemize}
+%     \item Provide a strong visual question answering baseline on GQA scene graphs for use with future scene graph generation methods
+%     \item Representation of relationships as nodes to enable the use of node-based graph convolutions, with a guarantee worst-case time complexity.
+%     \item Outperform human baseline, outperform ensemble methods by 14\% and over 26\% above single-model methods.
+% \end{itemize}
+% }
+
+
