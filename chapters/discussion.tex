@@ -1,5 +1,133 @@
 \chapter{Analysis and Discussion}
 \label{chapter:discussion}
 
-In this chapter, I illuminate how my model arrives at an answer for a given question and scene graph. First, I illustrate how the scene graph processing module propagates data between object, attribute and relation nodes in the scene graph. Next I highlight the which question words the reasoning module attends to at each recurrent time-step, illustrating how complex questions are decomposed into smaller, discrete reasoning steps. Finally, I demonstrate which scene graph features the reasoning module attends to at each time-step, demonstrating that my model effectively extracts relevant scene graph information at each reasoning step. In addition, I present a variety of samples from the GQA dataset that my model failed to answer correctly to properly examine its failure modes and highlight areas for future research.
+In this chapter, I illuminate how my model arrives at an answer for a given question and scene graph. First, I illustrate how the scene graph processing module propagates data between object, attribute and relation nodes in the scene graph. Next I highlight the which question words the reasoning module attends to at each recurrent time-step, illustrating how complex questions are decomposed into smaller, discrete reasoning steps. Finally, I demonstrate which scene graph features the reasoning module attends to at each time-step, demonstrating that my model effectively extracts relevant scene graph information at each reasoning step. In addition, I present a variety of samples from the GQA dataset that my model failed to answer correctly as an error analysis exercise, with the goal of examining its failure modes and highlighting areas for future research.
 
+\section{Correctly Predicted Samples}
+
+\subsection{Logical Questions}
+
+As discussed in the previous chapter, my model architecture performs particularly well for questions that involve logical reasoning, achieving a logical question-type accuracy of 97.45\%, compared to an overall accuracy of 90.45\%. In this subsection, I delve into how my model answers these logical questions effectively, using the question-image pair in \figureautorefname{ \ref{fig:positive_logical_sample}} as an example.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/positive_logical/positive_logical.png}
+    \caption[A GQA sample that requires logical reasoning to answer correctly.]{A GQA sample that requires logical reasoning to answer correctly.\\\textbf{Q:} \textit{Does the dog look small and brown?} \textbf{A:} \textit{Yes}}
+    \label{fig:positive_logical_sample}
+\end{figure}
+
+The example in \figureautorefname{ \ref{fig:positive_logical_sample}} is a canonical example of the type of logical reasoning required my many questions in the GQA dataset. To answer the question correctly, the model ideally requires four reasoning steps: one reasoning step is required for locating the dog in the image, one step should determine whether the dog is small, one should determine if the dog is brown, and the last reasoning step should combine the second and third reasoning steps to determine if the dog is both small and brown.
+
+For this first example, I delve into how the learned GAT attention weights for each of the three scene graph processing GAT layers, for all four attention heads. The learned weights for the first, second and third GAT layers are visualised in \figureautorefname{ \ref{fig:positive_logical_gat_l0}}, \figureautorefname{ \ref{fig:positive_logical_gat_l1}} and \figureautorefname{ \ref{fig:positive_logical_gat_l2}} respectively. In \figureautorefname{ \ref{fig:positive_logical_gat_l0}}, we see that the first attention head focuses on the outgoing edges for the primary objects in the scene, \textit{e.g.} \textit{man, man} and \textit{dog}. The second attention head also focuses on edges that point from object nodes to relation nodes, attending to a wider range of objects than the first attention head. The third attention head focuses on attribute-to-object edges, and enriches object embeddings with useful attribute information \textit{e.g.} \textit{hair} \(\rightarrow\) \textit{black hair} and \textit{fur} \(\rightarrow\) \textit{brown fur}. The fourth attention head performs a similar task to the first, updating relation node embeddings with object information. After propagating the entire scene graph through the first GAT layer, the new node features now capture combinations of attributes and objects, as well as combinations of objects and relations. 
+ 
+The second GAT layer takes the features learned by the first layer, and captures second order interactions. The first and second attention heads attend to a combination of object-object edges, object-relation edges and attribute-object edges, as illustrated in \figureautorefname{ \ref{fig:positive_logical_gat_l1}}. Since the source nodes for most of the attended edges were not target nodes in many of the first layer attention heads, most of these interactions still capture first-order relationships between nodes in the graph. The third and fourth attention heads in the second GAT layer capture primarily object-object and object-relation edges, however some of their attended edges contain objects like \textit{surfboard} and \textit{hair}, which were enriched with attribute information by the first GAT layer. Consequently, propagating object information from the \textit{surfboard} or \textit{hair} nodes to other relation nodes results in the capturing of second-order interactions, like \textit{black hair of}. It is clear to see by now that the multiple heads across the two GAT layers are working together to capture complex semantic features.
+
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l0_h0.png}
+        \caption{Attention head 1}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l0_h1.png}
+        \caption{Attention head 2}
+    \end{subfigure}
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l0_h2.png}
+        \caption{Attention head 3}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l0_h3.png}
+        \caption{Attention head 4}
+    \end{subfigure}
+    \caption[GAT first layer attention weights.]{Scene graph processing module attention weights for the first GAT layer.}
+    \label{fig:positive_logical_gat_l0}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l1_h0.png}
+        \caption{Attention head 1}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l1_h1.png}
+        \caption{Attention head 2}
+    \end{subfigure}
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l1_h2.png}
+        \caption{Attention head 3}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l1_h3.png}
+        \caption{Attention head 4}
+    \end{subfigure}
+    \caption[GAT second layer attention weights.]{Scene graph processing module attention weights for the second GAT layer.}
+    \label{fig:positive_logical_gat_l1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l2_h0.png}
+        \caption{Attention head 1}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l2_h1.png}
+        \caption{Attention head 2}
+    \end{subfigure}
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l2_h2.png}
+        \caption{Attention head 3}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_gat_l2_h3.png}
+        \caption{Attention head 4}
+    \end{subfigure}
+    \caption[GAT final layer attention weights.]{Scene graph processing module attention weights for the final GAT layer.}
+    \label{fig:positive_logical_gat_l2}
+\end{figure}
+
+Continuing on, we see that the last GAT layer begins to capture relation-object edges, propagating information from relation nodes back to object nodes, as demonstrated in \figureautorefname{ \ref{fig:positive_logical_gat_l2}}. At this point, many relation nodes already store second-order graph information like \textit{black hair to the right of}, so fusing this data with existing object features leads to third-order interactions that capture entire relationships between two objects, with optional attribute information. For example, it is not unreasonable to expect that the node corresponding to the man on the right now represents the entire concept \textit{black hair of man}.
+
+After the last GAT layer we are left with a graph containing a large variety of semantic concepts that may be useful for answering any given question about the scene; all that needs to be done now is to determine which of these concepts are useful to the question at hand. This required both knowing about which question words are the most relevant for retrieving scene graph information, and knowing which nodes in the scene graph to attend to. These two tasks are handled by the reasoning module's control unit and read unit respectively, both of which are components of \citeauthor{hudson2018compositional}'s compositional attention network. \figureautorefname{ \ref{fig:positive_logical_control_attn}} highlights the question words that the reasoning module attends to with each recurrent time-step. Ideally, the attended words for each time-step will correspond to a discrete reasoning step, such as focusing on an object or attribute in the scene graph or performing some form of logical operation. \figureautorefname{ \ref{positive_logical_read_attn}} reveals the nodes that the reasoning module's read unit attend to at each recurrent time-step. If the model effectively uses the GAT outputs, we should see that the attended nodes correspond with the attended word features at each time step.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/positive_logical/positive_logical_control_attn.png}
+    \caption{Question attention weights, extracted from the control unit of the reasoning module.}
+    \label{fig:positive_logical_control_attn}
+\end{figure}
+
+As seen in \figureautorefname{ \ref{fig:positive_logical_control_attn}}, the reasoning module attends to the question word \textit{small} for the first two reasoning steps, and then shares its attention between the words \textit{small} and \textit{brown}. These results coincide with the ideal logical reasoning processes that I introduced at the start of the example. In the last reasoning step, the control unit attends to the word \textit{dog}, indicating it needs to locate the dog in the scene graph and verify whether it has a similar embedding to the two attributes \textit{small} and \textit{brown}. 
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_read_attn_0.png}
+        \caption{Reasoning step 1}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_read_attn_1.png}
+        \caption{Reasoning step 2}
+    \end{subfigure}
+    \begin{subfigure}[l]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_read_attn_2.png}
+        \caption{Reasoning step 3}
+    \end{subfigure}
+    \begin{subfigure}[r]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/positive_logical/positive_logical_read_attn_3.png}
+        \caption{Reasoning step 4}
+    \end{subfigure}
+    \caption[Scene graph attention weight for each reasoning step.]{Scene graph attention weight for each reasoning step.}
+    \label{fig:positive_logical_read_attn}
+\end{figure}
+
+Most importantly, the question words that the control unit attends to are also attended to in the scene graph, indicating that the model is grounding its reasoning processes in the scene graph. In \figureautorefname{ \ref{fig:positive_logical_read_attn}}, we see that the read unit of the reasoning module attends to the attribute \textit{small} in the scene graph, indicating that the control unit is performing as intended, guiding the retrieval of scene graph features. In the third reasoning step, we see the read unit focuses on the two attributes \textit{small} and \textit{brown}, coinciding with the third reasoning step of the control unit. Finally, we see the read unit attend to a variety of relation nodes in the graph. Whilst this seems unintuitive at first, it is essential to remember that the nodes in the graph are complex combinations of nearby node features; upon further inspection, we see that all of the relation nodes that are attended to in the final reasoning step are connected to the \textit{dog} node, indicating that they were provided with useful information about the \textit{dog} by GAT convolutions. The model then passes all of this information to the write cell and finally the output module, where it predicts the answer \textit{yes}.
+
+\section{Incorrectly Predicted Samples}
+
+
+
+\subsection{Logical Questions}
