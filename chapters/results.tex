@@ -38,7 +38,7 @@ As demonstrated in \tableautorefname{ \ref{table:performance_comparison}}, my mo
 
 For fairness of comparison, I split baseline model performance into two sections; all models in the upper section use only Faster R-CNN and/or bounding box information during evaluation time, where all models in the lower section have access to GQA scene graph object, attribute and relationship data.
 
-Stepping through each of the baselines in the upper section of \tableautorefname{ \ref{table:performance_comparison}}, it becomes evident how important the type of visual signal is for VQA models; we see that my model outperforms all four baselines that only have access to object and bounding box features by anywhere from 30.5\% in the case of LXMERT \cite{tang2019learning} to 24.37\% in the case of MSA \cite{farazi2020attention} when comparing overall accuracy. Since I use pre-annotated scene graphs from the GQA dataset as my model's visual signal, it makes sense that my model outperforms existing baselines that don't have access to this information. Moreover, we see that whilst my model outperforms MSA by 24.37\% in overall accuracy, the difference between the two models closes to only 9.24\% for binary-type questions, but grows to almost 50\% for open-type questions. Moreover, we see that my model has a much lower distribution than MSA, meaning it relies less on statistical priors in the dataset when forming its answers, and more on its visual input. Again, this is easily explained by the advantage of pre-annotated scene graph information. Interestingly, the difference in performance between my model and MSA on the validity and plausibility metrics is much less pronounced, at only 0.37\% and 2.91\% respectively. This is due to two primary reasons:
+Stepping through each of the baselines in the upper section of \tableautorefname{ \ref{table:performance_comparison}}, it becomes evident how important the type of visual signal is for VQA models; we see that my model outperforms all four baselines that only have access to object and bounding box features by anywhere from 30.5\% in the case of LXMERT \cite{tan2019lxmert} to 24.37\% in the case of MSA \cite{farazi2020attention} when comparing overall accuracy. Since I use pre-annotated scene graphs from the GQA dataset as my model's visual signal, it makes sense that my model outperforms existing baselines that don't have access to this information. Moreover, we see that whilst my model outperforms MSA by 24.37\% in overall accuracy, the difference between the two models closes to only 9.24\% for binary-type questions, but grows to almost 50\% for open-type questions. Moreover, we see that my model has a much lower distribution than MSA, meaning it relies less on statistical priors in the dataset when forming its answers, and more on its visual input. Again, this is easily explained by the advantage of pre-annotated scene graph information. Interestingly, the difference in performance between my model and MSA on the validity and plausibility metrics is much less pronounced, at only 0.37\% and 2.91\% respectively. This is due to two primary reasons:
 
 \begin{itemize}
     \item Validity and plausibility are much more forgiving metrics than accuracy. Validity is the most forgiving, since a model only has to provide an answer of the correct type \textit{e.g. provide a colour when the question about the colour of an object}. Plausibility is less forgiving than validity but still more forgiving than accuracy, since the provided answer has to make sense given the context of the question and image. As a result, the difference between validity for the two models is the smallest, followed by plausibility and then finally accuracy.
@@ -329,13 +329,12 @@ For questions about objects, we see that the GAT scene graph module outperforms 
     \centering
     \begin{subfigure}[l]{0.5\textwidth}
         \includegraphics[width=\textwidth]{accuracy_vs_question_length_scene_graph_ablation.png}
-        \label{fig:accuracy_vs_question_length_scene_graph_ablation}
     \end{subfigure}
     \begin{subfigure}[r]{0.49\textwidth}
         \includegraphics[width=\textwidth]{accuracy_vs_reasoning_steps_scene_graph_ablation.png}
-        \label{fig:accuracy_vs_reasoning_steps_scene_graph_ablation}
     \end{subfigure}
     \caption{Per-question-length and per-reasoning-step accuracy for various scene graph processing module types. The high performance of the right-hand tails in both cases are due to the small number of questions with a large number of words or reasoning steps, as illustrated in \figureautorefname{ \ref{fig:test_reasoning_step_and_question_length_distribution}}.}
+    \label{fig:accuracy_vs_reasoning_steps_scene_graph_ablation}
 \end{figure}
 
 \figureautorefname{ \ref{fig:accuracy_vs_reasoning_steps_scene_graph_ablation}} demonstrates the response of different scene graph processing modules to question length and complexity. As expected, the GAT module outperforms the other modules, and maintains reasonable performance as question length and reasoning step count increases. Moreover, we see that the GCN consistently decreases the performance of the model as a whole, regardless of question length or complexity. The BiLSTM module performs well for smaller question lengths and smaller reasoning step counts, but its performance rapidly decreases as the question word count increases. This is primarily due to its inability to capture interactions between objects as previously discussed, as these interactions are more common in longer questions.
@@ -343,20 +342,21 @@ For questions about objects, we see that the GAT scene graph module outperforms 
 \section{Hyperparameter Optimisation}
 \label{sec:hyperparameter_optimisation}
 
-Rigorous initial tests were performed - reported and non-reported results represent 159 days of GPU computation time.
+In this \sectionautorefname, I briefly introduce the parameter optimisation process that I used to arrive at the final set of model parameters described in \subsectionautorefname{ \ref{sec:implementation_details}}. Prior to parameter optimisation, I performed extensive initial tests; when combined with the results reported in this dissertation, a total of 160 days of GPU computation time was used for training and evaluating models.
 
-These results represent a total of 55 days of GPU compute
-
-{\color{red}
-  \begin{itemize}
-    \item \textit{Weights \& Biases} \cite{wandb} implementation of bayesian optimisation, using the hyperband early stopping method
-    \item Include results using LeakyReLU between GAT layers?
-  \end{itemize}
-}
-
-
+Due to the large number of parameters in my model, I used a bayesian optimisation process, using the hyperband \cite{li2017hyperband} early stopping method. All experiments were tracked using \textit{Weights \& Biases} \cite{wandb}, so I used the \textit{Weights \& Biases} implementation of bayesian optimisation, using hyperband with \(\eta = 2\) and the first cutoff iteration set to 3. Consequently, trained models were automatically stopped if they performed worse than half of the existing trained models. 
 
 The effects of the Hyperband method are clearly seen in \figureautorefname{ \ref{fig:hyperparameter_optimisation_validation_loss_and_accuracy}}, where only a few models are trained to completion and less promising models are stopped earlier to encourage exploration of the hyperparameter search space.
+
+I optimised a total of 10 different parameters during the parameter optimisation process, as illustrated in \ref{fig:hyperparam_importance_and_correlation}; As expected, the learning process was extremely sensitive to the learning rate, due to the large amount of attention computations in the model. In general, I found that more attention heads for the scene graph module helped stabilise the training, as illstrated by its negative correlation with validation loss as illustrated in \figureautorefname{ \ref{fig:hyperparam_importance_and_correlation}}.
+
+For more details on the hyperparameter optimisation process, I refer the reader to my model's source code. \footnote{\url{https://github.com/alexmirrington/gat-vqa}}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{hyperparam_importance_and_correlation.png}
+    \caption[Esimated parameter importance and correlation]{Hyperparameter importance with respect to validation loss. Correlation is the linear correlation between each parameter and the validation loss, between -1 and 1. Parameter importance a value between 0 and 1, estimated by \textit{Weights \& Biases} \cite{wandb} by training a random forest classifier using configuration parameters as features and the validation loss as the target prediction.}
+    \label{fig:hyperparam_importance_and_correlation}
+\end{figure}
 
 \begin{figure}
     \centering
@@ -372,63 +372,54 @@ The effects of the Hyperband method are clearly seen in \figureautorefname{ \ref
         \label{fig:hyperparameter_optimisation_validation_accuracy}
         \caption{Validation accuracy throughout the hyperparameter optimisation process. Greyed out points correspond to models with a loss greater than 10.}
     \end{subfigure}
-    \caption{A summary of validation loss and accuracy throughout the hyperparameter optimisation process. Each point represents a trained model, and its colour indicates how many epochs the model was trained for.}
+    \caption[Hyperparameter optimisation using the hyperband early stopping method.]{A summary of validation loss and accuracy throughout the hyperparameter optimisation process. Each point represents a trained model, and its colour indicates how many epochs the model was trained for.}
     \label{fig:hyperparameter_optimisation_validation_loss_and_accuracy}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{hyperparam_importance_and_correlation.png}
-    \caption{Hyperparameter importance with respect to validation loss. Correlation is the linear correlation between each parameter and the validation loss, between -1 and 1. Parameter importance a value between 0 and 1, estimated by \textit{Weights \& Biases} \cite{wandb} by training a random forest classifier using configuration parameters as features and the validation loss as the target prediction.}
-    \label{fig:hyperparam_importance_and_correlation}
-\end{figure}
-
-{\color{red} TODO: Correlation does not necessarily imply causation for parameter correlation to validation loss in \figureautorefname{ \ref{fig:hyperparam_importance_and_correlation}}}
-
-\begin{figure}
-    \centering
-    \begin{subfigure}[l]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{hyperparam_trainable_question_embedding_loss.png}
-        \label{fig:hyperparam_trainable_question_embedding_loss}
-        \caption{Validation Loss}
-    \end{subfigure}
-    \begin{subfigure}[r]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{hyperparam_trainable_question_embedding_accuracy.png}
-        \label{fig:hyperparam_trainable_question_embedding_accuracy}
-        \caption{Validation Accuracy}
-    \end{subfigure}
-    \caption{}
-    \label{fig:hyperparam_trainable_question_embedding_loss_and_accuracy}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[l]{0.5\textwidth}
+%         \includegraphics[width=\textwidth]{hyperparam_trainable_question_embedding_loss.png}
+%         \label{fig:hyperparam_trainable_question_embedding_loss}
+%         \caption{Validation Loss}
+%     \end{subfigure}
+%     \begin{subfigure}[r]{0.49\textwidth}
+%         \includegraphics[width=\textwidth]{hyperparam_trainable_question_embedding_accuracy.png}
+%         \label{fig:hyperparam_trainable_question_embedding_accuracy}
+%         \caption{Validation Accuracy}
+%     \end{subfigure}
+%     \caption{}
+%     \label{fig:hyperparam_trainable_question_embedding_loss_and_accuracy}
+% \end{figure}
  
-\begin{figure}
-    \centering
-    \begin{subfigure}[l]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{hyperparam_trainable_scene_embedding_loss.png}
-        \label{fig:hyperparam_trainable_scene_embedding_loss}
-        \caption{Validation Loss}
-    \end{subfigure}
-    \begin{subfigure}[r]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{hyperparam_trainable_scene_embedding_accuracy.png}
-        \label{fig:hyperparam_trainable_scene_embedding_accuracy}
-        \caption{Validation Accuracy}
-    \end{subfigure}
-    \caption{}
-    \label{fig:hyperparam_trainable_scene_embedding_loss_and_accuracy}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[l]{0.5\textwidth}
+%         \includegraphics[width=\textwidth]{hyperparam_trainable_scene_embedding_loss.png}
+%         \label{fig:hyperparam_trainable_scene_embedding_loss}
+%         \caption{Validation Loss}
+%     \end{subfigure}
+%     \begin{subfigure}[r]{0.49\textwidth}
+%         \includegraphics[width=\textwidth]{hyperparam_trainable_scene_embedding_accuracy.png}
+%         \label{fig:hyperparam_trainable_scene_embedding_accuracy}
+%         \caption{Validation Accuracy}
+%     \end{subfigure}
+%     \caption{}
+%     \label{fig:hyperparam_trainable_scene_embedding_loss_and_accuracy}
+% \end{figure}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}[l]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{hyperparam_skip_edges_loss.png}
-        \label{fig:hyperparam_skip_edges_loss}
-        \caption{Validation Loss}
-    \end{subfigure}
-    \begin{subfigure}[r]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{hyperparam_skip_edges_accuracy.png}
-        \label{fig:hyperparam_skip_edges_accuracy}
-        \caption{Validation Accuracy}
-    \end{subfigure}
-    \caption{}
-    \label{fig:hyperparam_skip_edges_loss_and_accuracy}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[l]{0.5\textwidth}
+%         \includegraphics[width=\textwidth]{hyperparam_skip_edges_loss.png}
+%         \label{fig:hyperparam_skip_edges_loss}
+%         \caption{Validation Loss}
+%     \end{subfigure}
+%     \begin{subfigure}[r]{0.49\textwidth}
+%         \includegraphics[width=\textwidth]{hyperparam_skip_edges_accuracy.png}
+%         \label{fig:hyperparam_skip_edges_accuracy}
+%         \caption{Validation Accuracy}
+%     \end{subfigure}
+%     \caption{}
+%     \label{fig:hyperparam_skip_edges_loss_and_accuracy}
+% \end{figure}

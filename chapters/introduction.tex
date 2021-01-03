@@ -55,8 +55,26 @@ For this reason, I focus solely on the the visual question answering task in thi
 
 \section{Contributions}
 
-{\color{red}Summary of main contributions to the field.}
+My primary contributions to the VQA field are three-fold:
 
-\section{Outline}
+\begin{enumerate}
+    \item I propose a scene graph transformation method that allows object-object relationships to be embedded as nodes alongside object and attribute embeddings. This allows node-based graph convolutions to operate on the modified scene graph, capturing contextual object, attribute and relationship information. Moreover, I provide a theoretical upper bound on the time complexity of applying GAT convolutions on the modified scene graph; given an original scene graph \(r\) containing \(r_o\) objects, \(r_a\) attributes and \(r_r\) relations, we define \(\rho = \frac{r_r}{r_o}\), and \(F\) to be the input dimension of a given GAT layer. Given that my graph transformation method yields a new graph \(\mathcal{G}_r\), I prove that performing a GAT convolution on \(\mathcal{G}_r\) is in the order of \(\min\{\rho, F\}\) times slower than performing a GAT convolution on \(r\). For the GQA, \(\rho \approx 3\), meaning that performing GAT convolutions on \(\mathcal{G}_r\) is both feasible and effective, as it allows traditional node-based convolutions to operate on what would usually be an edge embedding.
+    \item I present a new, simple and effective  VQA model that combines my novel graph transformation method, a graph attention network, a question processing module such as a BiLSTM, and a compositional attention network. When evaluated on the GQA dataset, it outperforms existing scene-graph oriented models on the top-1 accuracy measure by over 9\%, as well as current state-of-the-art image-based ensemble methods\footnote{According to the GQA leaderboard \cite{gqachallenge}} by over 14\%, and outperforms even human accuracy by 1\%, binary question type accuracy by almost 0.4\%, and open-type accuracy by 1.7\%.
+    \item In the spirit of reproducibility, I provide the full source code for my primary model architecture and various ablations online at \url{https://github.com/alexmirrington/gat-vqa}.
+\end{enumerate}
 
-{\color{red}Overall thesis outline.}
+\section{Thesis Structure}
+
+In the introduction to this dissertation, I provide an overview of the VQA problem and its uses, before introducing a variety of VQA datasets and methods to provide the reader with an understanding of the breadth of the field.
+
+In \chapterautorefname{ \ref{chapter:literature}}, I delve further into the design decisions behind various VQA datasets, focusing on how these datasets are created at such a large scale whilst still remaining relatively unbiased in their question and answer distributions, as well as how different authors approach the concept of scene graphs for VQA. Next, I expand on the VQA model architectures mentioned in the discussion that inspire or form part of my model architecture, before finalising the literature review with a summary of various evaluation metrics for different VQA tasks.
+
+In \chapterautorefname{ \ref{chapter:methodology}}, I introduce my model architecture, describing its four main components: the question embedding and processing module, the scene graph embedding and processing module, the reasoning module, and the output module. I also analyse the complexity of my scene graph embedding process in this chapter, and summarise the primary motivations behind the inclusion of each model component.
+
+In \chapterautorefname{ \ref{chapter:evaluation}}, I introduce the GQA dataset in more detail, before providing a brief overview of the baseline VQA methods that I compare my model's performance against. Finally, I provide a detailed list of my model's parameter configuration, including its dataset vocabulary sizes, training schedule and optimisation method.
+
+In \chapterautorefname{ \ref{chapter:results}}, I report and comment on the performance of my model compared to baseline models for a variety of metrics. Moreover, I provide details about the ablation studies I performed, presenting empirical evidence to support my model architecture design decisions. Finally, I provide a brief overview of the parameter optimisation process I used to obtain the set of final model parameters introduced in \chapterautorefname{ \ref{chapter:evaluation}}.
+
+In \chapterautorefname{ \ref{chapter:discussion}}, I analyse how my model arrives at an answer given a scene graph and a question, delving into the attention maps used to support the reasoning processes of the scene graph processing module and reasoning modules.
+
+Finally, in \chapterautorefname{ \ref{chapter:conclusion}}, I provide closing remarks on the primary observations of each chapter in this dissertation, and briefly explore potential directions for future research.

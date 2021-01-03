@@ -217,7 +217,7 @@ object and relationship labels as the foundation of its semantic relationship si
 
 
 \section{Implementation Details}
-
+\label{sec:implementation_details}
 In this section, I provide relevant details about the implementation of my architecture, from its vocabulary construction through to its parameter configuration and optimisation method. I refer the reader to \chapterautorefname{ \ref{chapter:methodology}} for model-specific nomenclature used in this section, and to \appendixautorefname{ \ref{appendix:resources}} for the source code used to collect all results.
 
 I build a question vocabulary of 2,912 case-sensitive words, and a scene graph vocabulary of \(|S_o| = 1703\) unique objects, \(|S_a| = 617\) unique attributes and \(|S_r| = 310\) unique relations using the combined train and validation questions and scene graph annotations respectively. Moreover, the output module of my architecture predicts an answer from one of 1,842 possible answers in the combined balanced train and validation sets, slightly less than the 1,878 answers in the full GQA set.

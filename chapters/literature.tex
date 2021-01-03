@@ -216,32 +216,32 @@ I summarise the most common VQA datasets along with their image sources, questio
   \end{footnotesize}
 \end{landscape}
 
-\subsubsection{DAQUAR}
+% \subsubsection{DAQUAR}
 
-As the first of many VQA datasets, \textit{the DAtaset for QUestion Answering on Real-world images} (DAQUAR) was born from a desire to combine the advances of the computer vision (CV) and natural language processing (NLP) communities and tackle more complex problems. DAQUAR draws its images from the NYU-Depth V2 dataset, utilising its depth information to automatically segment and classify objects in the image. Interestingly, DAQUAR employs both question templates for automatic question generation as well as human-provided questions and answers, separating them into ``SynthQA'' and ``HumanQA'' benchmarks respectively.
+% As the first of many VQA datasets, \textit{the DAtaset for QUestion Answering on Real-world images} (DAQUAR) was born from a desire to combine the advances of the computer vision (CV) and natural language processing (NLP) communities and tackle more complex problems. DAQUAR draws its images from the NYU-Depth V2 dataset, utilising its depth information to automatically segment and classify objects in the image. Interestingly, DAQUAR employs both question templates for automatic question generation as well as human-provided questions and answers, separating them into ``SynthQA'' and ``HumanQA'' benchmarks respectively.
 
-Whilst ahead of its time, DAQUAR has two primary issues that have hindered its widespread adoption:
-\begin{enumerate}
-    \item \textbf{Size}: As shown in \tableautorefname{ \ref{tab:dataset_comparison}}, DAQUAR contains only 1,449 images and 12,468 questions. This makes it infeasible for modern deep-learning based methods and also limits the ability for VQA models trained on DAQUAR to generalise to new question-image pairs.
-    \item \textbf{Question Variety}: Whilst there is plenty of variety in the ``HumanQA'' benchmark, images in the ``SynthQA'' benchmark are associated with one of four question types, each with their own template as shown in \tableautorefname{ \ref{table:daquar_templates}}.
-\end{enumerate}
+% Whilst ahead of its time, DAQUAR has two primary issues that have hindered its widespread adoption:
+% \begin{enumerate}
+%     \item \textbf{Size}: As shown in \tableautorefname{ \ref{tab:dataset_comparison}}, DAQUAR contains only 1,449 images and 12,468 questions. This makes it infeasible for modern deep-learning based methods and also limits the ability for VQA models trained on DAQUAR to generalise to new question-image pairs.
+%     \item \textbf{Question Variety}: Whilst there is plenty of variety in the ``HumanQA'' benchmark, images in the ``SynthQA'' benchmark are associated with one of four question types, each with their own template as shown in \tableautorefname{ \ref{table:daquar_templates}}.
+% \end{enumerate}
 
 
-\begin{table}[htbp]
-    \centering
-    \begin{tabular}{cl}
-        \toprule
-        \textbf{Question Type} & \textbf{Template} \\
-        \midrule
-        Counting & How many \{object\} are in \{image\}?\\
-        Counting with colours & How many \{colour\} \{object\} are in \{image\}?\\
-        Room type & Which type of the room is depicted in \{image\}?\\
-        Superlative comparison & What is the largest \{object\} in \{image\}?\\
-        \bottomrule
-    \end{tabular}
-    \caption[DAQUAR Question templates from, adapted from \cite{malinowski2014multiworld}]{DAQUAR question templates from the ``SynthQA'' benchmark that target the contents of a single image, adapted from \cite{malinowski2014multiworld}.}
-    \label{table:daquar_templates}
-\end{table}
+% \begin{table}[htbp]
+%     \centering
+%     \begin{tabular}{cl}
+%         \toprule
+%         \textbf{Question Type} & \textbf{Template} \\
+%         \midrule
+%         Counting & How many \{object\} are in \{image\}?\\
+%         Counting with colours & How many \{colour\} \{object\} are in \{image\}?\\
+%         Room type & Which type of the room is depicted in \{image\}?\\
+%         Superlative comparison & What is the largest \{object\} in \{image\}?\\
+%         \bottomrule
+%     \end{tabular}
+%     \caption[DAQUAR Question templates from, adapted from \cite{malinowski2014multiworld}]{DAQUAR question templates from the ``SynthQA'' benchmark that target the contents of a single image, adapted from \cite{malinowski2014multiworld}.}
+%     \label{table:daquar_templates}
+% \end{table}
 
 % \textbf{VQAv1} \cite{antol2015vqa} Real images were drawn from COCO \cite{lin2014microsoft}, and . Questions and answers were collected using an Amazon Mechanical Turk (AMT) interface.
 
@@ -758,7 +758,7 @@ The grounding metric for any \((q_i, r_i)\) pair in a dataset is defined as the 
     }
 \end{algorithm}
 
-Unfortunately, any VQA model that does not use attention-based mechanisms to attend to regions or objects in an image cannot be evaluated using the grounding metric. This limitation is becoming more important, as more recent models have adopted graph-based representations of visual inputs instead of spatial or object-based image features. For this reason, I do not report grounding metric results for my model in \chapterautorefname{ \ref{chap:results}}.
+Unfortunately, any VQA model that does not use attention-based mechanisms to attend to regions or objects in an image cannot be evaluated using the grounding metric. This limitation is becoming more important, as more recent models have adopted graph-based representations of visual inputs instead of spatial or object-based image features. For this reason, I do not report grounding metric results for my model in \chapterautorefname{ \ref{chapter:results}}.
 
 \subsubsection{Distribution}
 
