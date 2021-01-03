@@ -1,4 +1,5 @@
 \chapter{Analysis and Discussion}
 \label{chapter:discussion}
 
-In this chapter, I aim to illuminate how my model arrives at an answer based on its question and scene graph inputs.
+In this chapter, I illuminate how my model arrives at an answer for a given question and scene graph. First, I illustrate how the scene graph processing module propagates data between object, attribute and relation nodes in the scene graph. Next I highlight the which question words the reasoning module attends to at each recurrent time-step, illustrating how complex questions are decomposed into smaller, discrete reasoning steps. Finally, I demonstrate which scene graph features the reasoning module attends to at each time-step, demonstrating that my model effectively extracts relevant scene graph information at each reasoning step. In addition, I present a variety of samples from the GQA dataset that my model failed to answer correctly to properly examine its failure modes and highlight areas for future research.
+

@@ -323,9 +323,6 @@ In \tableautorefname{ \ref{table:scene_graph_ablation_semantic}}, we see that th
 
 For questions about objects, we see that the GAT scene graph module outperforms the GCN module by almost 10\% indicating the importance of attention weights in establishing which object, attribute and relationship interactions are important. Moreover, the GAT module outperforms the BiLSTM module and raw GloVe features by almost 1.7\% and 2.2\% respectively, indicating the benefits of enriching object features with attribute and relationship information. We see that the GCN module performs poorly again, at 21.17\% and 24.26\% worse than the GAT module for questions about attributes and relations respectively. As expected, the absence of a scene graph processing module makes it difficult to associate relation or attribute features with an object, explaining the poor attribute-type and relation-type accuracies when using only GloVe embeddings. As discussed previously, the BiLSTM scene graph module is able to capture first order interactions between objects and their attributes and/or relations, but struggles to capture second-order interactions, explaining the 7.51\% and 9.49\% performance decrease for questions about attributes and relations when compared to the GAT module.
 
-Finally, we see that questions about object categories
-
-
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[l]{0.5\textwidth}
@@ -338,6 +335,8 @@ Finally, we see that questions about object categories
     \end{subfigure}
     \caption{Per-question-length and per-reasoning-step accuracy for various scene graph processing module types. The high performance of the right-hand tails in both cases are due to the small number of questions with a large number of words or reasoning steps, as illustrated in \figureautorefname{ \ref{fig:test_reasoning_step_and_question_length_distribution}}.}
 \end{figure}
+
+\figureautorefname{ \ref{fig:accuracy_vs_reasoning_steps_scene_graph_ablation}} demonstrates the response of different scene graph processing modules to question length and complexity. As expected, the GAT module outperforms the other modules, and maintains reasonable performance as question length and reasoning step count increases. Moreover, we see that the GCN consistently decreases the performance of the model as a whole, regardless of question length or complexity. The BiLSTM module performs well for smaller question lengths and smaller reasoning step counts, but its performance rapidly decreases as the question word count increases. This is primarily due to its inability to capture interactions between objects as previously discussed, as these interactions are more common in longer questions.
 
 \section{Hyperparameter Optimisation}
 \label{sec:hyperparameter_optimisation}
