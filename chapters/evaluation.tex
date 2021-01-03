@@ -121,15 +121,15 @@ The semantic type of a question is related to its subject; questions belonging t
 
 I delve into the semantic and structural question type distributions for the portion of the GQA dataset used for result collection in \sectionautorefname{ \ref{sec:ablation_studies}}, as it is important to consider when comparing model performance on different types of questions.
 
-From the dataset analysis above, there are a few hypotheses that we can make about how my model might perform for various question types:
+% From the dataset analysis above, there are a few hypotheses that we can make about how my model might perform for various question types:
 
-\begin{enumerate}
-    \item Given that binary questions are generally easier to answer than open questions, we should see a higher accuracy on binary questions than open-type questions for my model architecture and variations thereof.
-    \item Since my model architecture only uses object, attribute and relation scene graph information as its visual signal, we should see lower performance on questions belonging to the \textit{global} semantic when compared to questions belonging to the \textit{object}, \textit{attribute} or \textit{relation} semantic types.
-    \item My model should perform well on questions belonging to the \textit{verify} or \textit{logical} structural types, as they mostly require reasoning over a localised neighbourhood of object, relations and attributes, and are only applicable to binary question types.
-\end{enumerate}
+% \begin{enumerate}
+%     \item Given that binary questions are generally easier to answer than open questions, we should see a higher accuracy on binary questions than open-type questions for my model architecture and variations thereof.
+%     \item Since my model architecture only uses object, attribute and relation scene graph information as its visual signal, we should see lower performance on questions belonging to the \textit{global} semantic when compared to questions belonging to the \textit{object}, \textit{attribute} or \textit{relation} semantic types.
+%     \item My model should perform well on questions belonging to the \textit{verify} or \textit{logical} structural types, as they mostly require reasoning over a localised neighbourhood of object, relations and attributes, and are only applicable to binary question types.
+% \end{enumerate}
 
-I will discuss these hypotheses in detail in \sectionautorefname{ \ref{sec:ablation_studies}}.
+% I will discuss these hypotheses in detail in \sectionautorefname{ \ref{sec:ablation_studies}}.
 
 \section{Baselines}
 
