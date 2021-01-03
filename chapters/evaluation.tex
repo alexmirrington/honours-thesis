@@ -133,7 +133,7 @@ I delve into the semantic and structural question type distributions for the por
 
 \section{Baselines}
 
-To gain a better understanding of how my well my model architecture performs on the GQA dataset, I compare it to a variety of current baseline and state-of-the-art methods in \chapterautorefname{ \ref{chapter:results}}. To understand why some models perform better than others, I introduce these baseline VQA models in this section, summarising their key components and highlighting the type of visual data that they use for the VQA task.
+To gain a better understanding of how well my model architecture performs on the GQA dataset, I compare it to a variety of current baseline and state-of-the-art methods in \chapterautorefname{ \ref{chapter:results}}. To understand why some models perform better than others, I introduce these baseline VQA models in this section, summarising their key components and highlighting the type of visual data that they use for the VQA task.
 
 \textbf{LXMERT} \cite{tan2019lxmert}: Motivated by the success of transformer-based models \cite{vaswani2017attention} for Natural Language Processing (NLP) tasks, \citeauthor{tan2019lxmert} built LXMERT for learning general multi-modal representations. In the context of VQA, the LXMERT model uses two self-attention transformer encoders and one cross-modality transformer encoder. The first self-attention encoder is responsible for attending to Faster R-CNN \cite{ren2016faster} and bounding box features, and the second second is a language encoder, which attends to word features. The outputs of these encoders are fed to the cross-modality encoder, which employs a bi-directional attention flow between the visual and textual encodings to align the two modalities, followed by separate self-attention layers to allow the model to attend to any newly-discovered important features after multi-modal alignment.
 
@@ -154,7 +154,7 @@ To show the effectiveness of these joint representations, the authors collect mu
 \textbf{Mutual and Self Attention (MSA)} \cite{farazi2020attention}: The three primary inputs to the MSA model are a question representation \(q\), a visual representation \(v\) and a collection of semantic relationships \(r\). From these inputs, the MSA module computes eight attention distributions which it fuses together, four from \(q\) and \(r\), and four from \(q\) and \(v\). Taking \(q\) and \(r\) as an example, the MSA module computes the following:
 
 \begin{itemize}
-    \item The attention distribution over \(q\), guided by a fused representation of \(q\) and \(r\), called \textit{mutual attention}. This captures which part of the question are important to the combined question and relationship features.
+    \item The attention distribution over \(q\), guided by a fused representation of \(q\) and \(r\), called \textit{mutual attention}. This captures which parts of the question are important to the combined question and relationship features.
     \item The attention distribution over \(r\), guided by a fused representation of \(q\) and \(r\). This captures which relationship features are important to the combined question and relationship embeddings.
     \item The attention distribution over \(q\), guided by self-attended question features \(\psi_{q, q}\). This emphasises the most important parts of the question.
     \item The attention distribution over \(r\), guided by a linear transformation of \(\psi_{r, q}\), where \(\psi_{r, q}\) is a multi-head attention distribution over \(r\), guided by \(q\). This emphasises relationship features that are deemed important to answering the question.
@@ -218,11 +218,11 @@ object and relationship labels as the foundation of its semantic relationship si
 
 \section{Implementation Details}
 \label{sec:implementation_details}
-In this section, I provide relevant details about the implementation of my architecture, from its vocabulary construction through to its parameter configuration and optimisation method. I refer the reader to \chapterautorefname{ \ref{chapter:methodology}} for model-specific nomenclature used in this section, and to \appendixautorefname{ \ref{appendix:resources}} for the source code used to collect all results.
+In this section, I provide relevant details about the implementation of my architecture, from its vocabulary construction through to its parameter configuration and optimisation method. I refer the reader to \chapterautorefname{ \ref{chapter:methodology}} for model-specific nomenclature used in this section.
 
 I build a question vocabulary of 2,912 case-sensitive words, and a scene graph vocabulary of \(|S_o| = 1703\) unique objects, \(|S_a| = 617\) unique attributes and \(|S_r| = 310\) unique relations using the combined train and validation questions and scene graph annotations respectively. Moreover, the output module of my architecture predicts an answer from one of 1,842 possible answers in the combined balanced train and validation sets, slightly less than the 1,878 answers in the full GQA set.
 
-In both the question and scene graph embedding modules, I use \(d_{H_q} = d_{H_r} = 300\)-dimensional GloVe vectors \cite{pennington2014glove} to embed all words. In the event where a question token or scene graph object, attribute or relation comrises multiple words \textit{e.g. to the right of}, I represent that token as an average of the GloVe embeddings of its individual words.
+In both the question and scene graph embedding modules, I use \(d_{H_q} = d_{H_r} = 300\)-dimensional GloVe vectors \cite{pennington2014glove} to embed all words. In the event where a question token or scene graph object, attribute or relation comprises multiple words \textit{e.g. to the right of}, I represent that token as an average of the GloVe embeddings of its individual words.
 
 The question processing module is a single-layer bi-directional LSTM \cite{hochreiter1997long} with input dimension \(d_{H_q} = 300\). Each direction of the BiLSTM has a hidden dimension of \(\frac{d_{K_q}}{2}\), where \(d_{K_q} = 256\) is the dimension of each token in the question knowledge-base \(K_q\). To avoid processing the vectors used for padding and consequently ruining question embeddings, I use PyTorch's inbuilt \texttt{pack\_squence} function. \cite{paszke2019pytorch}
 
