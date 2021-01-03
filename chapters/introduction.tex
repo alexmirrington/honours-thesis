@@ -43,32 +43,15 @@ As evident in \figureautorefname{ \ref{fig:dataset_samples}}, this question is s
 
 Assuming we do have an ideal dataset that effectively models real-world VQA problems, we need some way of combining both visual and textual data in a way that enables a model to perform the complex reasoning required for answer formulation.
 
-{\color{red} TODO: Complete}
+A wide variety of VQA models have been proposed for this task over the last few years, with each approaching the task from a different angle. Early VQA methods relied on convolutional neural network (CNN) features such as those obtained from ResNet \cite{he2016deep} or object-based features such as those obtained from Faster R-CNN \cite{ren2016faster}. In addition, they leveraged recurrent models such as Long Short Term Memory (LSTM) \cite{hochreiter1997long} networks or Gated Recurrent Units (GRU) \cite{cho2014learning} as question embeddings. Many researchers proposed different ways to fuse these image and question features, with the three main categories being attention-based methods, fusion-based methods and graph-based methods.
 
-% Fusion methods
-% Bilinear
-% Concat
-% Attention
-% Module networks
+Attention-based methods started out as simple pointwise multiplications \cite{antol2015vqa}, or question-guided image attention mechanisms \cite{anderson2018bottom}, before progressing to self-attention \cite{hudson2018compositional}, transformer-style attention \cite{vaswani2017attention}, co-attention \cite{lu2016hierarchical, yu2019deep} and bilinear attention \cite{kim2018bilinear} mechanisms.
 
-% Question representations
-% RNN/GRU/LSTM & bidirectional variants
-% GCN/GAT (more recent)
-%   Dependency parser inputs
-%   Other embeddings e.g. contextual etc
-% Raw GloVe
-% Raw learnable embeddings
+Where attention mechanisms like co-attention and bilinear attention aim to highlight which parts of the image are important to the question and vice-versa, fusion methods aim to project the question and image domains onto a single semantic space. Simple fusion methods such as concatenation appear everywhere in the VQA field, however dedicated fusion methods like MUTAN \cite{ben2017mutan} and BLOCK \cite{ben2019block} aim to approximate more effective but expensive bilinear fusion methods by using various tensor decompositions.
 
-% Image representations
-% CNN
-% Faster R-CNN / Mask R-CNN
-% Graph R-CNN
-% Hesitance to use gold-standard graph embeddngs.
+With the inclusion of scene graphs in various VQA datasets, VQA research has more recently shifted more towards graphical methods, which leverage Graph Convolutional Networks (GCN) \cite{kipf2016semi} or Graph Attention Networks (GAT) \cite{velivckovic2017graph} for capturing contextual relationships between image object, attribute and relationship information. Methods like Relation Aware Graph Attention networks (ReGAT) \cite{li2019relation} and Dual-Channel GCN (DC-GCN) \cite{huang2020aligned} have proven effective on popular datasets like VQAv2 \cite{goyal2017making} and VQA-CP \cite{agrawal2018dont}. With an increase in graph-based VQA models has come an increase in scene-graph generation methods, which focus on generating scene graphs from images. However, as mentioned briefly in the abstract, many graph-based VQA models use arbitrary scene graph generation methods in addition to experimenting with new question answering architectures, making it difficult to determine whether performance increases are due to improved scene graph generation methods or improved visual reasoning models.
 
-% GQA sample
-% "19274091": {"semantic": [{"operation": "select", "dependencies": [], "argument": "chair (219758)"}, {"operation": "relate", "dependencies": [0], "argument": "furniture,to the right of,s (219755)"}, {"operation": "query", "dependencies": [1], "argument": "name"}], "entailed": ["19274090", "19274092", "19274064", "19274089", "19274228"], "equivalent": ["19274091"], "question": "What kind of furniture is to the right of the chair?", "imageId": "2410353", "isBalanced": true, "groups": {"global": "furniture", "local": "15-chair_to the right of,s"}, "answer": "sofa", "semanticStr": "select: chair (219758)->relate: furniture,to the right of,s (219755) [0]->query: name [1]", "annotations": {"answer": {"0": "219755"}, "question": {"3": "219755"}, "fullAnswer": {"1:4": "219755", "6": "219755"}}, "types": {"detailed": "categoryRelS", "semantic": "rel", "structural": "query"}, "fullAnswer": "The piece of furniture is a sofa."}
-
-% Given the research challenge and practical applications of the visual question answering (VQA) task, I believe it is a great candidate for my own research. Over the last few years, the deep learning and natural language processing communities have realised a variety of VQA models, and new VQA datasets have been created over time to accommodate for both the increasing capabilities VQA models, and the shortcomings of existing VQA datasets that models have learned to exploit. In this literature review, I delve into both the methods used to generate some of the most popular VQA datasets as well as the image and question representations used by numerous state-of-the-art models, with the aim of emphasising the importance of graph structures for visual reasoning tasks; the more recent, challenging VQA datasets such as CLEVR \cite{johnson2017clevr} and GQA \cite{hudson2019gqa} leverage graph structures grounded in images for the generation of questions, suggesting that models could leverage graph structures in the question answering process. Many state-of-the-art models \cite{hudson2018compositional} still rely on CNN features and traditional word embeddings as data inputs, or at best, leverage image scene graphs to aid the learning process. I propose that by mapping both images and questions to interpretable graph structures that adequately capture the relationships between objects and concepts present in the input data, VQA models will be able to focus on the reasoning steps required to solve the problem rather than trying to identify object relationships and learn valid reasoning processes simultaneously.
+For this reason, I focus solely on the the visual question answering task in this dissertation, in an effort to demonstrate the effectiveness of graph-based methods like GATs for visual reasoning. To build my VQA model, I rely heavily on datasets like GQA \cite{hudson2018compositional}, which come with pre-annotated scene graphs, and draw inspiration from existing attention-based and graph-based architectures. Consequently, I devote a large portion of \chapterautorefname{ \ref{chapter:literature}} to exploring various VQA datasets and prevalent graph-based VQA methods to better understand why scene graphs in combination with graph-based models perform so well for VQA tasks.
 
 \section{Contributions}
 
