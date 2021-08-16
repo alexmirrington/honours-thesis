@@ -7,6 +7,12 @@
       alt="Visualise using Weights & Biases"
     />
   </a>
+  <a href="https://github.com/alexmirrington/gat-vqa">
+    <img
+       src="https://img.shields.io/github/stars/alexmirrington/gat-vqa?label=code&style=social"
+       alt="GitHub Repo stars"
+    />
+  </a>
 </p>
 
 ----------------------
